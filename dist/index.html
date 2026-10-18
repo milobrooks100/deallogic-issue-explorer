@@ -1,0 +1,483 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="A prototype for structured M&A issue analysis." />
+    <title>DealLogic — Issue Explorer</title>
+    <script type="module" src="https://cdn.jsdelivr.net/npm/emoji-picker-element@1/index.js"></script>
+    <style>
+      :root{--ink:#15251c;--muted:#66756c;--line:#d8dfd9;--paper:#f8faf6;--moss:#245b47;--lime:#dff05a;--red5:#65111c;--red4:#8c1d27;--orange3:#ee9d2d;--yellow2:#e9d653;--green1:#4d9d64}*{box-sizing:border-box}body{margin:0;background:var(--paper);color:var(--ink);font:15px/1.5 Inter,ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif}header{background:var(--ink);color:#fff;padding:24px max(24px,calc((100vw - 1400px)/2))}.brand{display:flex;justify-content:space-between;align-items:center;gap:20px}.brand h1{font:600 26px/1 Georgia,serif;margin:0}.brand p{margin:6px 0 0;color:#c5d2c8}.badge{border:1px solid #53685a;color:var(--lime);border-radius:20px;padding:5px 10px;font-size:12px}main{max-width:1400px;margin:auto;padding:34px 24px 55px}.intro h2{font:500 32px/1.1 Georgia,serif;margin:0}.intro p{max-width:760px;color:var(--muted);margin:8px 0 25px}.workspace{display:grid;grid-template-columns:minmax(300px,.9fr) minmax(0,1.6fr);gap:24px;align-items:start}.map{background:#f1f5ef;border:1px solid var(--line);border-radius:15px;padding:20px;min-height:690px;position:sticky;top:16px}.map h3{font:600 16px Georgia,serif;margin:0}.map-intro{color:var(--muted);font-size:13px;margin:6px 0 22px}.root-node{display:inline-flex;align-items:center;gap:8px;background:var(--ink);color:#fff;border-radius:8px;padding:10px 13px;font-weight:700;margin-bottom:16px}.root-node:before{content:"";height:8px;width:8px;background:var(--lime);border-radius:50%}.branch{position:relative;padding:0 0 13px 22px;border-left:1px solid #aac3af;margin-left:9px}.branch:last-child{padding-bottom:0}.area{width:100%;display:flex;justify-content:space-between;align-items:center;border:0;background:transparent;color:var(--ink);padding:8px 0;text-align:left;cursor:pointer;font-weight:700}.area:before{content:"";height:9px;width:9px;border-radius:50%;background:var(--moss);position:absolute;left:-5px}.chevron{font-size:18px;color:var(--moss);transition:transform .18s}.area.open .chevron{transform:rotate(90deg)}.issue-nodes{display:none;padding:5px 0 0 9px}.issue-nodes.open{display:block}.issue-node{display:block;width:100%;border:0;background:transparent;text-align:left;padding:8px 10px;border-radius:7px;color:#415148;cursor:pointer;font-size:13px}.issue-node:hover,.issue-node.active{background:#fff;color:var(--moss);box-shadow:0 1px 4px rgba(19,44,28,.08);font-weight:700}.empty-state{background:#fff;border:1px dashed #b7c5b9;border-radius:15px;padding:70px 32px;text-align:center;color:var(--muted)}.issue-header{background:#fff;border:1px solid var(--line);border-radius:15px;padding:25px;margin-bottom:18px}.eyebrow{font-size:11px;letter-spacing:.12em;text-transform:uppercase;font-weight:800;color:var(--moss);margin-bottom:8px}.issue-headline{display:flex;align-items:start;justify-content:space-between;gap:18px}.issue-headline h3{font:500 29px/1.08 Georgia,serif;margin:0}.summary{color:#405047;margin:12px 0 20px}.risk-wrap{border-top:1px solid var(--line);padding-top:17px}.risk-heading{display:flex;justify-content:space-between;gap:15px;font-size:13px;font-weight:700;margin-bottom:9px}.risk-label span{font-size:12px;color:var(--muted);font-weight:500;margin-left:8px}.risk-score{white-space:nowrap}.risk-track{display:grid;grid-template-columns:repeat(5,1fr);gap:4px;position:relative;padding-top:13px}.risk-step{height:12px;border-radius:3px;opacity:.2;cursor:help}.risk-step.active{opacity:1;box-shadow:0 1px 4px rgba(0,0,0,.18)}.risk-pointer{position:absolute;top:0;z-index:2;width:0;height:0;border-left:7px solid transparent;border-right:7px solid transparent;border-top:9px solid var(--ink);transform:translateX(-50%);transition:left .25s ease}.s1{background:var(--green1)}.s2{background:var(--yellow2)}.s3{background:var(--orange3)}.s4{background:var(--red4)}.s5{background:var(--red5)}.content-grid{display:grid;grid-template-columns:minmax(0,1.18fr) minmax(280px,.82fr);gap:18px}.card{background:#fff;border:1px solid var(--line);border-radius:15px;padding:22px}.card h3{font:600 18px/1.15 Georgia,serif;margin:0 0 16px}.question{border-top:1px solid var(--line);padding:15px 0}.question:first-of-type{border-top:0;padding-top:0}.question-top{display:flex;gap:8px;align-items:flex-start}.question label{font-weight:700;line-height:1.35;flex:1}.info{appearance:none;width:20px;height:20px;flex:0 0 20px;border-radius:50%;border:1px solid #9fb5a5;background:#f5faf3;color:var(--moss);font:700 12px Georgia,serif;line-height:18px;text-align:center;cursor:help;position:relative}.tooltip{position:absolute;z-index:10;right:0;top:27px;width:min(330px,75vw);padding:11px 12px;background:var(--ink);color:#fff;border-radius:8px;font:12px/1.45 Inter,sans-serif;text-align:left;box-shadow:0 8px 25px rgba(7,27,15,.25);opacity:0;visibility:hidden;transform:translateY(-3px);transition:opacity .14s,transform .14s;pointer-events:none}.info:hover .tooltip,.info:focus .tooltip{opacity:1;visibility:visible;transform:translateY(0)}select{width:100%;margin-top:10px;border:1px solid #b8c6bb;background:#fff;border-radius:7px;padding:9px;color:var(--ink);font:inherit}.response-note{font-size:12px;color:var(--muted);margin:7px 0 0}.logic{background:var(--ink);color:#fff}.logic p{color:#d0dcd3;margin:0}.rule{padding-top:13px;margin-top:13px;border-top:1px solid #405a4a;font-size:13px}.recommendation{border-top:1px solid var(--line);padding:14px 0}.recommendation:first-of-type{border-top:0;padding-top:0}.pill{font-size:10px;letter-spacing:.08em;text-transform:uppercase;font-weight:800;color:var(--moss)}.recommendation strong{display:block;margin-top:4px;line-height:1.35}.recommendation p{font-size:13px;color:var(--muted);margin:5px 0 0}.export{width:100%;margin-top:18px;border:0;border-radius:8px;background:var(--lime);color:var(--ink);font:700 14px/1.2 Inter,sans-serif;padding:12px;cursor:pointer}footer{max-width:1400px;margin:auto;padding:0 24px 35px;color:var(--muted);font-size:12px}@media(max-width:980px){.workspace,.content-grid{grid-template-columns:1fr}.map{position:static;min-height:0}.map-branches{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}.branch{padding-bottom:0}.badge{display:none}}@media(max-width:560px){main{padding:25px 16px 42px}.map-branches{grid-template-columns:1fr}.issue-header,.card,.map{padding:18px}.issue-headline h3{font-size:25px}}
+    </style>
+    <style>
+      .choice-grid{display:grid;gap:8px;margin-top:10px}.choice-grid label{display:flex;gap:8px;align-items:center;font-weight:500}.other-input{margin-top:10px;width:100%;border:1px solid #b8c6bb;border-radius:7px;padding:9px;font:inherit}.importance{margin-top:13px}.importance input{width:100%;accent-color:var(--moss)}.importance-scale{display:grid;grid-template-columns:1fr 1fr 1fr;color:var(--muted);font-size:11px;margin-top:4px}.importance-scale span:nth-child(2){text-align:center}.importance-scale span:last-child{text-align:right}.risk-outcome{margin:10px 0 0;color:var(--moss);font-size:13px;font-weight:700}
+      .facts-heading{display:flex;align-items:center;justify-content:space-between;gap:12px}.reset-answers{border:1px solid #aabbb0;background:#fff;color:var(--moss);border-radius:6px;padding:6px 9px;font:600 12px/1 Inter,sans-serif;cursor:pointer}.reset-answers:hover{background:#edf5ee}.inline-info{float:right;margin:0 0 2px 10px}.choice-grid label:has(input:disabled){color:#8d9a90;opacity:.55;cursor:not-allowed}
+      .left-rail{display:grid;gap:16px}.action-library{background:#fff;border:1px solid var(--line);border-radius:15px;padding:18px}.action-library h3{font:600 16px Georgia,serif;margin:0}.action-library p{font-size:12px;color:var(--muted);margin:5px 0 13px}.action-items{display:grid;gap:8px}.action-item{display:grid;grid-template-columns:25px 1fr;gap:8px;align-items:start;padding:8px;border-radius:7px}.action-item:hover{background:#f1f5ef}.action-symbol{height:22px;width:22px;display:grid;place-items:center;border-radius:6px;background:#e8f2e9;font-size:13px}.action-item strong{display:block;font-size:12px;line-height:1.2}.action-item span:last-child{display:block;font-size:11px;line-height:1.3;color:var(--muted);margin-top:2px}
+      .app-menu-wrap{position:relative}.app-menu{width:38px;height:34px;border:1px solid #587062;border-radius:7px;background:transparent;color:#fff;font-size:21px;line-height:1;cursor:pointer}.app-menu:hover{background:#284233}.app-menu-list{position:absolute;right:0;top:43px;z-index:30;min-width:170px;padding:6px;background:#fff;border:1px solid var(--line);border-radius:9px;box-shadow:0 10px 26px rgba(12,35,21,.2);display:none}.app-menu-list.open{display:block}.app-menu-list button{display:block;width:100%;border:0;background:transparent;text-align:left;padding:9px 10px;border-radius:6px;color:var(--ink);font:600 13px Inter,sans-serif;cursor:pointer}.app-menu-list button:hover{background:#edf5ee;color:var(--moss)}.library-view,.settings-view{max-width:1400px;margin:0 auto;padding:0 24px 50px}.library-view .action-library{padding:28px}.library-view .action-items{grid-template-columns:repeat(2,minmax(0,1fr));column-gap:28px}.library-view .action-library p,.library-view .action-item strong,.library-view .action-item span:last-child{font-size:15px}.library-view .action-item{grid-template-columns:29px 1fr;gap:10px}.library-view .action-symbol{height:26px;width:26px;font-size:15px}.custom-action{position:relative;grid-column:1/-1;background:#f1f5ef;border:1px dashed #aec2b2;border-radius:9px;padding:14px}.custom-action h4{margin:0 0 9px;font:600 15px Georgia,serif}.custom-action form{display:grid;grid-template-columns:65px 1fr 1.4fr auto;gap:8px}.custom-action input{border:1px solid #b8c6bb;border-radius:6px;padding:8px;font:14px Inter,sans-serif}.custom-action button{border:0;border-radius:6px;background:var(--moss);color:#fff;padding:8px 11px;font:600 13px Inter,sans-serif;cursor:pointer}.custom-action .emoji-trigger{font-size:18px;padding:4px;background:#fff;color:var(--ink);border:1px solid #b8c6bb}.emoji-picker{position:absolute;z-index:5;left:14px;bottom:57px;width:280px;padding:10px;background:#fff;border:1px solid var(--line);border-radius:9px;box-shadow:0 10px 24px rgba(12,35,21,.2);display:none}.emoji-picker.open{display:grid;grid-template-columns:repeat(7,1fr);gap:4px}.emoji-picker button{padding:6px;background:#f1f5ef;color:var(--ink);font-size:18px}.emoji-picker button:hover{background:#dcebdd}.settings-view{display:none}.settings-card{background:#fff;border:1px solid var(--line);border-radius:15px;padding:28px}.settings-card h2{font:500 28px Georgia,serif;margin:0 0 7px}.settings-card p{color:var(--muted);margin:0}.screen-hidden{display:none!important}@media(max-width:700px){.library-view .action-items{grid-template-columns:1fr}.custom-action form{grid-template-columns:1fr}.emoji-picker{bottom:auto;top:90px;left:14px}}
+    </style>
+    <style>
+      .emoji-picker{width:360px;height:390px;padding:0;--border-color:#b8c6bb;--button-active-background:#dcebdd;--button-hover-background:#edf5ee}
+      .emoji-picker.open{display:block}
+      .custom-library-action{position:relative;padding-right:45px}.action-controls{position:absolute;right:8px;top:50%;display:flex;gap:5px;transform:translateY(-50%);opacity:0;transition:opacity .14s}.custom-library-action:hover .action-controls,.custom-library-action:focus-within .action-controls{opacity:1}.action-controls button{height:24px;width:24px;border:1px solid #b8c6bb;border-radius:5px;background:#fff;color:var(--moss);padding:0;font:700 14px/1 Inter,sans-serif;cursor:pointer}.action-controls .delete-action{color:#8c1d27}.action-controls button:hover{background:#edf5ee}.confirming-delete .action-controls{opacity:1}.confirming-delete .delete-action{width:auto;padding:0 7px;font-size:11px;background:#8c1d27;color:#fff;border-color:#8c1d27}
+      @media(min-width:981px){.workspace{grid-template-columns:335px minmax(0,1fr)}.content-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+      select{appearance:none;-webkit-appearance:none;padding-right:38px;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='m1 1 5 5 5-5' fill='none' stroke='%23245b47' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5'/%3E%3C/svg%3E");background-position:right 14px center;background-repeat:no-repeat;background-size:12px 8px}
+    </style>
+  </head>
+  <body>
+    <header><div class="brand"><div><h1>DealLogic</h1><p>Structured M&A issue analysis</p></div><span class="badge">Prototype · v0.2 data model</span></div></header>
+    <main><section class="intro"><h2>Explore the deal logic</h2><p>Start with a deal area, open an issue, then record what the diligence tells you. The risk score and protections respond as the picture becomes clearer.</p></section><section class="workspace"><aside class="map"><h3>Deal map</h3><p class="map-intro">Open an area, then select the issue to explore.</p><div class="root-node">DealLogic</div><div class="map-branches" id="mind-map"></div></aside><section class="panel" id="panel"><div class="empty-state">Select a deal area to begin.</div></section></section></main>
+    <footer>Prototype content only — it is not legal advice and must be reviewed and tailored for each transaction and jurisdiction.</footer>
+    <script>
+      const areas={"commercial-contracts":"Material Contracts","intellectual-property":"Intellectual Property","corporate-and-shares":"Shares","litigation-and-disputes":"Disputes","finance-and-banking":"Finance"},order=Object.keys(areas),answerOptions=["Unanswered","Risk confirmed","Risk not present","Partly / unclear"];
+      const dealProjectStoreKey="deallogic:deal-projects:v1";
+      const parseStored=(value,fallback)=>{try{return JSON.parse(value)||fallback}catch{return fallback}};
+      const makeDealId=()=>crypto.randomUUID?crypto.randomUUID():`${Date.now()}-${Math.random().toString(36).slice(2)}`;
+      function getDealProjects(){
+        const fallback={version:1,onboardingSeen:false,activeProjectId:"quick-workspace",projects:[{id:"quick-workspace",name:"Quick workspace",side:"Balanced",isQuick:true,createdAt:new Date().toISOString(),hub:{issues:[],actions:[],groups:[]}}]};
+        const store=parseStored(localStorage.getItem(dealProjectStoreKey),fallback);
+        if(!Array.isArray(store.projects)||!store.projects.length)Object.assign(store,fallback);
+        store.projects.forEach(project=>{project.hub||={issues:[],actions:[],groups:[]};project.side||="Balanced"});
+        if(!store.projects.some(project=>project.id===store.activeProjectId))store.activeProjectId=store.projects[0].id;
+        return store;
+      }
+      function saveDealProjects(store){localStorage.setItem(dealProjectStoreKey,JSON.stringify(store));}
+      function activeDealProject(){const store=getDealProjects();return store.projects.find(project=>project.id===store.activeProjectId)||store.projects[0];}
+      function activeDealProjectId(){return activeDealProject().id;}
+      function switchDealProject(id){const store=getDealProjects();if(!store.projects.some(project=>project.id===id))return;store.activeProjectId=id;saveDealProjects(store);document.dispatchEvent(new CustomEvent("deal-project-change",{detail:{id}}));}
+      function createDealProject(name,side="Balanced"){const store=getDealProjects(),project={id:makeDealId(),name:name.trim(),side,isQuick:false,createdAt:new Date().toISOString(),hub:{issues:[],actions:[],groups:[]}};store.projects.push(project);store.activeProjectId=project.id;store.onboardingSeen=true;saveDealProjects(store);document.dispatchEvent(new CustomEvent("deal-project-change",{detail:{id:project.id}}));return project;}
+      let issues=[],openArea=null,selectedId=null,answers={}; const current=()=>issues.find(i=>i.id===selectedId),storedKey=()=>`deallogic:deal-project:${activeDealProjectId()}:issue:${selectedId}`,loadAnswers=()=>answers=parseStored(localStorage.getItem(storedKey()),{}),titleCase=t=>t.replaceAll("-"," ").replace(/\b\w/g,c=>c.toUpperCase());
+      const answerValue=id=>({"Risk confirmed":true,"Risk not present":false,"Partly / unclear":"unknown",Unanswered:"unknown"}[answers[id]||"Unanswered"]);const evaluate=c=>{if(c.all)return c.all.every(evaluate);if(c.any)return c.any.some(evaluate);if(c.not)return !evaluate(c.not);const value=answerValue(c.fact_id);return c.operator==="equals"?value===c.value:c.operator==="not-equals"?value!==c.value:false};
+      const riskNames=["No risk","Low risk","Medium risk","High risk","Very high risk"];const isCoc=issue=>issue?.id==="customer-change-of-control";function cocOutcome(){if(answers["contract-provision-exists"]==="No")return "No risk (customer change-of-control clause not present)";if(answers["transaction-triggers-provision"]==="No")return "No risk (customer change-of-control clause present but is not triggered by proposed transaction)";return ""}function riskScore(){if(isCoc(current())){if(cocOutcome())return 1;let score=1;if(answers["contract-provision-exists"]&&answers["contract-provision-exists"]!=="Unanswered")score=2;if(answers["transaction-triggers-provision"]==="Yes")score=3;if(answers["transaction-triggers-provision"]==="Partly / unclear")score=3;if(answers["triggered-provision-consequences"]==="Third party must provide consent")score+=1;if(Number(answers["contract-importance"]||1)===3)score+=1;const factors=answers["consent-prospects"]||[];if(factors.includes("Unlikely")||factors.includes("Expensive"))score+=1;return Math.min(5,score)}const entered=Object.values(answers).filter(a=>a!=="Unanswered");if(!entered.length)return 1;let score=1;entered.forEach(a=>{if(a==="Risk confirmed")score+=1;if(a==="Partly / unclear")score+=.5});return Math.max(1,Math.min(5,Math.round(score)))}
+      function guidance(q){const special={"interpret-trigger":"Review the contract’s defined terms to determine whether the provision is engaged by this transaction—for example, how “change of control” is defined, whether indirect ownership changes count, and whether the proposed structure falls within an exception.","determine-consequence":"Check the exact consequence of a triggered clause: prior consent, notice, termination, price renegotiation or another remedy. Note any timing, formality and cure requirements before proposing a completion solution.","reconcile-awards-and-cap-table":"Reconcile the cap table against plan rules, individual award documents, board approvals and statutory records. Identify every right that could dilute the buyer or affect the distribution of sale proceeds.","verify-chain-of-title":"Trace title from each creator to the target using signed engagement terms, assignments and licences. Confirm the document transfers the correct rights and covers the relevant IP, territories and future works.","assess-merits-and-defences":"Ask contentious counsel to assess the legal and factual strengths of the claim and defences, relevant procedure and likely remedies. Record the analysis without waiving privilege.","verify-payoff-amount":"Obtain a lender payoff letter close to completion. It should identify principal, accrued interest, break costs, fees and the payment steps required before releases become effective."};return special[q.id]||`${q.purpose} Review the relevant documents, correspondence and diligence responses; record the evidence, assumptions and any practical effect on the transaction.`}
+      function renderMap(){const map=document.querySelector("#mind-map");map.innerHTML=order.filter(k=>issues.some(i=>i.category===k)).map(key=>{const group=issues.filter(i=>i.category===key),isOpen=openArea===key;return `<div class="branch"><button class="area ${isOpen?"open":""}" data-area="${key}">${areas[key]} <span class="chevron">›</span></button><div class="issue-nodes ${isOpen?"open":""}">${group.map(i=>`<button class="issue-node ${selectedId===i.id?"active":""}" data-issue="${i.id}">${i.title}</button>`).join("")}</div></div>`}).join("");document.querySelectorAll(".area").forEach(b=>b.onclick=()=>{openArea=openArea===b.dataset.area?null:b.dataset.area;renderMap()});document.querySelectorAll(".issue-node").forEach(b=>b.onclick=()=>{selectedId=b.dataset.issue;loadAnswers();renderMap();renderPanel()})}
+      function cocQuestionMarkup(issue){const q=issue.key_questions,first=answers["contract-provision-exists"]||"Unanswered",trigger=answers["transaction-triggers-provision"]||"Unanswered",visible=first!=="No"&&first!=="Unanswered",active=visible&&trigger!=="No"&&trigger!=="Unanswered";const select=(id,opts)=>`<select id="${id}">${opts.map(o=>`<option ${answers[id]===o?"selected":""}>${o}</option>`).join("")}</select>`;return `<div class="question"><div class="question-top"><label for="contract-provision-exists">${q[0].question}</label><button class="info">i<span class="tooltip">Review the executed contract, amendments and side letters for a change-of-control, assignment, termination or similar restriction. Record the clause reference and any relevant exceptions.</span></button></div>${select("contract-provision-exists",["Unanswered","Yes","No","Partly / unclear"])}</div>${visible?`<div class="question"><div class="question-top"><label for="transaction-triggers-provision">${q[1].question}</label><button class="info">i<span class="tooltip">Review the contract’s defined terms to determine whether the provision is engaged by this transaction—for example, how “change of control” is defined, whether indirect ownership changes count, and whether the proposed structure falls within an exception.</span></button></div>${select("transaction-triggers-provision",["Unanswered","Yes","No","Partly / unclear"])}</div>`:""}${active?`<div class="question"><div class="question-top"><label for="triggered-provision-consequences">${q[2].question}</label><button class="info">i<span class="tooltip">Check the clause and related correspondence to identify the precise step required: notice, consent, or another contractual consequence.</span></button></div>${select("triggered-provision-consequences",["Unanswered","Third party must be notified","Third party must provide consent","Other"])}${answers["triggered-provision-consequences"]==="Third party must provide consent"?`<div class="question"><label for="consent-reasonableness">Is consent subject to a reasonableness standard?</label>${select("consent-reasonableness",["Unanswered","Yes","No"])}</div>`:""}${answers["triggered-provision-consequences"]==="Other"?`<input class="other-input" id="other-consequence" placeholder="Describe the other consequence" value="${answers["other-consequence"]||""}">`:""}</div><div class="question"><div class="question-top"><label for="contract-importance">${q[3].question}</label><button class="info">i<span class="tooltip">Consider whether this is a key customer account, key supplier, exclusive licence, or major financing agreement—and how its loss would affect operations, revenue and valuation.</span></button></div><div class="importance"><input type="range" id="contract-importance" min="1" max="3" step="1" value="${answers["contract-importance"]||1}"><div class="importance-scale"><span>Low importance</span><span>Moderate importance</span><span>High importance</span></div></div></div><div class="question"><div class="question-top"><label>${q[4].question}</label><button class="info">i<span class="tooltip">Consider the commercial relationship, likely decision-maker, required lead time, conditions for consent and any costs or concessions the third party may seek.</span></button></div><div class="choice-grid">${["Unlikely","Likely","Inexpensive","Expensive"].map(v=>`<label><input type="checkbox" class="consent-factor" value="${v}" ${(answers["consent-prospects"]||[]).includes(v)?"checked":""}> ${v}</label>`).join("")}</div></div>`:""}`}
+      function renderPanel(){const issue=current();if(!issue){document.querySelector("#panel").innerHTML='<div class="empty-state">Select an issue to see its diligence questions and deal protections.</div>';return}const score=riskScore(),outcome=isCoc(issue)?cocOutcome():"",questions=isCoc(issue)?cocQuestionMarkup(issue):issue.key_questions.map(q=>`<div class="question"><div class="question-top"><label for="${q.id}">${q.question}</label><button class="info">i<span class="tooltip">${guidance(q)}</span></button></div><select id="${q.id}">${answerOptions.map(o=>`<option ${answers[q.id]===o?"selected":""}>${o}</option>`).join("")}</select><p class="response-note">Choose the response that best reflects the current diligence evidence.</p></div>`).join("");document.querySelector("#panel").innerHTML=`<article class="issue-header"><div class="eyebrow">${areas[issue.category]||titleCase(issue.category)}</div><div class="issue-headline"><h3>${issue.title}</h3></div><p class="summary">${issue.summary}</p><div class="risk-wrap"><div class="risk-heading"><div class="risk-label">Risk assessment <span>Moves as you record answers</span></div><div class="risk-score" id="risk-hover-label">${score}/5 · ${riskNames[score-1]}</div></div><div class="risk-track"><span class="risk-pointer" style="left:${(score-.5)*20}%"></span>${[1,2,3,4,5].map(n=>`<span class="risk-step s${n} ${n<=score?"active":""}" data-risk="${riskNames[n-1]} ${n}/5"></span>`).join("")}</div>${outcome?`<p class="risk-outcome">${outcome}</p>`:""}</div></article><section class="content-grid"><article class="card"><h3>Establish the facts</h3>${questions}</article><aside><article class="card logic" id="logic-card"></article><article class="card" id="recommendations-card" style="margin-top:18px"></article><button class="export" id="export-report">Download issue report</button></aside></section>`;const save=()=>{localStorage.setItem(storedKey(),JSON.stringify(answers));renderPanel()};if(isCoc(issue)){["contract-provision-exists","transaction-triggers-provision","triggered-provision-consequences","consent-reasonableness","contract-importance","other-consequence"].forEach(id=>{const el=document.getElementById(id);if(el)el.onchange=e=>{answers[id]=e.target.value;save()}});document.querySelectorAll(".consent-factor").forEach(el=>el.onchange=()=>{answers["consent-prospects"]=[...document.querySelectorAll(".consent-factor:checked")].map(x=>x.value);save()})}else issue.key_questions.forEach(q=>document.getElementById(q.id).onchange=e=>{answers[q.id]=e.target.value;save()});document.querySelectorAll(".risk-step").forEach(step=>{step.onmouseenter=()=>document.querySelector("#risk-hover-label").textContent=step.dataset.risk;step.onmouseleave=()=>document.querySelector("#risk-hover-label").textContent=`${score}/5 · ${riskNames[score-1]}`});renderLogic(issue);document.querySelector("#export-report").onclick=exportReport}
+      function renderLogic(issue){const matched=(issue.decision_rules||[]).filter(r=>evaluate(r.when)),actions=new Map(issue.recommended_actions.map(a=>[a.id,a])),highlighted=[...new Set(matched.flatMap(r=>r.then.action_ids))],list=highlighted.length?highlighted.map(id=>actions.get(id)).filter(Boolean):issue.recommended_actions.filter(a=>["required","recommended"].includes(a.relevance));document.querySelector("#logic-card").innerHTML=`<h3>Apply deal logic</h3><p>${matched.length?"The recorded answers activate these rule-based responses.":"Record answers to activate conditional protections. Baseline protections are shown below."}</p>${matched.map(r=>`<div class="rule"><b>${r.then.explanation}</b></div>`).join("")||""}`;document.querySelector("#recommendations-card").innerHTML=`<h3>Consider protections</h3>${list.map(a=>`<div class="recommendation"><span class="pill">${titleCase(a.type)} · ${titleCase(a.relevance)}</span><strong>${a.recommendation}</strong><p>${a.rationale||""}</p></div>`).join("")}`}
+      function exportReport(){const issue=current(),score=riskScore(),report=["DEALLOGIC ISSUE REPORT","",issue.title,`${areas[issue.category]} · ${issue.jurisdiction.primary}`,`Risk score: ${score}/5 — ${riskNames[score-1]}`,"","DILIGENCE ANSWERS",...issue.key_questions.map(q=>`- ${q.question}\n  Response: ${answers[q.id]||"Unanswered"}`),"","NOTE","Prototype content only. Obtain transaction-specific legal advice."].join("\n"),blob=new Blob([report],{type:"text/plain"}),url=URL.createObjectURL(blob),a=document.createElement("a");a.href=url;a.download=`${issue.id}-report.txt`;a.click();URL.revokeObjectURL(url)}
+      fetch("issues.json").then(r=>r.json()).then(data=>{issues=data;const store=getDealProjects();if(!store.legacyAnswersMigrated){issues.forEach(issue=>{const legacy=localStorage.getItem(`deallogic:${issue.id}`),scoped=`deallogic:deal-project:quick-workspace:issue:${issue.id}`;if(legacy&&!localStorage.getItem(scoped))localStorage.setItem(scoped,legacy)});store.legacyAnswersMigrated=true;saveDealProjects(store)}renderMap();renderPanel()}).catch(()=>document.querySelector("#panel").innerHTML='<div class="empty-state">Issue data could not be loaded.</div>');
+    </script>
+    <script>
+      const baseRenderPanel = renderPanel;
+      renderPanel = function () {
+        baseRenderPanel();
+        const factsCard = document.querySelector(".content-grid > .card");
+        const heading = factsCard?.querySelector("h3");
+        if (heading && !heading.querySelector(".reset-answers")) {
+          heading.classList.add("facts-heading");
+          heading.insertAdjacentHTML("beforeend", '<button class="reset-answers" type="button">Reset answers</button>');
+        }
+        const trigger = document.querySelector("#triggered-provision-consequences");
+        const consentQuestion = [...document.querySelectorAll(".question")].find((question) => question.querySelector("label")?.textContent.includes("What is the likelihood, timing"));
+        if (trigger && consentQuestion) {
+          consentQuestion.hidden = !["Third party must provide consent", "Other"].includes(trigger.value);
+        }
+        const reasonablenessLabel = [...document.querySelectorAll(".question > label")].find((label) => label.textContent.includes("Is consent subject to a reasonableness standard?"));
+        if (reasonablenessLabel && !reasonablenessLabel.parentElement.querySelector(".inline-info")) {
+          reasonablenessLabel.insertAdjacentHTML("afterend", '<button class="info inline-info" type="button" aria-label="Guidance on the reasonableness standard">i<span class="tooltip">Check whether the contract says the third party’s consent may not be unreasonably withheld or delayed. This can affect the practical ability to obtain consent and the risk of refusal.</span></button>');
+        }
+      };
+      document.addEventListener("click", (event) => {
+        if (!event.target.closest(".reset-answers")) return;
+        localStorage.removeItem(`deallogic:${current().id}`);
+        location.reload();
+      });
+      const baseExportReport = exportReport;
+      exportReport = function () {
+        const issue = current();
+        if (issue.id !== "customer-change-of-control") return baseExportReport();
+        const saved = JSON.parse(localStorage.getItem(`deallogic:${issue.id}`) || "{}");
+        const importance = { "1": "Low importance", "2": "Moderate importance", "3": "High importance" };
+        const lines = [
+          `- ${issue.key_questions[0].question}\n  Response: ${saved["contract-provision-exists"] || "Unanswered"}`,
+          `- ${issue.key_questions[1].question}\n  Response: ${saved["transaction-triggers-provision"] || "Unanswered"}`,
+          `- ${issue.key_questions[2].question}\n  Response: ${saved["triggered-provision-consequences"] === "Other" ? (saved["other-consequence"] || "Other") : (saved["triggered-provision-consequences"] || "Unanswered")}`
+        ];
+        if (saved["triggered-provision-consequences"] === "Third party must provide consent") {
+          lines.push("- Is consent subject to a reasonableness standard?\n  Response: " + (saved["consent-reasonableness"] || "Unanswered"));
+        }
+        lines.push(`- ${issue.key_questions[3].question}\n  Response: ${importance[String(saved["contract-importance"] || 1)]}`);
+        if (["Third party must provide consent", "Other"].includes(saved["triggered-provision-consequences"])) {
+          const prospects = (saved["consent-prospects"] || []).map((value) => value === "Other" ? (saved["other-consent-prospects"] || "Other") : value);
+          lines.push(`- ${issue.key_questions[4].question}\n  Response: ${prospects.join(", ") || "Unanswered"}`);
+        }
+        const score = riskScore();
+        const report = ["DEALLOGIC ISSUE REPORT", "", issue.title, `${areas[issue.category]} · ${issue.jurisdiction.primary}`, `Risk score: ${score}/5 — ${riskNames[score - 1]}`, "", "DILIGENCE ANSWERS", ...lines, "", "NOTE", "Prototype content only. Obtain transaction-specific legal advice."].join("\n");
+        const blob = new Blob([report], { type: "text/plain" }); const url = URL.createObjectURL(blob); const link = document.createElement("a"); link.href = url; link.download = `${issue.id}-report.txt`; link.click(); URL.revokeObjectURL(url);
+      };
+    </script>
+    <script>
+      const addOtherConsentProspects = () => {
+        if (current()?.id !== "customer-change-of-control") return;
+        const question = [...document.querySelectorAll(".question")].find((item) => item.querySelector("label")?.textContent.includes("likelihood, timing and any cost"));
+        const grid = question?.querySelector(".choice-grid");
+        if (!grid || grid.querySelector(".consent-other-factor")) return;
+        const originalFactors = answers["consent-prospects"] || [];
+        const factors = originalFactors.includes("Other") ? ["Other"] : originalFactors.filter((factor) => !(factor === "Likely" && originalFactors.includes("Unlikely")) && !(factor === "Expensive" && originalFactors.includes("Inexpensive")));
+        if (JSON.stringify(factors) !== JSON.stringify(originalFactors)) {
+          answers["consent-prospects"] = factors;
+          localStorage.setItem(storedKey(), JSON.stringify(answers));
+        }
+        const otherLabel = document.createElement("label");
+        otherLabel.innerHTML = `<input type="checkbox" class="consent-other-factor" value="Other" ${factors.includes("Other") ? "checked" : ""}> Other`;
+        grid.append(otherLabel);
+        if (factors.includes("Other")) {
+          const input = document.createElement("input");
+          input.className = "other-input"; input.id = "other-consent-prospects"; input.placeholder = "Describe the other consent or waiver consideration"; input.value = answers["other-consent-prospects"] || "";
+          input.onchange = (event) => { answers["other-consent-prospects"] = event.target.value; localStorage.setItem(storedKey(), JSON.stringify(answers)); renderPanel(); };
+          grid.append(input);
+        }
+        const inputs = [...grid.querySelectorAll('input[type="checkbox"]')];
+        inputs.forEach((input) => {
+          input.checked = factors.includes(input.value);
+          input.disabled = input.value === "Other"
+            ? factors.some((factor) => ["Likely", "Unlikely"].includes(factor)) && factors.some((factor) => ["Expensive", "Inexpensive"].includes(factor))
+            : factors.includes("Other") || (input.value === "Likely" && factors.includes("Unlikely")) || (input.value === "Unlikely" && factors.includes("Likely")) || (input.value === "Expensive" && factors.includes("Inexpensive")) || (input.value === "Inexpensive" && factors.includes("Expensive"));
+          input.onchange = () => {
+            let next = (answers["consent-prospects"] || []).filter((factor) => factor !== input.value);
+            if (input.checked) {
+              if (input.value === "Other") next = ["Other"];
+              else {
+                next = next.filter((factor) => factor !== "Other" && factor !== ({ Likely: "Unlikely", Unlikely: "Likely", Expensive: "Inexpensive", Inexpensive: "Expensive" }[input.value]));
+                next.push(input.value);
+              }
+            }
+            answers["consent-prospects"] = next;
+            if (!next.includes("Other")) delete answers["other-consent-prospects"];
+            localStorage.setItem(storedKey(), JSON.stringify(answers));
+            renderPanel();
+          };
+        });
+      };
+      new MutationObserver(addOtherConsentProspects).observe(document.querySelector("#panel"), { childList: true, subtree: true });
+      addOtherConsentProspects();
+    </script>
+    <script>
+      const actionLibrary = [
+        ["🔎", "Further diligence", "Obtain the evidence needed to understand the issue and its deal impact."],
+        ["🛠", "Rectification", "Correct the underlying problem before signing or completion."],
+        ["🤝", "Third-party consent", "Secure a required consent, waiver or acknowledgement from another party."],
+        ["⏳", "Condition precedent", "Do not complete until a specified issue has been resolved."],
+        ["🧭", "Pre-completion covenant", "Require agreed conduct or progress between signing and completion."],
+        ["🛡", "Warranty", "Obtain contractual confirmation that a stated position is true."],
+        ["💶", "Specific indemnity", "Allocate defined losses from a known risk to the seller."],
+        ["📄", "Specific disclosure", "Require clear, issue-specific disclosure of the known position."],
+        ["🔒", "Escrow or retention", "Hold back part of the price against a defined unresolved risk."],
+        ["⚖", "Price adjustment", "Reflect a known risk in the valuation or transaction consideration."],
+        ["✓", "Completion mechanic", "Build the evidence, payment or deliverable into the closing process."],
+        ["↗", "Post-completion action", "Complete a defined follow-up step after the acquisition closes."],
+        ["🚪", "Walk away or renegotiate", "Reconsider the transaction or its terms where the risk cannot be managed."],
+        ["◌", "Other", "Record a tailored response that does not fit the standard action set."]
+      ];
+      const map = document.querySelector(".map");
+      if (map && !document.querySelector(".action-library")) {
+        map.parentElement.classList.add("left-rail");
+        const library = document.createElement("section");
+        library.className = "action-library";
+        library.innerHTML = `<h3>Action Library</h3><p>Common M&A responses and their shorthand symbols.</p><div class="action-items">${actionLibrary.map(([symbol, title, explainer]) => `<div class="action-item"><span class="action-symbol">${symbol}</span><div><strong>${title}</strong><span>${explainer}</span></div></div>`).join("")}</div>`;
+        map.insertAdjacentElement("afterend", library);
+      }
+    </script>
+    <script>
+      const appHeader = document.querySelector(".brand");
+      const workspace = document.querySelector(".workspace");
+      const dealMap = document.querySelector(".map");
+      const library = document.querySelector(".action-library");
+      if (appHeader && workspace && library && !document.querySelector(".app-menu-wrap")) {
+        workspace.classList.remove("left-rail");
+        dealMap.querySelector("h3").textContent = "Deal Map";
+        const libraryView = document.createElement("section");
+        libraryView.className = "library-view screen-hidden";
+        libraryView.append(library);
+        workspace.insertAdjacentElement("beforebegin", libraryView);
+        const settingsView = document.createElement("section");
+        settingsView.className = "settings-view";
+        settingsView.innerHTML = '<div class="settings-card"><h2>Settings</h2><p>Settings will be added as DealLogic gains more features.</p></div>';
+        libraryView.insertAdjacentElement("afterend", settingsView);
+        const menu = document.createElement("div");
+        menu.className = "app-menu-wrap";
+        menu.innerHTML = '<button class="app-menu" type="button" aria-label="Open navigation menu">☰</button><div class="app-menu-list"><button data-view="deal-map">Deal Map</button><button data-view="deal-hub">Deal Hub</button><button data-view="action-library">Action Library</button><button data-view="settings">Settings</button></div>';
+        appHeader.append(menu);
+        const showView = (view) => {
+          document.querySelector(".intro")?.classList.toggle("screen-hidden", view !== "deal-map");
+          workspace.classList.toggle("screen-hidden", view !== "deal-map");
+          document.querySelector(".deal-hub-view")?.classList.toggle("screen-hidden", view !== "deal-hub");
+          libraryView.classList.toggle("screen-hidden", view !== "action-library");
+          settingsView.style.display = view === "settings" ? "block" : "none";
+          menu.querySelector(".app-menu-list").classList.remove("open");
+          window.scrollTo({ top: 0, behavior: "smooth" });
+        };
+        menu.querySelector(".app-menu").onclick = () => menu.querySelector(".app-menu-list").classList.toggle("open");
+        menu.querySelectorAll("[data-view]").forEach((button) => button.onclick = () => showView(button.dataset.view));
+        window.showDealLogicView = showView;
+      }
+    </script>
+    <script>
+      const actionLibraryElement = document.querySelector(".action-library");
+      if (actionLibraryElement) {
+        const savedActionsKey = "deallogic:custom-actions";
+        const actionItems = actionLibraryElement.querySelector(".action-items");
+        const otherAction = [...actionItems.querySelectorAll(".action-item")].find((item) => item.querySelector("strong")?.textContent.trim() === "Other");
+        const saveActions = () => localStorage.setItem(savedActionsKey, JSON.stringify(savedActions));
+        const makeActionItem = (action) => {
+          const { emoji, title, description } = action;
+          const item = document.createElement("div");
+          item.className = "action-item custom-library-action";
+          const icon = document.createElement("span");
+          icon.className = "action-symbol";
+          icon.textContent = emoji || "✨";
+          const copy = document.createElement("div");
+          const heading = document.createElement("strong");
+          heading.textContent = title;
+          const explainer = document.createElement("span");
+          explainer.textContent = description;
+          copy.append(heading, explainer);
+          const controls = document.createElement("div");
+          controls.className = "action-controls";
+          const remove = document.createElement("button");
+          remove.type = "button"; remove.className = "delete-action"; remove.textContent = "×"; remove.setAttribute("aria-label", `Delete ${title}`); remove.title = "Delete action";
+          remove.onclick = () => {
+            if (!remove.dataset.confirm) {
+              remove.dataset.confirm = "true"; remove.textContent = "Delete?"; remove.setAttribute("aria-label", `Confirm deletion of ${title}`); remove.title = "Click again to delete"; item.classList.add("confirming-delete");
+              return;
+            }
+            const index = savedActions.findIndex((saved) => saved.id === action.id);
+            if (index >= 0) savedActions.splice(index, 1);
+            saveActions(); item.remove();
+          };
+          controls.append(remove);
+          item.append(icon, copy, controls);
+          return item;
+        };
+        const savedActions = (() => {
+          try { return JSON.parse(localStorage.getItem(savedActionsKey) || "[]"); } catch { return []; }
+        })();
+        let idsUpdated = false;
+        savedActions.forEach((action) => { if (!action.id) { action.id = `action-${Date.now()}-${Math.random().toString(36).slice(2)}`; idsUpdated = true; } });
+        if (idsUpdated) saveActions();
+        savedActions.forEach((action) => actionItems.insertBefore(makeActionItem(action), otherAction));
+        if (otherAction) {
+          otherAction.className = "custom-action";
+          otherAction.replaceChildren();
+          const heading = document.createElement("h4");
+          heading.textContent = "Other";
+          const note = document.createElement("p");
+          note.textContent = "Add a tailored action and shorthand emoji. For now, it is saved only in this browser.";
+          const form = document.createElement("form");
+          form.className = "custom-action-form";
+          const emoji = document.createElement("button");
+          emoji.type = "button"; emoji.className = "emoji-trigger"; emoji.textContent = "✨"; emoji.dataset.emoji = "✨"; emoji.setAttribute("aria-label", "Choose emoji icon");
+          const title = document.createElement("input");
+          title.name = "title"; title.maxLength = 60; title.required = true; title.placeholder = "Action title";
+          const description = document.createElement("input");
+          description.name = "description"; description.maxLength = 160; description.required = true; description.placeholder = "One-line explanation";
+          const submit = document.createElement("button");
+          submit.type = "submit"; submit.textContent = "Add action";
+          const picker = document.createElement("emoji-picker");
+          picker.className = "emoji-picker";
+          picker.setAttribute("aria-label", "Choose an emoji");
+          picker.addEventListener("emoji-click", (event) => {
+            const symbol = event.detail?.unicode;
+            if (!symbol) return;
+            emoji.textContent = symbol; emoji.dataset.emoji = symbol; picker.classList.remove("open");
+          });
+          emoji.onclick = () => picker.classList.toggle("open");
+          form.append(emoji, title, description, submit);
+          otherAction.append(picker);
+          form.addEventListener("submit", (event) => {
+            event.preventDefault();
+            const action = { id: `action-${Date.now()}-${Math.random().toString(36).slice(2)}`, emoji: emoji.dataset.emoji || "✨", title: title.value.trim(), description: description.value.trim() };
+            if (!action.title || !action.description) return;
+            savedActions.push(action);
+            saveActions();
+            actionItems.insertBefore(makeActionItem(action), otherAction);
+            form.reset(); emoji.textContent = "✨"; emoji.dataset.emoji = "✨";
+            title.focus();
+          });
+          otherAction.prepend(heading, note, form);
+        }
+      }
+    </script>
+    <style>
+      .logic.coc-deal-logic{background:var(--ink);padding:22px}.logic.coc-deal-logic h3{margin-bottom:7px}.logic.coc-deal-logic.logic-standby{min-height:0}.logic-section{border-top:1px solid #405a4a;margin-top:15px;padding-top:14px}.logic-section h4{color:var(--lime);font:800 10px/1.2 Inter,sans-serif;letter-spacing:.09em;margin:0 0 7px;text-transform:uppercase}.logic-conclusion{font-size:14px;line-height:1.45}.logic-section ul{list-style:none;margin:0;padding:0}.logic-section li{color:#d0dcd3;font-size:12px;line-height:1.42;margin:0 0 8px;padding-left:15px;position:relative}.logic-section li:before{content:"";background:var(--lime);border-radius:50%;height:5px;left:1px;position:absolute;top:6px;width:5px}.logic-action{display:grid;grid-template-columns:25px 1fr;gap:8px;align-items:start;margin:0 0 11px}.logic-action .logic-icon{display:grid;place-items:center;width:24px;height:24px;border-radius:6px;background:#274536;font-size:13px;margin-top:13px}.logic-action strong{display:block;color:#fff;font-size:12px;line-height:1.3}.logic-action span:last-child{display:block;color:#c4d2c8;font-size:11px;line-height:1.35;margin-top:2px}.logic-priority{color:var(--lime);font-size:9px;font-weight:800;letter-spacing:.08em;text-transform:uppercase}.logic-residual{color:#d0dcd3;font-size:12px;line-height:1.45;margin:0}.logic-residual strong{color:#fff}.transaction-side{position:relative;display:inline-block;margin:0 0 20px}.transaction-side-toggle{border:1px solid #9fb5a5;border-radius:7px;background:#fff;color:var(--moss);padding:7px 10px;font:700 12px Inter,sans-serif;cursor:pointer}.transaction-side-toggle:hover{background:#edf5ee}.transaction-side-menu{position:absolute;z-index:20;top:39px;left:0;width:190px;padding:5px;background:#fff;border:1px solid var(--line);border-radius:8px;box-shadow:0 8px 20px rgba(12,35,21,.16);display:none}.transaction-side-menu.open{display:block}.transaction-side-menu button{width:100%;border:0;border-radius:5px;background:transparent;color:var(--ink);padding:8px;text-align:left;font:600 12px Inter,sans-serif;cursor:pointer}.transaction-side-menu button:hover,.transaction-side-menu button.active{background:#edf5ee;color:var(--moss)}
+      .intro{position:relative}.transaction-side{position:absolute;right:0;bottom:0;display:flex;gap:6px;align-items:center;margin:0}.transaction-side-toggle{border:1px solid #9fb5a5;border-radius:7px;background:#fff;color:var(--moss);padding:7px 10px;font:700 12px Inter,sans-serif;cursor:pointer}.transaction-side-toggle:hover{background:#edf5ee}.transaction-side-options{display:flex;gap:6px}.transaction-side-options button{border:1px solid #9fb5a5;border-radius:7px;background:#fff;color:var(--moss);padding:7px 11px;font:700 12px Inter,sans-serif;cursor:pointer}.transaction-side-options button:hover,.transaction-side-options button.active{background:#245b47;border-color:#245b47;color:#fff}.logic-section-heading{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:8px}.logic-section-heading h4{margin:0}.logic-side-picker{display:flex;gap:4px;justify-content:flex-end;flex-wrap:wrap}.logic-side-picker button{border:1px solid #537264;border-radius:5px;background:#274536;color:#fff;padding:4px 7px;font:700 10px/1 Inter,sans-serif;cursor:pointer}.logic-side-picker button:hover,.logic-side-picker button.active{background:var(--lime);border-color:var(--lime);color:var(--ink)}@media(max-width:700px){.transaction-side{position:static;margin-top:-10px;margin-bottom:20px;flex-wrap:wrap}}
+    </style>
+    <script>
+      const standardDealLogic = renderLogic;
+      const escapeLogicText = (value) => String(value || "").replace(/[&<>'"]/g, (character) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", "'": "&#39;", '"': "&quot;" }[character]));
+      const consentOutlookSentence = (factors, customText) => {
+        if (factors.includes("Other")) {
+          const text = customText.trim().replace(/[.!?]+$/, "");
+          return text ? `Obtaining consent or a waiver may be ${escapeLogicText(text.charAt(0).toLowerCase() + text.slice(1))}.` : "";
+        }
+        const cost = factors.includes("Expensive") ? "costly" : factors.includes("Inexpensive") ? "inexpensive" : "";
+        const likelihood = factors.includes("Unlikely") ? "difficult" : factors.includes("Likely") ? "straightforward" : "";
+        const description = [cost, likelihood].filter(Boolean).join(" and ");
+        return description ? `Obtaining consent or a waiver may be ${description}.` : "";
+      };
+      const getTransactionSide = () => activeDealProject()?.side || "Balanced";
+      const setTransactionSide = (side) => {const store=getDealProjects(),project=store.projects.find(item=>item.id===store.activeProjectId);if(project){project.side=side;saveDealProjects(store);}};
+      const cocAction = (icon, priority, title, instruction) => [icon, priority, title, instruction];
+      const cocActionMatrix = {
+        Low: {
+          notification: {
+            Seller: [cocAction("↗", "Required", "Post-completion action", "Serve contractual CoC notice post-closing."), cocAction("🛡", "Recommended", "Warranty", "Include standard CoC warranty in SPA and disclose in Disclosure Letter.")],
+            Buyer: [cocAction("🛡", "Recommended", "Warranty", "Include standard CoC warranty in SPA and disclose in Disclosure Letter."), cocAction("🧭", "Consider", "Pre-completion covenant", "Jointly draft and agree CoC communication text pre-closing.")],
+            Balanced: [cocAction("↗", "Required", "Post-completion action", "Serve contractual CoC notice post-closing."), cocAction("🛡", "Recommended", "Warranty", "Include standard CoC warranty in SPA and disclose in Disclosure Letter.")]
+          },
+          consent: {
+            Seller: [cocAction("🛡", "Recommended", "Warranty", "Include standard CoC warranty in SPA and disclose in Disclosure Letter."), cocAction("🧭", "Recommended", "Pre-completion covenant", "Include covenant in SPA to use commercially reasonable endeavors to seek consent."), cocAction("⏳", "Consider", "Condition precedent", "Resist making consent a Condition Precedent (CP) to closing.")],
+            Buyer: [cocAction("🛡", "Recommended", "Warranty", "Include standard CoC warranty in SPA and disclose in Disclosure Letter."), cocAction("🧭", "Recommended", "Pre-completion covenant", "Include covenant in SPA to use commercially reasonable endeavors to seek consent.")],
+            Balanced: [cocAction("🛡", "Recommended", "Warranty", "Include standard CoC warranty in SPA and disclose in Disclosure Letter."), cocAction("🧭", "Recommended", "Pre-completion covenant", "Include covenant in SPA to use commercially reasonable endeavors to seek consent.")]
+          }
+        },
+        Moderate: {
+          notification: {
+            Seller: [cocAction("↗", "Required", "Post-completion action", "Serve contractual CoC notice post-closing."), cocAction("🧭", "Recommended", "Pre-completion covenant", "Jointly draft and agree CoC communication text pre-closing."), cocAction("🛡", "Recommended", "Warranty", "Include standard CoC warranty in SPA and disclose in Disclosure Letter.")],
+            Buyer: [cocAction("🧭", "Recommended", "Pre-completion covenant", "Jointly draft and agree CoC communication text pre-closing."), cocAction("🛡", "Recommended", "Warranty", "Include standard CoC warranty in SPA and disclose in Disclosure Letter.")],
+            Balanced: [cocAction("↗", "Required", "Post-completion action", "Serve contractual CoC notice post-closing."), cocAction("🧭", "Recommended", "Pre-completion covenant", "Jointly draft and agree CoC communication text pre-closing."), cocAction("🛡", "Recommended", "Warranty", "Include standard CoC warranty in SPA and disclose in Disclosure Letter.")]
+          },
+          consent: {
+            Seller: [cocAction("🧭", "Recommended", "Pre-completion covenant", "Include covenant in SPA to use commercially reasonable endeavors to seek consent."), cocAction("🛡", "Recommended", "Warranty", "Include standard CoC warranty in SPA and disclose in Disclosure Letter."), cocAction("⏳", "Consider", "Condition precedent", "Resist making consent a Condition Precedent (CP) to closing.")],
+            Buyer: [cocAction("🧭", "Recommended", "Pre-completion covenant", "Include covenant in SPA to use commercially reasonable endeavors to seek consent."), cocAction("💶", "Recommended", "Specific indemnity", "Include specific indemnity in SPA for third-party termination or losses."), cocAction("⏳", "Consider", "Condition precedent", "Make obtaining third-party CoC consent a Condition Precedent (CP) to closing.")],
+            Balanced: [cocAction("🧭", "Recommended", "Pre-completion covenant", "Include covenant in SPA to use commercially reasonable endeavors to seek consent."), cocAction("💶", "Recommended", "Specific indemnity", "Include specific indemnity in SPA for third-party termination or losses."), cocAction("🛡", "Recommended", "Warranty", "Include standard CoC warranty in SPA and disclose in Disclosure Letter.")]
+          }
+        },
+        High: {
+          notification: {
+            Seller: [cocAction("↗", "Required", "Post-completion action", "Serve contractual CoC notice post-closing."), cocAction("🧭", "Recommended", "Pre-completion covenant", "Jointly draft and agree CoC communication text pre-closing."), cocAction("🛡", "Recommended", "Warranty", "Include standard CoC warranty in SPA and disclose in Disclosure Letter.")],
+            Buyer: [cocAction("🧭", "Recommended", "Pre-completion covenant", "Jointly draft and agree CoC communication text pre-closing."), cocAction("🛡", "Recommended", "Warranty", "Include standard CoC warranty in SPA and disclose in Disclosure Letter."), cocAction("🚪", "Consider", "Walk away or renegotiate", "Set a Longstop Date with walk-away rights if notice triggers termination rights.")],
+            Balanced: [cocAction("↗", "Required", "Post-completion action", "Serve contractual CoC notice post-closing."), cocAction("🧭", "Recommended", "Pre-completion covenant", "Jointly draft and agree CoC communication text pre-closing."), cocAction("🛡", "Recommended", "Warranty", "Include standard CoC warranty in SPA and disclose in Disclosure Letter.")]
+          },
+          consent: {
+            Seller: [cocAction("🧭", "Recommended", "Pre-completion covenant", "Include covenant in SPA to use commercially reasonable endeavors to seek consent."), cocAction("🚪", "Consider", "Walk away or renegotiate", "Set a Longstop Date with walk-away rights if consent is withheld."), cocAction("🧭", "Consider", "Pre-completion covenant", "Jointly draft and agree CoC communication text pre-closing.")],
+            Buyer: [cocAction("⏳", "Required", "Condition precedent", "Make obtaining third-party CoC consent a Condition Precedent (CP) to closing."), cocAction("💶", "Recommended", "Specific indemnity", "Include specific indemnity in SPA for third-party termination or losses."), cocAction("🚪", "Consider", "Walk away or renegotiate", "Set a Longstop Date with walk-away rights if consent is withheld.")],
+            Balanced: [cocAction("⏳", "Required", "Condition precedent", "Make obtaining third-party CoC consent a Condition Precedent (CP) to closing."), cocAction("🧭", "Recommended", "Pre-completion covenant", "Include covenant in SPA to use commercially reasonable endeavors to seek consent."), cocAction("🚪", "Consider", "Walk away or renegotiate", "Set a Longstop Date with walk-away rights if consent is withheld.")]
+          }
+        }
+      };
+      renderLogic = function (issue) {
+        if (issue.id !== "customer-change-of-control") return standardDealLogic(issue);
+        const logicCard = document.querySelector("#logic-card");
+        const protectionsCard = document.querySelector("#recommendations-card");
+        protectionsCard?.remove();
+        logicCard.classList.add("coc-deal-logic");
+        const clause = answers["contract-provision-exists"] || "Unanswered";
+        const trigger = answers["transaction-triggers-provision"] || "Unanswered";
+        const consequence = answers["triggered-provision-consequences"] || "Unanswered";
+        const importanceValue = Number(answers["contract-importance"] || 1);
+        const importance = ["Low", "Moderate", "High"][importanceValue - 1];
+        const prospects = answers["consent-prospects"] || [];
+        const customConsequence = answers["other-consequence"] || "";
+        const customProspect = answers["other-consent-prospects"] || "";
+        const consentRequired = consequence === "Third party must provide consent";
+        const highImpact = importanceValue === 3;
+        const hasCompleteConsentOutlook = prospects.includes("Other") || prospects.some((factor) => ["Likely", "Unlikely", "Expensive", "Inexpensive"].includes(factor));
+        const challengingConsent = hasCompleteConsentOutlook && (prospects.includes("Unlikely") || prospects.includes("Expensive"));
+        const consequenceComplete = consequence !== "Unanswered" && (consequence !== "Other" || Boolean(customConsequence.trim()));
+        const downstreamComplete = consequenceComplete && Boolean(answers["contract-importance"]);
+        const readyForLogic = clause === "No" || (clause !== "Unanswered" && trigger === "No") || (clause !== "Unanswered" && trigger !== "Unanswered" && downstreamComplete);
+        if (!readyForLogic) {
+          logicCard.classList.add("logic-standby");
+          logicCard.innerHTML = `<h3>Apply deal logic</h3><p>Turn the recorded facts into a clear transaction response.</p>`;
+          return;
+        }
+        logicCard.classList.remove("logic-standby");
+        let actions = [];
+        const transactionSide = getTransactionSide();
+        let conclusion = "Record whether a relevant contractual provision exists to generate the transaction response.";
+        let implications = ["The executed contract and transaction structure must be reviewed before a final deal response is determined."];
+        let residual = "The position remains unassessed until the contract and transaction trigger have been reviewed.";
+        if (clause === "No") {
+          conclusion = "No relevant change-of-control, assignment, termination or analogous provision has been identified. On the information recorded, this issue presents no transaction risk.";
+          implications = ["No consent-related completion step is currently indicated."];
+          residual = "No residual risk is currently indicated, subject to confirming the contract review is complete.";
+        } else if (clause !== "Unanswered" && trigger === "No") {
+          conclusion = "A relevant provision exists, but it is not engaged by the proposed transaction. No consent-related completion risk has been identified.";
+          implications = ["The deal structure should be retained in the diligence record with the trigger analysis."];
+          residual = "No residual transaction risk is currently indicated, subject to the recorded trigger analysis remaining correct.";
+        } else if (clause !== "Unanswered" && trigger !== "Unanswered") {
+          const consequenceText = consequence === "Third party must provide consent" ? "third-party consent" : consequence === "Third party must be notified" ? "notification of the third party" : consequence === "Other" ? (customConsequence || "a further contractual consequence") : consequence.toLowerCase();
+          const importancePhrase = { Low: "marginally important", Moderate: "moderately important", High: "highly important" }[importance];
+          const customConsequenceText = customConsequence ? `${customConsequence.charAt(0).toLowerCase()}${customConsequence.slice(1)}` : "a further contractual consequence";
+          const triggerPhrase = trigger === "Partly / unclear" ? "may be triggered" : "is likely to be triggered";
+          const consequenceSentence = `A change-of-control clause which requires ${escapeLogicText(consequence === "Other" ? customConsequenceText : consequenceText)} ${triggerPhrase} by the transaction.`;
+          conclusion = `${consequenceSentence} The contract is ${importancePhrase} for the target's business.${consentRequired ? ` ${consentOutlookSentence(prospects, customProspect)}` : ""}`;
+          implications = consequence === "Other"
+            ? ["Review the user-defined consequence against the contract and transaction timetable to determine the appropriate response."]
+            : [consentRequired ? "Completion timing may depend on obtaining consent or a waiver." : `The recorded consequence is ${escapeLogicText(consequenceText)} and should be built into the transaction plan.`];
+          if (consequence !== "Other" && highImpact) implications.splice(1, 0, "The contract may materially affect revenue continuity, operations or valuation.");
+          const matrixRequirement = consentRequired ? "consent" : consequence === "Third party must be notified" ? "notification" : "other";
+          actions = matrixRequirement === "other"
+            ? [cocAction("◌", "Recommended", "Other", "Review the user-defined consequence and agree a tailored contractual and transaction response.")]
+            : cocActionMatrix[importance][matrixRequirement][transactionSide].map((action) => [...action]);
+          residual = challengingConsent || highImpact ? "Residual risk remains material until the required step is completed or adequate contractual and financial protection is agreed." : "Residual risk should reduce once the required contractual step and supporting evidence are completed.";
+          if (prospects.includes("Other") && customProspect) implications.push(`Additional recorded consideration: ${escapeLogicText(customProspect)}.`);
+        } else if (clause !== "Unanswered") {
+          conclusion = "A relevant provision has been identified, but it is not yet clear whether the proposed transaction triggers it.";
+          implications = ["The transaction structure and the clause definition require targeted review before a completion response is selected."];
+          actions.push(["🔎", "Required", "Further diligence", "Confirm whether the proposed transaction falls within the clause definition and any exceptions."]);
+          residual = "Residual risk remains unresolved until the trigger analysis is complete.";
+        }
+        const actionMarkup = actions.length ? actions.map(([icon, priority, title, rationale]) => `<div class="logic-action"><span class="logic-icon">${icon}</span><div><span class="logic-priority">${priority}</span><strong>${title}</strong><span>${rationale}</span></div></div>`).join("") : `<p>There are no active transaction actions on the information recorded.</p>`;
+        const sidePicker = `<div class="logic-side-picker" aria-label="Transaction side selector"><button type="button" class="active" data-logic-side-toggle>${transactionSide}</button></div>`;
+        logicCard.innerHTML = `<h3>Apply deal logic</h3><section class="logic-section"><h4>Summary</h4><p class="logic-conclusion">${conclusion}</p></section><section class="logic-section"><h4>Key deal implications</h4><ul>${implications.map((item) => `<li>${item}</li>`).join("")}</ul></section><section class="logic-section"><div class="logic-section-heading"><h4>Recommended actions</h4>${sidePicker}</div>${actionMarkup}</section><section class="logic-section"><h4>Residual risk</h4><p class="logic-residual"><strong>Position:</strong> ${residual}</p></section>`;
+      };
+    </script>
+    <script>
+      document.addEventListener("click", (event) => {
+        const selectedButton = event.target.closest("[data-logic-side-toggle]");
+        if (selectedButton) {
+          const picker = selectedButton.parentElement;
+          picker.replaceChildren(...["Buyer", "Seller", "Balanced"].map((side) => {
+            const option = document.createElement("button");
+            option.type = "button"; option.textContent = side; option.dataset.logicSide = side; option.classList.toggle("active", side === getTransactionSide());
+            return option;
+          }));
+          return;
+        }
+        const option = event.target.closest("[data-logic-side]");
+        if (!option) return;
+        setTransactionSide(option.dataset.logicSide);
+        document.dispatchEvent(new CustomEvent("transaction-side-change"));
+        if (current()) renderLogic(current());
+      });
+    </script>
+    <script>
+      const introSection = document.querySelector(".intro");
+      if (introSection && !document.querySelector(".transaction-side")) {
+        const sideControl = document.createElement("div");
+        sideControl.className = "transaction-side";
+        let expanded = false;
+        const draw = () => {
+          const storedSide = activeDealProject()?.side;
+          const selected = storedSide || "Balanced";
+          sideControl.replaceChildren();
+          if (!storedSide && !expanded) {
+            const selectButton = document.createElement("button");
+            selectButton.type = "button"; selectButton.className = "transaction-side-toggle"; selectButton.textContent = "Select Transaction Side";
+            selectButton.onclick = () => { expanded = true; draw(); };
+            sideControl.append(selectButton);
+            return;
+          }
+          const options = document.createElement("div");
+          options.className = "transaction-side-options";
+          (expanded ? ["Buyer", "Seller", "Balanced"] : [selected]).forEach((side) => {
+            const option = document.createElement("button");
+            option.type = "button"; option.textContent = side; option.classList.toggle("active", side === selected);
+            option.onclick = () => {
+              if (!expanded) { expanded = true; draw(); return; }
+              setTransactionSide(side); expanded = false; draw(); document.dispatchEvent(new CustomEvent("transaction-side-change")); if (current()) renderLogic(current());
+            };
+            options.append(option);
+          });
+          sideControl.append(options);
+        };
+        draw();
+        document.addEventListener("transaction-side-change", draw);
+        introSection.append(sideControl);
+      }
+    </script>
+    <link rel="stylesheet" href="./deal-hub-v7.css" />
+    <script src="./deal-hub-v6.js"></script>
+  </body>
+</html>

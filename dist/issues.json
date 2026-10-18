@@ -1,0 +1,1874 @@
+[
+  {
+    "schema_version": "0.2",
+    "id": "customer-change-of-control",
+    "title": "Change-of-Control Clause",
+    "category": "commercial-contracts",
+    "summary": "A contract between the target and a third party may require the third party's consent, permit termination, or trigger another remedy when ownership or control of the target changes. Unmanaged, these provisions can delay completion, increase costs, or result in the loss of critical contracts, revenue, and financing post-acquisition.",
+    "jurisdiction": {
+      "primary": "England and Wales",
+      "legal_system": "common-law"
+    },
+    "status": "draft",
+    "transaction_context": {
+      "transaction_type": "share-sale",
+      "signing_to_completion": true,
+      "materiality_basis": "Materiality should be assessed by reference to revenue, margin, strategic importance, substitutability, term, termination rights and the target's dependency on the customer."
+    },
+    "facts": [
+      {
+        "id": "customer-contract-exists",
+        "statement": "The target is party to a customer contract identified for review.",
+        "value": "unknown",
+        "verification_status": "unknown"
+      },
+      {
+        "id": "change-of-control-provision",
+        "statement": "The customer contract contains a provision affected by a direct or indirect change of control of the target.",
+        "value": "unknown",
+        "verification_status": "unknown"
+      },
+      {
+        "id": "customer-consent-required",
+        "statement": "The provision requires the customer's prior written consent before the relevant change of control takes effect.",
+        "value": "unknown",
+        "verification_status": "unknown"
+      },
+      {
+        "id": "termination-right",
+        "statement": "The provision gives the customer a termination or other material remedy following the change of control.",
+        "value": "unknown",
+        "verification_status": "unknown"
+      },
+      {
+        "id": "contract-material-to-target",
+        "statement": "The customer contract is material to the target's business.",
+        "value": "unknown",
+        "verification_status": "unknown"
+      },
+      {
+        "id": "customer-consent-obtained",
+        "statement": "The customer has provided written consent or waived the relevant right for the proposed transaction.",
+        "value": "unknown",
+        "verification_status": "unknown"
+      }
+    ],
+    "key_questions": [
+      {
+        "id": "contract-provision-exists",
+        "question": "Has the target company signed a contract with a third party containing a change-of-control, assignment, termination or analogous provision?",
+        "purpose": "Confirm whether a relevant contractual provision exists before assessing its effect on the transaction.",
+        "priority": "critical",
+        "answer_status": "unanswered"
+      },
+      {
+        "id": "transaction-triggers-provision",
+        "question": "Does the proposed transaction trigger the change-of-control clause?",
+        "purpose": "Determine whether the transaction falls within the clause's definition and therefore activates a contractual consequence.",
+        "priority": "critical",
+        "answer_status": "unanswered"
+      },
+      {
+        "id": "triggered-provision-consequences",
+        "question": "What are the consequences of the triggered provision?",
+        "purpose": "Identify whether notice, consent or another remedy is required before the transaction can proceed safely.",
+        "priority": "critical",
+        "answer_status": "unanswered"
+      },
+      {
+        "id": "contract-importance",
+        "question": "How critical is this contract to the target’s business operations and valuation?",
+        "purpose": "Assess whether the contract is important enough to require a completion dependency or stronger deal protection.",
+        "priority": "high",
+        "answer_status": "unanswered"
+      },
+      {
+        "id": "consent-prospects",
+        "question": "What is the likelihood, timing and any cost of obtaining consent or a waiver?",
+        "purpose": "Assess the practical execution risk of obtaining a required consent or waiver before completion.",
+        "priority": "high",
+        "answer_status": "unanswered"
+      }
+    ],
+    "risk_assessment": {
+      "level": "high",
+      "likelihood": "unknown",
+      "impact": "high",
+      "rationale": "The initial risk level is deliberately cautious. It should be reduced or increased after the clause, transaction trigger, contract materiality and prospects of consent have been verified."
+    },
+    "risk_factors": [
+      {
+        "id": "consent-required-risk",
+        "description": "Prior written consent is required and has not been obtained.",
+        "effect": "increases-risk",
+        "weight": "high",
+        "related_fact_ids": [
+          "customer-consent-required",
+          "customer-consent-obtained"
+        ]
+      },
+      {
+        "id": "termination-remedy-risk",
+        "description": "The customer may terminate, suspend, renegotiate or exercise another material remedy following a change of control.",
+        "effect": "increases-risk",
+        "weight": "high",
+        "related_fact_ids": [
+          "termination-right"
+        ]
+      },
+      {
+        "id": "material-contract-risk",
+        "description": "The contract is material to the target's revenue, profitability or strategic position.",
+        "effect": "increases-risk",
+        "weight": "high",
+        "related_fact_ids": [
+          "contract-material-to-target"
+        ]
+      },
+      {
+        "id": "consent-obtained-mitigation",
+        "description": "The customer has given an effective written consent or waiver covering the proposed transaction.",
+        "effect": "reduces-risk",
+        "weight": "high",
+        "related_fact_ids": [
+          "customer-consent-obtained"
+        ]
+      }
+    ],
+    "recommended_actions": [
+      {
+        "id": "review-customer-contract",
+        "type": "further-diligence",
+        "recommendation": "Review the executed contract, amendments, side letters and relevant correspondence; confirm the trigger, remedy, notice requirements, governing law and any anti-waiver language.",
+        "relevance": "required",
+        "rationale": "The contractual wording and transaction structure determine whether a consent or other protection is needed.",
+        "owner": "buyer",
+        "timing": "pre-signing"
+      },
+      {
+        "id": "obtain-customer-consent",
+        "type": "third-party-consent",
+        "recommendation": "Require the seller or target to seek a written consent or waiver that expressly covers the proposed transaction and any required implementation steps.",
+        "relevance": "context-dependent",
+        "rationale": "Appropriate where the clause is engaged and consent is required or commercially prudent.",
+        "owner": "seller",
+        "timing": "between-signing-and-completion",
+        "depends_on_action_ids": [
+          "review-customer-contract"
+        ]
+      },
+      {
+        "id": "consent-condition-precedent",
+        "type": "condition-precedent",
+        "recommendation": "Make completion conditional on receipt of the customer's consent or waiver in an agreed form.",
+        "relevance": "context-dependent",
+        "rationale": "Most relevant where consent is legally required or the contract is material and the loss of the customer would undermine the deal rationale.",
+        "owner": "joint",
+        "timing": "signing",
+        "depends_on_action_ids": [
+          "obtain-customer-consent"
+        ]
+      },
+      {
+        "id": "pre-completion-consent-covenant",
+        "type": "pre-completion-covenant",
+        "recommendation": "Oblige the seller to pursue consent using agreed communications, keep the buyer informed and avoid amendments or concessions without the buyer's consent.",
+        "relevance": "context-dependent",
+        "rationale": "Protects the buyer's interest in the consent process while respecting the customer relationship.",
+        "owner": "seller",
+        "timing": "between-signing-and-completion"
+      },
+      {
+        "id": "contract-compliance-warranty",
+        "type": "warranty",
+        "recommendation": "Obtain a tailored warranty on the accuracy of the disclosed contract position, compliance with its terms, and the absence of undisclosed consent requirements or defaults.",
+        "relevance": "recommended",
+        "rationale": "Provides a contractual remedy if the seller's disclosure about the contract is inaccurate, subject to negotiated limitations.",
+        "owner": "seller",
+        "timing": "signing"
+      },
+      {
+        "id": "specific-indemnity",
+        "type": "indemnity",
+        "recommendation": "Consider a specific indemnity for quantified losses arising from a known breach, termination or failure to obtain required consent.",
+        "relevance": "context-dependent",
+        "rationale": "May be suitable where the risk is identified and cannot be eliminated before completion; scope, causation and caps require negotiation.",
+        "owner": "seller",
+        "timing": "signing"
+      },
+      {
+        "id": "specific-disclosure",
+        "type": "disclosure",
+        "recommendation": "Require full, specific disclosure of the relevant clause, correspondence, consent status and the customer's stated position.",
+        "relevance": "required",
+        "rationale": "Enables informed allocation of a known risk and prevents the issue being obscured by generic disclosure.",
+        "owner": "seller",
+        "timing": "signing"
+      },
+      {
+        "id": "completion-funds-flow-check",
+        "type": "completion-mechanic",
+        "recommendation": "Include the consent or waiver in the completion deliverables and verify that any conditions in it have been satisfied before release of consideration.",
+        "relevance": "context-dependent",
+        "rationale": "Ensures that a purported consent is in the agreed form and effective at completion.",
+        "owner": "joint",
+        "timing": "completion",
+        "depends_on_action_ids": [
+          "obtain-customer-consent"
+        ]
+      }
+    ],
+    "decision_rules": [
+      {
+        "id": "review-where-trigger-unknown",
+        "when": {
+          "fact_id": "change-of-control-provision",
+          "operator": "equals",
+          "value": "unknown"
+        },
+        "then": {
+          "action_ids": [
+            "review-customer-contract"
+          ],
+          "explanation": "Do not determine the transaction response until the executed wording and its applicability have been reviewed."
+        }
+      },
+      {
+        "id": "seek-consent-where-required",
+        "when": {
+          "all": [
+            {
+              "fact_id": "change-of-control-provision",
+              "operator": "equals",
+              "value": true
+            },
+            {
+              "fact_id": "customer-consent-required",
+              "operator": "equals",
+              "value": true
+            },
+            {
+              "fact_id": "customer-consent-obtained",
+              "operator": "not-equals",
+              "value": true
+            }
+          ]
+        },
+        "then": {
+          "action_ids": [
+            "obtain-customer-consent",
+            "pre-completion-consent-covenant",
+            "specific-disclosure"
+          ],
+          "explanation": "If consent is required and not yet obtained, it should be pursued and its status specifically disclosed."
+        }
+      },
+      {
+        "id": "make-consent-a-cp-for-material-contract",
+        "when": {
+          "all": [
+            {
+              "fact_id": "customer-consent-required",
+              "operator": "equals",
+              "value": true
+            },
+            {
+              "fact_id": "customer-consent-obtained",
+              "operator": "not-equals",
+              "value": true
+            },
+            {
+              "fact_id": "contract-material-to-target",
+              "operator": "equals",
+              "value": true
+            }
+          ]
+        },
+        "then": {
+          "action_ids": [
+            "consent-condition-precedent",
+            "contract-compliance-warranty"
+          ],
+          "explanation": "An unconsented, material contract warrants a completion dependency and tailored contractual protection, subject to the parties' negotiated risk allocation."
+        }
+      },
+      {
+        "id": "consider-indemnity-for-known-unresolved-loss",
+        "when": {
+          "all": [
+            {
+              "fact_id": "termination-right",
+              "operator": "equals",
+              "value": true
+            },
+            {
+              "fact_id": "contract-material-to-target",
+              "operator": "equals",
+              "value": true
+            }
+          ]
+        },
+        "then": {
+          "action_ids": [
+            "specific-indemnity",
+            "contract-compliance-warranty",
+            "specific-disclosure"
+          ],
+          "explanation": "A known termination exposure in a material contract may justify deal-specific protection if it remains at signing or completion."
+        }
+      }
+    ],
+    "positions": [
+      {
+        "party": "buyer",
+        "position": "The buyer will generally seek to verify the clause, obtain any necessary consent before completion, and protect against an unresolved material risk through a CP, targeted warranty and, where justified, indemnity.",
+        "action_ids": [
+          "review-customer-contract",
+          "obtain-customer-consent",
+          "consent-condition-precedent",
+          "contract-compliance-warranty",
+          "specific-indemnity"
+        ]
+      },
+      {
+        "party": "seller",
+        "position": "The seller may seek to avoid alerting the customer prematurely, resist a CP where consent is not strictly required, and limit any protection to specific disclosure and proportionate obligations to seek consent.",
+        "action_ids": [
+          "pre-completion-consent-covenant",
+          "specific-disclosure"
+        ]
+      }
+    ],
+    "sources": [
+      {
+        "id": "executed-customer-contract",
+        "type": "contract",
+        "citation": "Executed customer contract and all amendments, side letters and waivers — to be identified in diligence."
+      },
+      {
+        "id": "customer-consent-correspondence",
+        "type": "correspondence",
+        "citation": "Correspondence with the customer about the proposed transaction or any change-of-control consent — to be identified in diligence."
+      },
+      {
+        "id": "customer-revenue-analysis",
+        "type": "financial-document",
+        "citation": "Customer revenue, margin and concentration analysis — to be prepared or identified in diligence."
+      }
+    ],
+    "notes": "Reusable draft content only. It must be tailored to the actual contract wording, transaction structure, governing law and negotiated transaction documents before use.",
+    "last_reviewed": "2026-10-15"
+  },
+  {
+    "schema_version": "0.2",
+    "id": "option-holders",
+    "title": "Option Holders",
+    "category": "corporate-and-shares",
+    "summary": "The target may have outstanding options, warrants or similar rights that affect the fully diluted ownership position and the mechanics of a sale. The transaction must identify every relevant award and implement its treatment so that the buyer receives the agreed capital structure at completion.",
+    "jurisdiction": {
+      "primary": "England and Wales",
+      "legal_system": "common-law"
+    },
+    "status": "draft",
+    "transaction_context": {
+      "transaction_type": "share-sale",
+      "signing_to_completion": true,
+      "materiality_basis": "Materiality should be assessed by the number and class of shares under award, exercise price, vesting status, dilution, tax profile, participation rights, holder cooperation and the deal's agreed equity-value and proceeds allocation."
+    },
+    "facts": [
+      {
+        "id": "outstanding-awards-exist",
+        "statement": "The target has outstanding options, warrants or other rights to acquire shares.",
+        "value": "unknown",
+        "verification_status": "unknown"
+      },
+      {
+        "id": "award-register-complete",
+        "statement": "A complete, current award register reconciled to the cap table and underlying documentation is available.",
+        "value": "unknown",
+        "verification_status": "unknown"
+      },
+      {
+        "id": "exit-provisions-apply",
+        "statement": "The governing documents contain provisions that apply to a sale, takeover or change of control.",
+        "value": "unknown",
+        "verification_status": "unknown"
+      },
+      {
+        "id": "unvested-awards-exist",
+        "statement": "One or more awards remain unvested at the relevant transaction date.",
+        "value": "unknown",
+        "verification_status": "unknown"
+      },
+      {
+        "id": "holder-consent-required",
+        "statement": "The proposed treatment requires an option holder's consent, election, release or other participation document.",
+        "value": "unknown",
+        "verification_status": "unknown"
+      },
+      {
+        "id": "holder-consents-obtained",
+        "statement": "All required option holder consents, elections, releases and exercise or cancellation documents have been obtained in the agreed form.",
+        "value": "unknown",
+        "verification_status": "unknown"
+      },
+      {
+        "id": "tax-advantaged-options-exist",
+        "statement": "The award population includes EMI, CSOP, SAYE or another tax-advantaged option arrangement.",
+        "value": "unknown",
+        "verification_status": "unknown"
+      },
+      {
+        "id": "tax-advice-obtained",
+        "statement": "Transaction-specific tax advice on the treatment of relevant awards and holder payments has been obtained.",
+        "value": "unknown",
+        "verification_status": "unknown"
+      }
+    ],
+    "key_questions": [
+      {
+        "id": "reconcile-awards-and-cap-table",
+        "question": "What options, warrants and other share rights are outstanding, and does the award register reconcile to the cap table, constitutional documents and statutory records?",
+        "purpose": "Establish the fully diluted capital structure and identify omissions, inconsistencies or unauthorised awards.",
+        "priority": "critical",
+        "answer_status": "unanswered"
+      },
+      {
+        "id": "review-award-terms",
+        "question": "What do the plan rules and individual award documents provide on vesting, exercise, lapse, acceleration, cancellation, variation, drag rights and an exit?",
+        "purpose": "Determine the legally and contractually available treatment for each award class and holder.",
+        "priority": "critical",
+        "answer_status": "unanswered"
+      },
+      {
+        "id": "select-award-treatment",
+        "question": "Will awards be exercised and sold, cashed out, cancelled, rolled over, replaced, or treated differently by holder or award class?",
+        "purpose": "Set the completion mechanics and proceeds allocation needed to deliver the agreed transaction structure.",
+        "priority": "critical",
+        "answer_status": "unanswered"
+      },
+      {
+        "id": "assess-consents-and-approvals",
+        "question": "Which holder consents, board approvals, shareholder approvals, waivers or elections are required, and can they be obtained before completion?",
+        "purpose": "Identify execution dependencies and the risk of a holder retaining rights after closing.",
+        "priority": "critical",
+        "answer_status": "unanswered"
+      },
+      {
+        "id": "assess-tax-treatment",
+        "question": "Do any awards have a tax-advantaged status or a transaction-specific tax consequence that changes the proposed treatment?",
+        "purpose": "Avoid implementing award mechanics without considering applicable employee tax, withholding and scheme rules.",
+        "priority": "high",
+        "answer_status": "unanswered"
+      }
+    ],
+    "risk_assessment": {
+      "level": "high",
+      "likelihood": "unknown",
+      "impact": "high",
+      "rationale": "An incomplete award population or ineffective treatment can leave unexpected dilution, participant claims, tax exposure or an inaccurate completion cap table. The assessment should be revised once documentation and consents are verified."
+    },
+    "risk_factors": [
+      {
+        "id": "incomplete-award-data-risk",
+        "description": "The award register, cap table and supporting documents do not reconcile or are incomplete.",
+        "effect": "increases-risk",
+        "weight": "high",
+        "related_fact_ids": [
+          "award-register-complete"
+        ]
+      },
+      {
+        "id": "unvested-award-risk",
+        "description": "Unvested awards exist and the treatment of acceleration, lapse or rollover is not clear.",
+        "effect": "increases-risk",
+        "weight": "high",
+        "related_fact_ids": [
+          "unvested-awards-exist",
+          "exit-provisions-apply"
+        ]
+      },
+      {
+        "id": "consent-risk",
+        "description": "Option holder documents or consents are required but have not been obtained.",
+        "effect": "increases-risk",
+        "weight": "high",
+        "related_fact_ids": [
+          "holder-consent-required",
+          "holder-consents-obtained"
+        ]
+      },
+      {
+        "id": "tax-advantaged-award-risk",
+        "description": "Tax-advantaged awards exist but their transaction treatment has not been confirmed with specialist tax advice.",
+        "effect": "increases-risk",
+        "weight": "high",
+        "related_fact_ids": [
+          "tax-advantaged-options-exist",
+          "tax-advice-obtained"
+        ]
+      },
+      {
+        "id": "executed-treatment-mitigation",
+        "description": "The award population is reconciled and all necessary exercise, cancellation, release or rollover documents are in place.",
+        "effect": "reduces-risk",
+        "weight": "high",
+        "related_fact_ids": [
+          "award-register-complete",
+          "holder-consents-obtained"
+        ]
+      }
+    ],
+    "recommended_actions": [
+      {
+        "id": "complete-award-and-cap-table-review",
+        "type": "further-diligence",
+        "recommendation": "Reconcile the cap table, register of members, option and warrant registers, plan rules, award agreements, board and shareholder approvals, and prior exercise or cancellation records.",
+        "relevance": "required",
+        "rationale": "A reliable fully diluted ownership analysis is the foundation for pricing, proceeds allocation and completion steps.",
+        "owner": "buyer",
+        "timing": "pre-signing"
+      },
+      {
+        "id": "obtain-award-tax-advice",
+        "type": "further-diligence",
+        "recommendation": "Obtain transaction-specific tax and payroll advice for relevant option arrangements, holder payments and any proposed exercise, cancellation, cash-out or rollover.",
+        "relevance": "context-dependent",
+        "rationale": "Tax treatment depends on the particular award, holder, terms and transaction implementation.",
+        "owner": "adviser",
+        "timing": "pre-signing"
+      },
+      {
+        "id": "document-award-treatment",
+        "type": "rectification",
+        "recommendation": "Adopt the required board or shareholder approvals and prepare holder-specific exercise notices, cancellation agreements, releases, rollover documents or other implementation paperwork.",
+        "relevance": "required",
+        "rationale": "The selected treatment must be authorised and documented under the governing plan, award documents and corporate constitution.",
+        "owner": "target",
+        "timing": "between-signing-and-completion",
+        "depends_on_action_ids": [
+          "complete-award-and-cap-table-review"
+        ]
+      },
+      {
+        "id": "obtain-holder-participation-documents",
+        "type": "third-party-consent",
+        "recommendation": "Obtain each required holder consent, election, release, exercise notice, cancellation acceptance or power of attorney in the agreed form.",
+        "relevance": "context-dependent",
+        "rationale": "Individual documentation may be required to implement the agreed treatment and prevent post-completion claims.",
+        "owner": "seller",
+        "timing": "between-signing-and-completion",
+        "depends_on_action_ids": [
+          "document-award-treatment"
+        ]
+      },
+      {
+        "id": "option-mechanics-condition-precedent",
+        "type": "condition-precedent",
+        "recommendation": "Make completion conditional on the agreed award treatment being completed, including all necessary consents and delivery of an agreed closing cap table.",
+        "relevance": "context-dependent",
+        "rationale": "Most relevant where awards could affect the ownership, value allocation or the buyer's ability to acquire the agreed share capital.",
+        "owner": "joint",
+        "timing": "signing",
+        "depends_on_action_ids": [
+          "obtain-holder-participation-documents"
+        ]
+      },
+      {
+        "id": "capitalisation-warranty",
+        "type": "warranty",
+        "recommendation": "Obtain a tailored warranty that the disclosed cap table and award registers are complete and accurate and that no undisclosed options, warrants or rights to acquire securities exist.",
+        "relevance": "recommended",
+        "rationale": "Provides a remedy if the seller's disclosed capitalisation position is inaccurate, subject to negotiated limitations and disclosure.",
+        "owner": "seller",
+        "timing": "signing"
+      },
+      {
+        "id": "option-holder-specific-disclosure",
+        "type": "disclosure",
+        "recommendation": "Require specific disclosure of each award, its terms, vesting and exercise status, intended treatment, tax status, holder documentation and any exceptions or disputes.",
+        "relevance": "required",
+        "rationale": "Enables the buyer to verify the closing capital structure and assess the residual risk allocation.",
+        "owner": "seller",
+        "timing": "signing"
+      },
+      {
+        "id": "completion-cap-table-and-proceeds-schedule",
+        "type": "completion-mechanic",
+        "recommendation": "Include an agreed closing cap table, award-treatment schedule, funds-flow and proceeds-allocation schedule in the completion deliverables, with evidence of cancellation, exercise or rollover as applicable.",
+        "relevance": "required",
+        "rationale": "Makes the intended treatment auditable and aligns legal implementation with payments at completion.",
+        "owner": "joint",
+        "timing": "completion",
+        "depends_on_action_ids": [
+          "document-award-treatment"
+        ]
+      }
+    ],
+    "decision_rules": [
+      {
+        "id": "reconcile-where-award-data-unknown",
+        "when": {
+          "fact_id": "award-register-complete",
+          "operator": "equals",
+          "value": "unknown"
+        },
+        "then": {
+          "action_ids": [
+            "complete-award-and-cap-table-review",
+            "option-holder-specific-disclosure"
+          ],
+          "explanation": "Do not finalise pricing or completion mechanics until the award population and fully diluted cap table are reconciled."
+        }
+      },
+      {
+        "id": "document-and-consent-award-treatment",
+        "when": {
+          "all": [
+            {
+              "fact_id": "outstanding-awards-exist",
+              "operator": "equals",
+              "value": true
+            },
+            {
+              "fact_id": "holder-consent-required",
+              "operator": "equals",
+              "value": true
+            },
+            {
+              "fact_id": "holder-consents-obtained",
+              "operator": "not-equals",
+              "value": true
+            }
+          ]
+        },
+        "then": {
+          "action_ids": [
+            "document-award-treatment",
+            "obtain-holder-participation-documents",
+            "completion-cap-table-and-proceeds-schedule"
+          ],
+          "explanation": "Outstanding awards requiring holder participation need documented treatment and evidence before the closing structure can be relied on."
+        }
+      },
+      {
+        "id": "make-material-option-mechanics-a-cp",
+        "when": {
+          "all": [
+            {
+              "fact_id": "outstanding-awards-exist",
+              "operator": "equals",
+              "value": true
+            },
+            {
+              "fact_id": "holder-consents-obtained",
+              "operator": "not-equals",
+              "value": true
+            }
+          ]
+        },
+        "then": {
+          "action_ids": [
+            "option-mechanics-condition-precedent",
+            "capitalisation-warranty",
+            "option-holder-specific-disclosure"
+          ],
+          "explanation": "Where awards remain capable of affecting the agreed acquisition, completion protection and capitalisation warranties should be considered."
+        }
+      },
+      {
+        "id": "seek-tax-advice-for-tax-advantaged-options",
+        "when": {
+          "all": [
+            {
+              "fact_id": "tax-advantaged-options-exist",
+              "operator": "equals",
+              "value": true
+            },
+            {
+              "fact_id": "tax-advice-obtained",
+              "operator": "not-equals",
+              "value": true
+            }
+          ]
+        },
+        "then": {
+          "action_ids": [
+            "obtain-award-tax-advice",
+            "document-award-treatment"
+          ],
+          "explanation": "Tax-advantaged awards need transaction-specific review before their treatment is implemented."
+        }
+      }
+    ],
+    "positions": [
+      {
+        "party": "buyer",
+        "position": "The buyer will generally require a reconciled fully diluted cap table, effective implementation of all awards, an agreed proceeds schedule and protection against undisclosed or improperly treated rights.",
+        "action_ids": [
+          "complete-award-and-cap-table-review",
+          "obtain-holder-participation-documents",
+          "option-mechanics-condition-precedent",
+          "capitalisation-warranty",
+          "completion-cap-table-and-proceeds-schedule"
+        ]
+      },
+      {
+        "party": "seller",
+        "position": "The seller may seek flexible treatment for unvested awards, prefer cancellation or rollover over exercise, and resist a completion condition where the documents already give the target sufficient power to implement the outcome.",
+        "action_ids": [
+          "document-award-treatment",
+          "option-holder-specific-disclosure"
+        ]
+      }
+    ],
+    "sources": [
+      {
+        "id": "option-plan-and-award-documents",
+        "type": "contract",
+        "citation": "Option plan rules, award agreements, notices, amendments and side letters — to be identified in diligence."
+      },
+      {
+        "id": "cap-table-and-statutory-records",
+        "type": "corporate-record",
+        "citation": "Capitalisation table, register of members, statutory books, board minutes and shareholder resolutions — to be identified in diligence."
+      },
+      {
+        "id": "companies-act-register-members",
+        "type": "legal-authority",
+        "citation": "Companies Act 2006, section 113 (register of members).",
+        "url": "https://www.legislation.gov.uk/ukpga/2006/46/section/113"
+      },
+      {
+        "id": "hmrc-emi-exit-options-guidance",
+        "type": "legal-authority",
+        "citation": "HMRC Employment-Related Securities Manual, ETASSUM54340 (EMI options and specified exit events).",
+        "url": "https://www.gov.uk/hmrc-internal-manuals/employee-tax-advantaged-share-scheme-user-manual/etassum54340"
+      }
+    ],
+    "notes": "Reusable draft content only. The treatment of awards must be determined by the relevant plan rules, award documents, constitutional documents, transaction structure, corporate approvals and specialist tax advice before use.",
+    "last_reviewed": "2026-10-15"
+  },
+  {
+    "schema_version": "0.2",
+    "id": "debt-facilities-repayment",
+    "title": "Debt Facilities Requiring Repayment",
+    "category": "finance-and-banking",
+    "summary": "The target may have borrowing facilities that become repayable, require lender consent or otherwise need to be addressed because of the proposed transaction. A failure to repay or release security at completion can leave debt, guarantees or encumbrances affecting the acquired business.",
+    "jurisdiction": {
+      "primary": "England and Wales",
+      "legal_system": "common-law"
+    },
+    "status": "draft",
+    "transaction_context": {
+      "transaction_type": "share-sale",
+      "signing_to_completion": true,
+      "materiality_basis": "Materiality should be assessed by the amount repayable, acceleration or change-of-control provisions, security and guarantees, availability of acquisition funding, lender cooperation, repayment timing, and the effect of unreleased liabilities on the buyer or target."
+    },
+    "facts": [
+      {
+        "id": "debt-facility-exists",
+        "statement": "The target is borrower, guarantor, security provider or otherwise obliged under a debt facility or related finance document.",
+        "value": "unknown",
+        "verification_status": "unknown"
+      },
+      {
+        "id": "change-of-control-triggered",
+        "statement": "The proposed transaction triggers, or may trigger, a change-of-control, mandatory prepayment, default, consent or similar provision under the finance documents.",
+        "value": "unknown",
+        "verification_status": "unknown"
+      },
+      {
+        "id": "payoff-letter-obtained",
+        "statement": "The lender has delivered a current payoff letter or equivalent statement setting out the amount, payment instructions and conditions for release.",
+        "value": "unknown",
+        "verification_status": "unknown"
+      },
+      {
+        "id": "security-exists",
+        "statement": "Security, guarantees, indemnities, cash collateral or other credit support has been granted in connection with the facility.",
+        "value": "unknown",
+        "verification_status": "unknown"
+      },
+      {
+        "id": "release-documents-agreed",
+        "statement": "All release, discharge and termination documents needed to extinguish the target's liabilities and security at completion have been agreed in form and are ready for delivery.",
+        "value": "unknown",
+        "verification_status": "unknown"
+      },
+      {
+        "id": "funds-available-for-payoff",
+        "statement": "The completion funds flow provides sufficient available funds to repay the facility and all related amounts in accordance with the payoff terms.",
+        "value": "unknown",
+        "verification_status": "unknown"
+      },
+      {
+        "id": "lender-consent-obtained",
+        "statement": "Any lender consent, waiver or amendment required for the proposed transaction has been obtained in the agreed form.",
+        "value": "unknown",
+        "verification_status": "unknown"
+      },
+      {
+        "id": "facility-repaid-and-released",
+        "statement": "The facility has been repaid and all target-related security, guarantees and other credit support have been released or terminated as agreed.",
+        "value": "unknown",
+        "verification_status": "unknown"
+      }
+    ],
+    "key_questions": [
+      {
+        "id": "identify-finance-documents-and-obligors",
+        "question": "What facilities, finance documents, hedging arrangements, guarantees and security documents exist, and which target-group entities are obligors or security providers?",
+        "purpose": "Establish the full debt and credit-support perimeter that could affect the transaction.",
+        "priority": "critical",
+        "answer_status": "unanswered"
+      },
+      {
+        "id": "determine-transaction-consequences",
+        "question": "Do the finance documents require repayment, lender consent, a waiver or amendment because of the proposed transaction?",
+        "purpose": "Identify hard completion dependencies and any risk of default or acceleration.",
+        "priority": "critical",
+        "answer_status": "unanswered"
+      },
+      {
+        "id": "verify-payoff-amount",
+        "question": "What amount must be paid at completion, including principal, accrued interest, break costs, fees, hedging close-out and other amounts?",
+        "purpose": "Enable an accurate funds flow and avoid residual debt after completion.",
+        "priority": "critical",
+        "answer_status": "unanswered"
+      },
+      {
+        "id": "verify-release-perimeter",
+        "question": "What releases, discharges, terminations, return of collateral and registry filings are needed, and which persons must deliver them?",
+        "purpose": "Ensure that all target-related security and credit support are removed, not merely the principal debt.",
+        "priority": "critical",
+        "answer_status": "unanswered"
+      },
+      {
+        "id": "confirm-closing-sequencing",
+        "question": "How will payoff funds and release documents be held, delivered and sequenced at completion, including any escrow or solicitors' undertaking arrangements?",
+        "purpose": "Make repayment, release and acquisition occur in a controlled and auditable sequence.",
+        "priority": "high",
+        "answer_status": "unanswered"
+      }
+    ],
+    "risk_assessment": {
+      "level": "high",
+      "likelihood": "unknown",
+      "impact": "high",
+      "rationale": "Debt that is repayable or subject to change-of-control rights can directly block completion. Incomplete release mechanics can also leave the buyer with residual security, guarantees or default exposure after closing."
+    },
+    "risk_factors": [
+      {
+        "id": "transaction-trigger-risk",
+        "description": "The transaction triggers a mandatory repayment, lender-consent, waiver or default provision.",
+        "effect": "increases-risk",
+        "weight": "high",
+        "related_fact_ids": [
+          "change-of-control-triggered",
+          "lender-consent-obtained"
+        ]
+      },
+      {
+        "id": "unverified-payoff-risk",
+        "description": "The payoff amount, payment instructions or conditions for release are not confirmed in writing by the lender.",
+        "effect": "increases-risk",
+        "weight": "high",
+        "related_fact_ids": [
+          "payoff-letter-obtained"
+        ]
+      },
+      {
+        "id": "residual-security-risk",
+        "description": "Security, guarantees or other credit support exist but releases have not been agreed or mapped to completion deliverables.",
+        "effect": "increases-risk",
+        "weight": "high",
+        "related_fact_ids": [
+          "security-exists",
+          "release-documents-agreed"
+        ]
+      },
+      {
+        "id": "funds-flow-risk",
+        "description": "The completion funds flow does not yet demonstrate that all payoff amounts can be made when due.",
+        "effect": "increases-risk",
+        "weight": "high",
+        "related_fact_ids": [
+          "funds-available-for-payoff"
+        ]
+      },
+      {
+        "id": "repaid-and-released-mitigation",
+        "description": "The facility has been repaid and all agreed target-related security and credit support have been released or terminated.",
+        "effect": "reduces-risk",
+        "weight": "high",
+        "related_fact_ids": [
+          "facility-repaid-and-released"
+        ]
+      }
+    ],
+    "recommended_actions": [
+      {
+        "id": "review-finance-documents",
+        "type": "further-diligence",
+        "recommendation": "Review all facility, security, guarantee, hedging and intercreditor documents, amendments, waivers and compliance correspondence; prepare an obligor and security map.",
+        "relevance": "required",
+        "rationale": "The document suite determines whether repayment or consent is required and what must be released at completion.",
+        "owner": "buyer",
+        "timing": "pre-signing"
+      },
+      {
+        "id": "obtain-lender-consent-or-waiver",
+        "type": "third-party-consent",
+        "recommendation": "Obtain any required lender consent, waiver or amendment in writing, expressly covering the proposed transaction and any agreed post-completion arrangement.",
+        "relevance": "context-dependent",
+        "rationale": "Required where the finance documents make consent or waiver a condition to the transaction or continued availability of the facility.",
+        "owner": "seller",
+        "timing": "between-signing-and-completion",
+        "depends_on_action_ids": [
+          "review-finance-documents"
+        ]
+      },
+      {
+        "id": "obtain-payoff-and-release-documents",
+        "type": "rectification",
+        "recommendation": "Obtain a current payoff letter and agreed release, discharge, termination and return-of-collateral documents, with clear conditions for their effectiveness.",
+        "relevance": "required",
+        "rationale": "Ensures that repayment produces the required releases and avoids an uncertain or incomplete discharge process.",
+        "owner": "seller",
+        "timing": "between-signing-and-completion",
+        "depends_on_action_ids": [
+          "review-finance-documents"
+        ]
+      },
+      {
+        "id": "debt-repayment-condition-precedent",
+        "type": "condition-precedent",
+        "recommendation": "Make completion conditional on the facility being repaid or on the lender releases and required consent being delivered against completion funds in an agreed escrow or undertaking arrangement.",
+        "relevance": "required",
+        "rationale": "Repayment and release are generally core completion mechanics where acquisition funding will discharge target debt.",
+        "owner": "joint",
+        "timing": "signing",
+        "depends_on_action_ids": [
+          "obtain-payoff-and-release-documents"
+        ]
+      },
+      {
+        "id": "pre-completion-debt-covenant",
+        "type": "pre-completion-covenant",
+        "recommendation": "Require the seller and target to preserve the facility position, avoid additional drawdowns, security or amendments, and keep the buyer informed of lender communications before completion.",
+        "relevance": "recommended",
+        "rationale": "Prevents new debt or changes to the repayment and release perimeter between signing and completion.",
+        "owner": "seller",
+        "timing": "between-signing-and-completion"
+      },
+      {
+        "id": "finance-compliance-warranty",
+        "type": "warranty",
+        "recommendation": "Obtain tailored warranties on disclosed financial indebtedness, security, compliance with finance documents, absence of undisclosed defaults and accuracy of payoff information.",
+        "relevance": "recommended",
+        "rationale": "Provides a remedy for inaccuracies in the debt and security position, subject to negotiated limitations and disclosure.",
+        "owner": "seller",
+        "timing": "signing"
+      },
+      {
+        "id": "debt-specific-disclosure",
+        "type": "disclosure",
+        "recommendation": "Require specific disclosure of every relevant facility, security interest, guarantee, trigger, payoff amount, release requirement and lender correspondence.",
+        "relevance": "required",
+        "rationale": "Allows the buyer to assess and implement the correct payoff and release structure.",
+        "owner": "seller",
+        "timing": "signing"
+      },
+      {
+        "id": "payoff-and-release-completion-mechanic",
+        "type": "completion-mechanic",
+        "recommendation": "Include the payoff letter, payment instructions, releases, undertakings, funds-flow and evidence of payment in the completion deliverables, with an agreed order of release and payment.",
+        "relevance": "required",
+        "rationale": "Coordinates the acquisition consideration with debt repayment and discharge of security at closing.",
+        "owner": "joint",
+        "timing": "completion",
+        "depends_on_action_ids": [
+          "obtain-payoff-and-release-documents"
+        ]
+      },
+      {
+        "id": "post-completion-charge-recordal",
+        "type": "post-completion-action",
+        "recommendation": "Make agreed Companies House and other registry filings to record satisfaction, release or discharge of relevant security, and retain the release evidence in the target's corporate records.",
+        "relevance": "context-dependent",
+        "rationale": "Public and internal records may need updating after repayment; the required filing depends on the relevant charge and jurisdiction.",
+        "owner": "target",
+        "timing": "post-completion",
+        "depends_on_action_ids": [
+          "payoff-and-release-completion-mechanic"
+        ]
+      }
+    ],
+    "decision_rules": [
+      {
+        "id": "review-where-facility-exists",
+        "when": {
+          "fact_id": "debt-facility-exists",
+          "operator": "equals",
+          "value": true
+        },
+        "then": {
+          "action_ids": [
+            "review-finance-documents",
+            "debt-specific-disclosure"
+          ],
+          "explanation": "The complete finance document suite and debt perimeter must be confirmed before closing mechanics are agreed."
+        }
+      },
+      {
+        "id": "obtain-consent-for-transaction-trigger",
+        "when": {
+          "all": [
+            {
+              "fact_id": "change-of-control-triggered",
+              "operator": "equals",
+              "value": true
+            },
+            {
+              "fact_id": "lender-consent-obtained",
+              "operator": "not-equals",
+              "value": true
+            }
+          ]
+        },
+        "then": {
+          "action_ids": [
+            "obtain-lender-consent-or-waiver",
+            "debt-repayment-condition-precedent",
+            "pre-completion-debt-covenant"
+          ],
+          "explanation": "An unwaived transaction trigger should be addressed before completion through consent, repayment or another agreed mechanism."
+        }
+      },
+      {
+        "id": "require-payoff-and-release-for-secured-debt",
+        "when": {
+          "all": [
+            {
+              "fact_id": "security-exists",
+              "operator": "equals",
+              "value": true
+            },
+            {
+              "fact_id": "release-documents-agreed",
+              "operator": "not-equals",
+              "value": true
+            }
+          ]
+        },
+        "then": {
+          "action_ids": [
+            "obtain-payoff-and-release-documents",
+            "debt-repayment-condition-precedent",
+            "payoff-and-release-completion-mechanic"
+          ],
+          "explanation": "Secured debt requires an agreed release package and a closing sequence that makes release effective against payoff."
+        }
+      },
+      {
+        "id": "record-security-satisfaction-after-repayment",
+        "when": {
+          "fact_id": "facility-repaid-and-released",
+          "operator": "equals",
+          "value": true
+        },
+        "then": {
+          "action_ids": [
+            "post-completion-charge-recordal"
+          ],
+          "explanation": "After repayment and release, consider the required filings and ensure security records are updated."
+        }
+      }
+    ],
+    "positions": [
+      {
+        "party": "buyer",
+        "position": "The buyer will generally require a confirmed payoff amount, a complete release package, no residual target debt or security at completion, and a tightly sequenced funds-flow and deliverables process.",
+        "action_ids": [
+          "review-finance-documents",
+          "obtain-payoff-and-release-documents",
+          "debt-repayment-condition-precedent",
+          "payoff-and-release-completion-mechanic",
+          "finance-compliance-warranty"
+        ]
+      },
+      {
+        "party": "seller",
+        "position": "The seller may seek to use completion proceeds to repay the debt, limit its pre-completion covenant, and give releases only against irrevocable payment under a mutually agreed undertaking or escrow arrangement.",
+        "action_ids": [
+          "obtain-lender-consent-or-waiver",
+          "pre-completion-debt-covenant",
+          "payoff-and-release-completion-mechanic"
+        ]
+      }
+    ],
+    "sources": [
+      {
+        "id": "facility-and-security-documents",
+        "type": "contract",
+        "citation": "Facility agreements, security documents, guarantees, hedging arrangements, amendments, waivers and intercreditor documents — to be identified in diligence."
+      },
+      {
+        "id": "lender-payoff-and-release-correspondence",
+        "type": "correspondence",
+        "citation": "Lender payoff letters, consent or waiver correspondence, release documents and closing instructions — to be obtained in diligence."
+      },
+      {
+        "id": "companies-house-charge-guidance",
+        "type": "legal-authority",
+        "citation": "Companies House, Register a charge (mortgage) for a limited company (including satisfaction and release guidance).",
+        "url": "https://www.gov.uk/guidance/register-a-charge-mortgage-for-a-limited-company"
+      },
+      {
+        "id": "companies-house-mr04-guidance",
+        "type": "legal-authority",
+        "citation": "Companies House, Register a statement of satisfaction (MR04).",
+        "url": "https://www.gov.uk/government/publications/register-a-statement-of-satisfaction-mr04"
+      }
+    ],
+    "notes": "Reusable draft content only. Finance document interpretation, security releases, payoff arrangements and filings must be tailored to the transaction, obligor structure, governing law and lender requirements before use.",
+    "last_reviewed": "2026-10-15"
+  },
+  {
+    "schema_version": "0.2",
+    "id": "missing-ip-assignment",
+    "title": "Missing IP Assignment",
+    "category": "intellectual-property",
+    "summary": "A founder, employee, contractor, group company or other third party may have created IP used by the target without an effective transfer of ownership to the target. This can impair the target's ability to use, license, enforce or transfer the relevant IP.",
+    "jurisdiction": {
+      "primary": "England and Wales",
+      "legal_system": "common-law"
+    },
+    "status": "draft",
+    "transaction_context": {
+      "transaction_type": "share-sale",
+      "signing_to_completion": true,
+      "materiality_basis": "Materiality should be assessed by reference to the IP's role in the product, service, revenue model, competitive advantage, regulatory position, replaceability and the identity and cooperation of the apparent owner."
+    },
+    "facts": [
+      {
+        "id": "ip-asset-identified",
+        "statement": "An IP asset used by, or important to, the target has been identified for review.",
+        "value": "unknown",
+        "verification_status": "unknown"
+      },
+      {
+        "id": "third-party-creator",
+        "statement": "The IP asset was created wholly or partly by a person or entity other than the target.",
+        "value": "unknown",
+        "verification_status": "unknown"
+      },
+      {
+        "id": "effective-assignment-exists",
+        "statement": "The target holds an effective assignment or other sufficient chain-of-title document for the IP asset.",
+        "value": "unknown",
+        "verification_status": "unknown"
+      },
+      {
+        "id": "ip-material-to-target",
+        "statement": "The IP asset is material to the target's business.",
+        "value": "unknown",
+        "verification_status": "unknown"
+      },
+      {
+        "id": "creator-cooperative",
+        "statement": "The apparent owner is identifiable, available and willing to execute corrective documentation on acceptable terms.",
+        "value": "unknown",
+        "verification_status": "unknown"
+      },
+      {
+        "id": "assignment-remedied",
+        "statement": "An effective corrective assignment, together with any required ancillary documents or recordal, has been completed.",
+        "value": "unknown",
+        "verification_status": "unknown"
+      },
+      {
+        "id": "third-party-claim-notified",
+        "statement": "The apparent owner has asserted, threatened or reserved a claim relating to the IP asset.",
+        "value": "unknown",
+        "verification_status": "unknown"
+      }
+    ],
+    "key_questions": [
+      {
+        "id": "identify-ip-and-creator",
+        "question": "What IP is affected, who created it, and in what capacity was it created?",
+        "purpose": "Establish the relevant asset, apparent owner and the contractual or statutory route by which title may have passed.",
+        "priority": "critical",
+        "answer_status": "unanswered"
+      },
+      {
+        "id": "verify-chain-of-title",
+        "question": "Does the target have complete, executed and enforceable documents evidencing ownership or a sufficient right to use the IP?",
+        "purpose": "Test whether the target owns the IP or is exposed to a title gap.",
+        "priority": "critical",
+        "answer_status": "unanswered"
+      },
+      {
+        "id": "assess-asset-materiality",
+        "question": "How important is the affected IP to the target's products, operations, customers and value?",
+        "purpose": "Determine whether correction should be a completion dependency and how risk should be allocated.",
+        "priority": "high",
+        "answer_status": "unanswered"
+      },
+      {
+        "id": "assess-remediation",
+        "question": "Can the apparent owner give a full, written assignment and ancillary consents, and are any registry recordals needed?",
+        "purpose": "Assess whether the title gap can be cured before completion.",
+        "priority": "critical",
+        "answer_status": "unanswered"
+      },
+      {
+        "id": "assess-third-party-exposure",
+        "question": "Has the apparent owner asserted rights, licensed the IP, imposed restrictions, or created any security interest or other encumbrance?",
+        "purpose": "Identify residual use, infringement, enforcement and commercial risks after a corrective assignment.",
+        "priority": "high",
+        "answer_status": "unanswered"
+      }
+    ],
+    "risk_assessment": {
+      "level": "high",
+      "likelihood": "unknown",
+      "impact": "high",
+      "rationale": "The draft starts with a cautious assessment because a material title gap can compromise the target's right to exploit a core asset. The assessment should be calibrated after chain-of-title and remediation diligence."
+    },
+    "risk_factors": [
+      {
+        "id": "no-effective-assignment-risk",
+        "description": "No effective assignment or sufficient ownership evidence is available for the target.",
+        "effect": "increases-risk",
+        "weight": "high",
+        "related_fact_ids": [
+          "effective-assignment-exists"
+        ]
+      },
+      {
+        "id": "material-ip-risk",
+        "description": "The affected IP is material to the target's business.",
+        "effect": "increases-risk",
+        "weight": "high",
+        "related_fact_ids": [
+          "ip-material-to-target"
+        ]
+      },
+      {
+        "id": "uncooperative-owner-risk",
+        "description": "The apparent owner cannot be identified, located or persuaded to execute acceptable corrective documentation.",
+        "effect": "increases-risk",
+        "weight": "high",
+        "related_fact_ids": [
+          "creator-cooperative"
+        ]
+      },
+      {
+        "id": "asserted-claim-risk",
+        "description": "The apparent owner has asserted or threatened a claim, or a dispute about ownership is apparent.",
+        "effect": "increases-risk",
+        "weight": "high",
+        "related_fact_ids": [
+          "third-party-claim-notified"
+        ]
+      },
+      {
+        "id": "completed-remedy-mitigation",
+        "description": "A properly executed corrective assignment and required ancillary steps have been completed.",
+        "effect": "reduces-risk",
+        "weight": "high",
+        "related_fact_ids": [
+          "assignment-remedied"
+        ]
+      }
+    ],
+    "recommended_actions": [
+      {
+        "id": "complete-ip-chain-of-title-review",
+        "type": "further-diligence",
+        "recommendation": "Prepare an asset-by-asset chain-of-title review covering creator status, engagement terms, assignments, licences, amendments, waivers, registry records and any restrictions or encumbrances.",
+        "relevance": "required",
+        "rationale": "The answer depends on the specific IP right, creator relationship, governing terms and available evidence.",
+        "owner": "buyer",
+        "timing": "pre-signing"
+      },
+      {
+        "id": "execute-corrective-assignment",
+        "type": "rectification",
+        "recommendation": "Obtain a written corrective assignment from each necessary apparent owner, covering the identified IP, accrued rights where appropriate, further-assurance obligations and any required waivers or consents.",
+        "relevance": "context-dependent",
+        "rationale": "A written and properly executed assignment may cure a title gap where the apparent owner is cooperative and able to transfer the relevant rights.",
+        "owner": "seller",
+        "timing": "between-signing-and-completion",
+        "depends_on_action_ids": [
+          "complete-ip-chain-of-title-review"
+        ]
+      },
+      {
+        "id": "record-ip-title-change",
+        "type": "post-completion-action",
+        "recommendation": "Make any appropriate registry recordals or other filings and retain the executed assignment in the target's IP records.",
+        "relevance": "context-dependent",
+        "rationale": "Registered rights may require ownership records to be updated; the requirement and timing depend on the right and jurisdiction.",
+        "owner": "target",
+        "timing": "post-completion",
+        "depends_on_action_ids": [
+          "execute-corrective-assignment"
+        ]
+      },
+      {
+        "id": "ip-assignment-condition-precedent",
+        "type": "condition-precedent",
+        "recommendation": "Make completion conditional on delivery of the corrective assignment and agreed supporting evidence in an acceptable form.",
+        "relevance": "context-dependent",
+        "rationale": "Most relevant where the affected IP is material and the title gap can be cured before completion.",
+        "owner": "joint",
+        "timing": "signing",
+        "depends_on_action_ids": [
+          "execute-corrective-assignment"
+        ]
+      },
+      {
+        "id": "ip-title-warranty",
+        "type": "warranty",
+        "recommendation": "Obtain tailored warranties on ownership, right to use, absence of undisclosed licences or encumbrances, and the completeness of the disclosed chain of title.",
+        "relevance": "recommended",
+        "rationale": "Supports recovery if the disclosed position is inaccurate, subject to the negotiated warranty regime and disclosures.",
+        "owner": "seller",
+        "timing": "signing"
+      },
+      {
+        "id": "specific-ip-indemnity",
+        "type": "indemnity",
+        "recommendation": "Consider a specific indemnity for identified losses arising from a known unresolved title gap, ownership claim or inability to exploit the affected IP.",
+        "relevance": "context-dependent",
+        "rationale": "May be appropriate where the risk is known and cannot be eliminated before completion; scope and limitations require negotiation.",
+        "owner": "seller",
+        "timing": "signing"
+      },
+      {
+        "id": "specific-ip-disclosure",
+        "type": "disclosure",
+        "recommendation": "Require specific disclosure of the affected IP, creator history, missing documents, correspondence, licensing position and remediation status.",
+        "relevance": "required",
+        "rationale": "Allows the buyer to assess a known title issue and its impact on the agreed warranty and risk allocation position.",
+        "owner": "seller",
+        "timing": "signing"
+      },
+      {
+        "id": "holdback-or-price-adjustment",
+        "type": "escrow-or-retention",
+        "recommendation": "Consider a retention, escrow or price adjustment where a material title risk remains unresolved at completion and its financial impact can be reasonably estimated or bounded.",
+        "relevance": "context-dependent",
+        "rationale": "Provides economic protection where a CP is unavailable or commercially disproportionate.",
+        "owner": "joint",
+        "timing": "signing"
+      }
+    ],
+    "decision_rules": [
+      {
+        "id": "review-where-title-unknown",
+        "when": {
+          "fact_id": "effective-assignment-exists",
+          "operator": "equals",
+          "value": "unknown"
+        },
+        "then": {
+          "action_ids": [
+            "complete-ip-chain-of-title-review",
+            "specific-ip-disclosure"
+          ],
+          "explanation": "The ownership position must be evidenced before a transaction response is selected."
+        }
+      },
+      {
+        "id": "rectify-material-title-gap",
+        "when": {
+          "all": [
+            {
+              "fact_id": "effective-assignment-exists",
+              "operator": "equals",
+              "value": false
+            },
+            {
+              "fact_id": "ip-material-to-target",
+              "operator": "equals",
+              "value": true
+            },
+            {
+              "fact_id": "creator-cooperative",
+              "operator": "equals",
+              "value": true
+            }
+          ]
+        },
+        "then": {
+          "action_ids": [
+            "execute-corrective-assignment",
+            "ip-assignment-condition-precedent",
+            "ip-title-warranty",
+            "specific-ip-disclosure"
+          ],
+          "explanation": "A remediable title gap in material IP should ordinarily be cured and evidenced before completion, subject to the parties' agreement."
+        }
+      },
+      {
+        "id": "protect-unresolved-material-title-gap",
+        "when": {
+          "all": [
+            {
+              "fact_id": "effective-assignment-exists",
+              "operator": "equals",
+              "value": false
+            },
+            {
+              "fact_id": "ip-material-to-target",
+              "operator": "equals",
+              "value": true
+            },
+            {
+              "fact_id": "assignment-remedied",
+              "operator": "not-equals",
+              "value": true
+            }
+          ]
+        },
+        "then": {
+          "action_ids": [
+            "specific-ip-indemnity",
+            "holdback-or-price-adjustment",
+            "ip-title-warranty",
+            "specific-ip-disclosure"
+          ],
+          "explanation": "An unresolved material title gap requires a conscious decision on whether to proceed and, if so, what contractual and economic protection is appropriate."
+        }
+      },
+      {
+        "id": "consider-registry-recordal-after-remedy",
+        "when": {
+          "fact_id": "assignment-remedied",
+          "operator": "equals",
+          "value": true
+        },
+        "then": {
+          "action_ids": [
+            "record-ip-title-change"
+          ],
+          "explanation": "After an assignment, consider whether ownership records for any registered rights should be updated."
+        }
+      }
+    ],
+    "positions": [
+      {
+        "party": "buyer",
+        "position": "The buyer will generally seek complete chain-of-title evidence, corrective assignments for any material gaps, and robust protection for risks that remain at completion.",
+        "action_ids": [
+          "complete-ip-chain-of-title-review",
+          "execute-corrective-assignment",
+          "ip-assignment-condition-precedent",
+          "ip-title-warranty",
+          "specific-ip-indemnity"
+        ]
+      },
+      {
+        "party": "seller",
+        "position": "The seller may argue that the target has adequate rights through employment terms, implied permissions or operational practice, and may resist a CP or indemnity where the asset is non-material or the issue can be addressed post-completion.",
+        "action_ids": [
+          "specific-ip-disclosure",
+          "record-ip-title-change"
+        ]
+      }
+    ],
+    "sources": [
+      {
+        "id": "ip-register-and-asset-list",
+        "type": "corporate-record",
+        "citation": "Target IP register, asset list and product or technology documentation — to be identified in diligence."
+      },
+      {
+        "id": "creator-engagement-documents",
+        "type": "contract",
+        "citation": "Employment, consultancy, founder, contractor and intra-group agreements, including all IP provisions and amendments — to be identified in diligence."
+      },
+      {
+        "id": "copyright-assignment-law",
+        "type": "legal-authority",
+        "citation": "Copyright, Designs and Patents Act 1988, section 90 (assignment of copyright).",
+        "url": "https://www.legislation.gov.uk/ukpga/1988/48/section/90"
+      },
+      {
+        "id": "ukipo-ip-agreements-guidance",
+        "type": "legal-authority",
+        "citation": "UK Intellectual Property Office, KAM Guide: IP in agreements (assignment and ownership guidance).",
+        "url": "https://www.gov.uk/government/publications/knowledge-asset-management-kam-hub/kam-guide-ip-in-agreements"
+      }
+    ],
+    "notes": "Reusable draft content only. Ownership and remediation analysis differs by IP right, creator status, applicable law, contract terms and transaction structure. It must be tailored and legally reviewed before use.",
+    "last_reviewed": "2026-10-15"
+  },
+  {
+    "schema_version": "0.2",
+    "id": "threatened-litigation",
+    "title": "Threatened Litigation",
+    "category": "litigation-and-disputes",
+    "summary": "A third party may have threatened, or there may be a credible prospect of, a claim against the target. Even before proceedings are issued, the matter can create financial, operational, reputational and completion risk and may require specific diligence and contractual protection.",
+    "jurisdiction": {
+      "primary": "England and Wales",
+      "legal_system": "common-law"
+    },
+    "status": "draft",
+    "transaction_context": {
+      "transaction_type": "share-sale",
+      "signing_to_completion": true,
+      "materiality_basis": "Materiality should be assessed by the legal merits, remedies sought or likely, loss estimate, costs, insurance, operational impact, regulatory and reputational consequences, likelihood of escalation, and ability to settle or otherwise resolve the matter."
+    },
+    "facts": [
+      {
+        "id": "credible-claim-threat-exists",
+        "statement": "A third party has asserted, threatened or otherwise credibly indicated a potential claim against the target.",
+        "value": "unknown",
+        "verification_status": "unknown"
+      },
+      {
+        "id": "formal-claim-document-received",
+        "statement": "The target has received a letter before claim, demand, protocol correspondence, draft pleading or other formal claim document.",
+        "value": "unknown",
+        "verification_status": "unknown"
+      },
+      {
+        "id": "proceedings-issued",
+        "statement": "Court, tribunal, arbitration or other formal proceedings have been commenced against the target.",
+        "value": "unknown",
+        "verification_status": "unknown"
+      },
+      {
+        "id": "claim-material-to-target",
+        "statement": "The claim or threatened claim is material to the target's business or the transaction.",
+        "value": "unknown",
+        "verification_status": "unknown"
+      },
+      {
+        "id": "claim-merits-adverse",
+        "statement": "Contentious legal advice or a documented assessment indicates a material adverse merits risk.",
+        "value": "unknown",
+        "verification_status": "unknown"
+      },
+      {
+        "id": "financial-exposure-quantified",
+        "statement": "The target has a supportable estimate of likely damages, settlement amount, defence costs and other exposure.",
+        "value": "unknown",
+        "verification_status": "unknown"
+      },
+      {
+        "id": "insurance-notified",
+        "statement": "Relevant insurers have been notified in accordance with policy terms and coverage has been assessed.",
+        "value": "unknown",
+        "verification_status": "unknown"
+      },
+      {
+        "id": "claim-settled-or-resolved",
+        "statement": "The matter has been resolved on documented terms that fully address the identified transaction risk.",
+        "value": "unknown",
+        "verification_status": "unknown"
+      }
+    ],
+    "key_questions": [
+      {
+        "id": "identify-claim-and-status",
+        "question": "Who is the potential claimant, what is the alleged cause of action, and what correspondence, notices or proceedings exist?",
+        "purpose": "Establish the actual status of the threat and distinguish an allegation from issued proceedings.",
+        "priority": "critical",
+        "answer_status": "unanswered"
+      },
+      {
+        "id": "assess-merits-and-defences",
+        "question": "What is the preliminary assessment of the claim's merits, available defences, jurisdiction, limitation and procedural posture?",
+        "purpose": "Assess the likelihood that the target will incur liability or be constrained in its operations.",
+        "priority": "critical",
+        "answer_status": "unanswered"
+      },
+      {
+        "id": "quantify-exposure",
+        "question": "What remedies, damages, legal costs, business interruption and other liabilities could arise, and what is the basis for each estimate?",
+        "purpose": "Determine the financial and commercial significance of the dispute.",
+        "priority": "high",
+        "answer_status": "unanswered"
+      },
+      {
+        "id": "review-insurance-and-indemnities",
+        "question": "Is insurance available, has the insurer been notified, and are there contractual indemnities, limitations or contribution claims?",
+        "purpose": "Identify potential recovery and compliance steps that may affect the net exposure.",
+        "priority": "high",
+        "answer_status": "unanswered"
+      },
+      {
+        "id": "assess-resolution-route",
+        "question": "Can the matter be settled, withdrawn, stayed or otherwise resolved before completion, and what approvals or releases would be required?",
+        "purpose": "Decide whether the risk can be removed or must be allocated in the transaction documents.",
+        "priority": "high",
+        "answer_status": "unanswered"
+      }
+    ],
+    "risk_assessment": {
+      "level": "high",
+      "likelihood": "unknown",
+      "impact": "high",
+      "rationale": "A credible unresolved claim can affect value and completion even if proceedings have not begun. The level should be revised after privileged legal assessment, evidence review, exposure analysis and insurance review."
+    },
+    "risk_factors": [
+      {
+        "id": "formal-document-risk",
+        "description": "A formal pre-action or claim document has been received, or proceedings have been issued.",
+        "effect": "increases-risk",
+        "weight": "high",
+        "related_fact_ids": [
+          "formal-claim-document-received",
+          "proceedings-issued"
+        ]
+      },
+      {
+        "id": "material-claim-risk",
+        "description": "The threatened claim could materially affect the target's finances, operations, licences, contracts or reputation.",
+        "effect": "increases-risk",
+        "weight": "high",
+        "related_fact_ids": [
+          "claim-material-to-target"
+        ]
+      },
+      {
+        "id": "adverse-merits-risk",
+        "description": "The claim has a material adverse merits assessment or an uncertain defence position.",
+        "effect": "increases-risk",
+        "weight": "high",
+        "related_fact_ids": [
+          "claim-merits-adverse"
+        ]
+      },
+      {
+        "id": "unquantified-exposure-risk",
+        "description": "Likely damages, costs, business impact or insurance recovery cannot yet be reasonably assessed.",
+        "effect": "increases-risk",
+        "weight": "medium",
+        "related_fact_ids": [
+          "financial-exposure-quantified",
+          "insurance-notified"
+        ]
+      },
+      {
+        "id": "documented-resolution-mitigation",
+        "description": "The matter has been resolved on documented terms that protect the target against the identified claim.",
+        "effect": "reduces-risk",
+        "weight": "high",
+        "related_fact_ids": [
+          "claim-settled-or-resolved"
+        ]
+      }
+    ],
+    "recommended_actions": [
+      {
+        "id": "conduct-dispute-diligence",
+        "type": "further-diligence",
+        "recommendation": "Review the relevant correspondence, pleadings, contracts, evidence, internal investigation materials, settlement discussions, advice status, procedural deadlines and management's assessment with appropriate privilege safeguards.",
+        "relevance": "required",
+        "rationale": "The buyer needs a reliable factual and legal understanding before deciding whether the claim is a completion or value risk.",
+        "owner": "buyer",
+        "timing": "pre-signing"
+      },
+      {
+        "id": "obtain-contentious-advice",
+        "type": "further-diligence",
+        "recommendation": "Obtain or refresh appropriately scoped contentious legal advice on merits, defences, likely remedies, procedure, timing and settlement range, preserving privilege and avoiding unintended waiver.",
+        "relevance": "context-dependent",
+        "rationale": "A legally informed risk assessment is particularly important for a material, advanced or complex threat.",
+        "owner": "adviser",
+        "timing": "pre-signing"
+      },
+      {
+        "id": "notify-insurers-and-preserve-cover",
+        "type": "rectification",
+        "recommendation": "Review relevant policies, notify insurers where required, preserve coverage and document the insurer's position before taking material steps in the dispute.",
+        "relevance": "context-dependent",
+        "rationale": "Late notice or unauthorised conduct can affect cover; the applicable policy terms must be checked.",
+        "owner": "target",
+        "timing": "pre-signing"
+      },
+      {
+        "id": "resolve-claim-before-completion",
+        "type": "rectification",
+        "recommendation": "Seek to resolve the matter before completion through a documented settlement, release, withdrawal, dismissal or other legally effective resolution where commercially appropriate.",
+        "relevance": "context-dependent",
+        "rationale": "May remove the uncertainty if the cost and terms are acceptable and the resolution is durable.",
+        "owner": "seller",
+        "timing": "between-signing-and-completion"
+      },
+      {
+        "id": "litigation-resolution-condition-precedent",
+        "type": "condition-precedent",
+        "recommendation": "Make completion conditional on resolution of the claim, or on another agreed risk-reduction step, where the unresolved claim is material to the transaction.",
+        "relevance": "context-dependent",
+        "rationale": "A CP may be warranted where an unresolved dispute could fundamentally alter the target's value or ability to operate.",
+        "owner": "joint",
+        "timing": "signing",
+        "depends_on_action_ids": [
+          "resolve-claim-before-completion"
+        ]
+      },
+      {
+        "id": "litigation-warranty",
+        "type": "warranty",
+        "recommendation": "Obtain tailored warranties on the completeness and accuracy of litigation disclosure, the absence of undisclosed claims or threats, and compliance with relevant insurance obligations.",
+        "relevance": "recommended",
+        "rationale": "Provides a remedy if the disclosed dispute picture is inaccurate, subject to negotiated limitations and disclosure.",
+        "owner": "seller",
+        "timing": "signing"
+      },
+      {
+        "id": "specific-litigation-indemnity",
+        "type": "indemnity",
+        "recommendation": "Consider a specific indemnity for defined losses, liabilities and costs arising from the known claim, together with an agreed claims-handling and conduct regime.",
+        "relevance": "context-dependent",
+        "rationale": "May be appropriate where the issue is known, material and unresolved; its scope, exclusions and control provisions require careful negotiation.",
+        "owner": "seller",
+        "timing": "signing"
+      },
+      {
+        "id": "specific-litigation-disclosure",
+        "type": "disclosure",
+        "recommendation": "Require specific disclosure of the claim history, material documents, factual allegations, merits assessment, financial exposure, insurance position and resolution steps.",
+        "relevance": "required",
+        "rationale": "Enables a deliberate decision on whether and how the known dispute is allocated in the transaction documents.",
+        "owner": "seller",
+        "timing": "signing"
+      },
+      {
+        "id": "litigation-escrow-or-retention",
+        "type": "escrow-or-retention",
+        "recommendation": "Consider a retention, escrow or price adjustment tied to a reasoned estimate of the unresolved exposure where completion proceeds before resolution.",
+        "relevance": "context-dependent",
+        "rationale": "Provides economic protection where the parties choose not to make resolution a condition of completion.",
+        "owner": "joint",
+        "timing": "signing"
+      }
+    ],
+    "decision_rules": [
+      {
+        "id": "investigate-credible-threat",
+        "when": {
+          "fact_id": "credible-claim-threat-exists",
+          "operator": "equals",
+          "value": true
+        },
+        "then": {
+          "action_ids": [
+            "conduct-dispute-diligence",
+            "specific-litigation-disclosure"
+          ],
+          "explanation": "A credible threat should be investigated and specifically disclosed even where proceedings have not been issued."
+        }
+      },
+      {
+        "id": "obtain-advice-for-material-or-advanced-claim",
+        "when": {
+          "any": [
+            {
+              "fact_id": "proceedings-issued",
+              "operator": "equals",
+              "value": true
+            },
+            {
+              "fact_id": "claim-material-to-target",
+              "operator": "equals",
+              "value": true
+            }
+          ]
+        },
+        "then": {
+          "action_ids": [
+            "obtain-contentious-advice",
+            "notify-insurers-and-preserve-cover",
+            "litigation-warranty"
+          ],
+          "explanation": "An issued or material claim warrants legal and insurance analysis before the transaction risk allocation is agreed."
+        }
+      },
+      {
+        "id": "protect-unresolved-material-claim",
+        "when": {
+          "all": [
+            {
+              "fact_id": "claim-material-to-target",
+              "operator": "equals",
+              "value": true
+            },
+            {
+              "fact_id": "claim-settled-or-resolved",
+              "operator": "not-equals",
+              "value": true
+            }
+          ]
+        },
+        "then": {
+          "action_ids": [
+            "resolve-claim-before-completion",
+            "litigation-resolution-condition-precedent",
+            "specific-litigation-indemnity",
+            "litigation-escrow-or-retention",
+            "specific-litigation-disclosure"
+          ],
+          "explanation": "An unresolved material claim requires a deliberate decision whether to resolve it before completion or proceed with contractual and economic protection."
+        }
+      }
+    ],
+    "positions": [
+      {
+        "party": "buyer",
+        "position": "The buyer will generally seek full, specific disclosure, a supported merits and exposure assessment, and resolution or deal-specific protection where a claim remains material at completion.",
+        "action_ids": [
+          "conduct-dispute-diligence",
+          "obtain-contentious-advice",
+          "litigation-resolution-condition-precedent",
+          "specific-litigation-indemnity",
+          "litigation-escrow-or-retention"
+        ]
+      },
+      {
+        "party": "seller",
+        "position": "The seller may characterise an early allegation as speculative, resist disclosure of privileged analysis, seek control over defence and settlement, and prefer a capped or time-limited remedy to a completion condition.",
+        "action_ids": [
+          "specific-litigation-disclosure",
+          "resolve-claim-before-completion",
+          "litigation-warranty"
+        ]
+      }
+    ],
+    "sources": [
+      {
+        "id": "claim-correspondence-and-pleadings",
+        "type": "court-document",
+        "citation": "Claim correspondence, letters before claim, pleadings, notices and procedural orders — to be identified in diligence."
+      },
+      {
+        "id": "insurance-policies-and-notices",
+        "type": "contract",
+        "citation": "Relevant insurance policies, endorsements, claims notifications and insurer correspondence — to be identified in diligence."
+      },
+      {
+        "id": "pre-action-conduct-practice-direction",
+        "type": "legal-authority",
+        "citation": "Civil Procedure Rules, Practice Direction – Pre-Action Conduct and Protocols.",
+        "url": "https://www.justice.gov.uk/courts/procedure-rules/civil/rules/pd_pre-action_conduct"
+      },
+      {
+        "id": "limitation-act-1980",
+        "type": "legal-authority",
+        "citation": "Limitation Act 1980.",
+        "url": "https://www.legislation.gov.uk/ukpga/1980/58"
+      }
+    ],
+    "notes": "Reusable draft content only. This record is not legal advice and must be tailored by appropriately qualified advisers. Handle privileged material, settlement communications and insurer communications carefully; the disclosure and claims-handling approach should be agreed for the specific transaction.",
+    "last_reviewed": "2026-10-15"
+  }
+]
