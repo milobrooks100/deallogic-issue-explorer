@@ -25,7 +25,7 @@
   </head>
   <body>
     <header><div class="brand"><div><h1>DealLogic</h1><p>Structured M&A issue analysis</p></div><span class="badge">Prototype · v0.2 data model</span></div></header>
-    <main><section class="intro"><h2>Explore the deal logic</h2><p>Start with a deal area, open an issue, then record what the diligence tells you. The risk score and protections respond as the picture becomes clearer.</p></section><section class="workspace"><aside class="map"><h3>Deal map</h3><p class="map-intro">Open an area, then select the issue to explore.</p><div class="root-node">DealLogic</div><div class="map-branches" id="mind-map"></div></aside><section class="panel" id="panel"><div class="empty-state">Select a deal area to begin.</div></section></section></main>
+    <main><section class="intro"><h2>Explore the deal logic</h2><p>Start with a deal area, open an issue, then record what the diligence tells you. The risk score and protections respond as the picture becomes clearer.</p></section><section class="workspace"><aside class="map"><h3><span class="map-title-wrap"><span class="map-title" tabindex="0" aria-describedby="deal-map-guidance">Deal Map</span><span class="map-guidance" id="deal-map-guidance" role="tooltip">Open an area, then select the issue to explore.</span></span></h3><div class="map-branches" id="mind-map"></div></aside><section class="panel" id="panel"><div class="empty-state">Select a deal area to begin.</div></section></section></main>
     <footer>Prototype content only — it is not legal advice and must be reviewed and tailored for each transaction and jurisdiction.</footer>
     <script>
       const areas={"commercial-contracts":"Material Contracts","intellectual-property":"Intellectual Property","corporate-and-shares":"Shares","litigation-and-disputes":"Disputes","finance-and-banking":"Finance"},order=Object.keys(areas),answerOptions=["Unanswered","Risk confirmed","Risk not present","Partly / unclear"];
@@ -184,7 +184,10 @@
       const library = document.querySelector(".action-library");
       if (appHeader && workspace && library && !document.querySelector(".app-menu-wrap")) {
         workspace.classList.remove("left-rail");
-        dealMap.querySelector("h3").textContent = "Deal Map";
+        const mapHeading = dealMap.querySelector("h3");
+        if (mapHeading && !mapHeading.querySelector(".map-title")) {
+          mapHeading.innerHTML = '<span class="map-title-wrap"><span class="map-title" tabindex="0" aria-describedby="deal-map-guidance">Deal Map</span><span class="map-guidance" id="deal-map-guidance" role="tooltip">Open an area, then select the issue to explore.</span></span>';
+        }
         const libraryView = document.createElement("section");
         libraryView.className = "library-view screen-hidden";
         libraryView.append(library);
@@ -477,7 +480,7 @@
         introSection.append(sideControl);
       }
     </script>
-    <link rel="stylesheet" href="./deal-hub-v7.css" />
-    <script src="./deal-hub-v6.js"></script>
+    <link rel="stylesheet" href="./deal-hub-v13.css" />
+    <script src="./deal-hub-v8.js"></script>
   </body>
 </html>
