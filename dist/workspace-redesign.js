@@ -16,14 +16,15 @@
     wrench: '<path d="M14.5 6.5a4 4 0 0 0-5 5L3 18l3 3 6.5-6.5a4 4 0 0 0 5-5l-3 3-3-3 3-3Z"/>',
     handshake: '<path d="m8 11 3 3a2 2 0 0 0 3-3l-2-2 2 2a2 2 0 0 0 3-3l-4-4a3 3 0 0 0-4 0L7 6l-2-1-3 3 5 5 1-1Z"/><path d="m14 14 1 1a2 2 0 0 0 3-3"/>',
     circleCheck: '<circle cx="12" cy="12" r="9"/><path d="m8 12 2.5 2.5L16 9"/>',
-    penLine: '<path d="m4 20 4.5-1L19 8.5 15.5 5 5 15.5 4 20Z"/><path d="m13.5 7 3.5 3.5"/><path d="M4 4h7"/>',
-    badgeCheck: '<path d="M12 3 14.4 5l3.2-.2.8 3.1 2.6 1.9-1.4 2.9.4 3.2-3.1.8-1.9 2.6-2.9-1.4-3.2.4-.8-3.1-2.6-1.9 1.4-2.9-.4-3.2 3.1-.8L10.1 3Z"/><path d="m9 12 2 2 4-4"/>',
+    filePenLine: '<path d="M14 3H5v18h14V8ZM14 3v5h5"/><path d="m10 16 4.5-4.5 2 2L12 18l-3 .5Z"/><path d="m13.5 12.5 2 2"/>',
+    shieldCheck: '<path d="M12 3 4 6v6c0 5 8 9 8 9s8-4 8-9V6Z"/><path d="m8 12 3 3 5-6"/>',
     banknote: '<rect x="3" y="6" width="18" height="12" rx="2"/><circle cx="12" cy="12" r="2"/><path d="M7 9h.01M17 15h.01"/>',
     fileSearch: '<path d="M14 3H5v18h14V8ZM14 3v5h5"/><circle cx="10.5" cy="14.5" r="2.5"/><path d="m12.5 16.5 2 2"/>',
-    lock: '<rect x="5" y="10" width="14" height="11" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/>',
+    lockKeyhole: '<rect x="5" y="10" width="14" height="11" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3M12 14v3"/><circle cx="12" cy="14" r="1"/>',
+    arrowDownUp: '<path d="m3 8 4-4 4 4M7 4v16m14-8-4 4-4-4m4 4V4"/>',
     calendarCheck: '<rect x="4" y="5" width="16" height="15" rx="2"/><path d="M8 3v4M16 3v4M4 10h16M9 15l2 2 4-4"/>',
     arrowCircle: '<circle cx="12" cy="12" r="9"/><path d="M8 12h8m-3-3 3 3-3 3"/>',
-    doorExit: '<path d="M5 21V4a1 1 0 0 1 1-1h11a1 1 0 0 1 1 1v17"/><path d="M5 21h14M10 12h10m-3-3 3 3-3 3"/>',
+    arrowLeftRight: '<path d="M8 3 4 7l4 4M4 7h16M16 21l4-4-4-4M20 17H4"/>',
     ellipsisCircle: '<circle cx="12" cy="12" r="9"/><path d="M8 12h.01M12 12h.01M16 12h.01"/>'
   };
   const icon = name => `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${paths[name] || paths.document}</svg>`;
@@ -77,20 +78,20 @@
       'Rectification':'wrench',
       'Third-party consent':'handshake',
       'Condition precedent':'circleCheck',
-      'Pre-completion covenant':'penLine',
-      'Warranty':'badgeCheck',
+      'Pre-completion covenant':'filePenLine',
+      'Warranty':'shieldCheck',
       'Specific indemnity':'banknote',
       'Specific disclosure':'fileSearch',
-      'Escrow or retention':'lock',
-      'Price adjustment':'scale',
+      'Escrow or retention':'lockKeyhole',
+      'Price adjustment':'arrowDownUp',
       'Completion mechanic':'calendarCheck',
       'Post-completion action':'arrowCircle',
-      'Walk away or renegotiate':'doorExit',
+      'Walk away or renegotiate':'arrowLeftRight',
       'Other':'ellipsisCircle'
     };
     document.querySelectorAll('.logic-icon,.action-symbol').forEach(node=>{
       if(node.dataset.vector)return;
-      const label = node.parentElement.querySelector('strong')?.textContent || '';
+      const label = node.parentElement.querySelector('strong')?.textContent.trim() || '';
       // Custom library symbols are user content and are preserved.
       if(node.closest('.custom-library-action'))return;
       const name = actionLibraryIcons[label] || (/diligence/i.test(label)?'search':/consent|warranty|indemnity/i.test(label)?'shield':/completion|condition/i.test(label)?'check':/price|escrow/i.test(label)?'scale':'document');
@@ -101,7 +102,7 @@
       const actionId=heading.closest('[data-action-id]')?.dataset.actionId;
       if(activeDealProject().hub.actions.some(action=>action.id===actionId && action.manual))return;
       const title=heading.textContent.replace(/^\S+\s/,'');
-      const symbol=/warranty|indemnity|consent/i.test(title)?'shield':/completion|condition/i.test(title)?'check':'document';
+      const symbol=actionLibraryIcons[title] || (/warranty|indemnity|consent/i.test(title)?'shieldCheck':/completion|condition/i.test(title)?'circleCheck':'document');
       const label=document.createElement('span');label.textContent=title;
       heading.replaceChildren();heading.insertAdjacentHTML('afterbegin',icon(symbol));heading.append(label);heading.dataset.vector='true';
     });

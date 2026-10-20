@@ -27,3 +27,19 @@
 .logic-action:nth-of-type(even) .logic-icon { background: #f1ebf6; color: #77638b; }
 .library-view .action-item:nth-child(3n + 2) .action-symbol { background: #f2ebf7; color: #79638c; }
 .library-view .action-item:nth-child(3n) .action-symbol { background: #f8eee7; color: #956b56; }
+
+/* Distinct, low-saturation action colours; icon meaning stays consistent across views. */
+.library-view .action-item:nth-child(1) .action-symbol { background: #e7eef2; color: #547083; }
+.library-view .action-item:nth-child(2) .action-symbol { background: #f1eaf7; color: #76628d; }
+.library-view .action-item:nth-child(3) .action-symbol { background: #f8eee6; color: #986d57; }
+.library-view .action-item:nth-child(4) .action-symbol { background: #e8f1e8; color: #55765d; }
+.library-view .action-item:nth-child(5) .action-symbol { background: #e6f0f7; color: #567a94; }
+.library-view .action-item:nth-child(6) .action-symbol { background: #f8f0d9; color: #8d7441; }
+.library-view .action-item:nth-child(7) .action-symbol { background: #f6e8ed; color: #956477; }
+.library-view .action-item:nth-child(8) .action-symbol { background: #e6f2f2; color: #4e777a; }
+.library-view .action-item:nth-child(9) .action-symbol { background: #eeeaf5; color: #706384; }
+.library-view .action-item:nth-child(10) .action-symbol { background: #f3ece4; color: #8b6c4e; }
+.library-view .action-item:nth-child(11) .action-symbol { background: #e7f0ec; color: #537665; }
+.library-view .action-item:nth-child(12) .action-symbol { background: #e9edf7; color: #576f9a; }
+.library-view .action-item:nth-child(13) .action-symbol { background: #f2e9e4; color: #8a6255; }
+.library-view .action-item:nth-child(14) .action-symbol { background: #eef0ef; color: #65716e; }
