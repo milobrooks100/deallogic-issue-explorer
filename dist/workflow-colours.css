@@ -1,0 +1,29 @@
+/* Colour is reserved for workflow context; the shell remains neutral. */
+.workspace-metrics {
+  background: linear-gradient(110deg, #e8f0f7 0%, #f0ecf6 48%, #f8eee5 100%);
+}
+
+.metric:nth-child(1) .metric-icon { background: #e6f0f7; color: #587b91; }
+.metric:nth-child(2) .metric-icon { background: #f2eaf7; color: #79638d; }
+.metric:nth-child(3) .metric-icon { background: #f8ece6; color: #9a6b58; }
+.metric:nth-child(4) .metric-icon { background: #e8f1e8; color: #58785d; }
+
+.hub-column { background: #eaf1f7; }
+.hub-column:nth-child(2) { background: #f0ecf6; }
+.hub-column:nth-child(3) { background: #f8eee5; }
+.hub-column:nth-child(4) { background: #e8f1e8; }
+
+.hub-column .hub-item { background: #ffffffed; }
+.hub-column[data-drop-status="To Review"] h3 { color: #466d87; }
+.hub-column[data-drop-status="In Negotiation"] h3 { color: #715c87; }
+.hub-column[data-drop-status="Drafted in SPA"] h3 { color: #95634c; }
+.hub-column[data-drop-status="Satisfied/Closed"] h3 { color: #527657; }
+
+.hub-tags .hub-stage { background: #edf0f5; color: #52677a; }
+.hub-summary-tile:nth-child(2) .hub-count { background: #f0eaf6; color: #705c86; }
+.hub-summary-tile:nth-child(3) .hub-count { background: #f8ede6; color: #966750; }
+
+.logic-action .logic-icon { background: #e9f0f7; color: #557693; }
+.logic-action:nth-of-type(even) .logic-icon { background: #f1ebf6; color: #77638b; }
+.library-view .action-item:nth-child(3n + 2) .action-symbol { background: #f2ebf7; color: #79638c; }
+.library-view .action-item:nth-child(3n) .action-symbol { background: #f8eee7; color: #956b56; }
