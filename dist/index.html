@@ -173,7 +173,7 @@
         map.parentElement.classList.add("left-rail");
         const library = document.createElement("section");
         library.className = "action-library";
-        library.innerHTML = `<h3>Action Library</h3><p>Common M&A responses and their shorthand symbols.</p><div class="action-items">${actionLibrary.map(([symbol, title, explainer]) => `<div class="action-item"><span class="action-symbol">${symbol}</span><div><strong>${title}</strong><span>${explainer}</span></div></div>`).join("")}</div>`;
+        library.innerHTML = `<p>Common M&A responses and their shorthand symbols.</p><div class="action-items">${actionLibrary.map(([symbol, title, explainer]) => `<div class="action-item"><span class="action-symbol">${symbol}</span><div><strong>${title}</strong><span>${explainer}</span></div></div>`).join("")}</div>`;
         map.insertAdjacentElement("afterend", library);
       }
     </script>
@@ -190,11 +190,12 @@
         }
         const libraryView = document.createElement("section");
         libraryView.className = "library-view screen-hidden";
+        libraryView.innerHTML = '<div class="view-header"><h2>Action Library</h2></div>';
         libraryView.append(library);
         workspace.insertAdjacentElement("beforebegin", libraryView);
         const settingsView = document.createElement("section");
         settingsView.className = "settings-view";
-        settingsView.innerHTML = '<div class="settings-card"><h2>Settings</h2><p>Settings will be added as DealLogic gains more features.</p></div>';
+        settingsView.innerHTML = '<div class="view-header"><h2>Settings</h2></div><div class="settings-card"><p>Settings will be added as DealLogic gains more features.</p></div>';
         libraryView.insertAdjacentElement("afterend", settingsView);
         const menu = document.createElement("div");
         menu.className = "app-menu-wrap";
@@ -486,6 +487,7 @@
     <link rel="stylesheet" href="./sidebar-layout-fix.css" />
     <link rel="stylesheet" href="./nusa-palette.css" />
     <link rel="stylesheet" href="./workflow-colours.css" />
+    <link rel="stylesheet" href="./view-alignment.css" />
 <script src="./workspace-redesign.js?v=1"></script>
   </body>
 </html>
