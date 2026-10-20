@@ -43,3 +43,19 @@
 .library-view .action-item:nth-child(12) .action-symbol { background: #e9edf7; color: #576f9a; }
 .library-view .action-item:nth-child(13) .action-symbol { background: #f2e9e4; color: #8a6255; }
 .library-view .action-item:nth-child(14) .action-symbol { background: #eef0ef; color: #65716e; }
+
+/* Apply Deal Logic uses the same action identity colours as the Action Library. */
+.logic-action[data-action-icon="search"] .logic-icon { background: #e7eef2; color: #547083; }
+.logic-action[data-action-icon="wrench"] .logic-icon { background: #f1eaf7; color: #76628d; }
+.logic-action[data-action-icon="handshake"] .logic-icon { background: #f8eee6; color: #986d57; }
+.logic-action[data-action-icon="circleCheck"] .logic-icon { background: #e8f1e8; color: #55765d; }
+.logic-action[data-action-icon="filePenLine"] .logic-icon { background: #e6f0f7; color: #567a94; }
+.logic-action[data-action-icon="shieldCheck"] .logic-icon { background: #f8f0d9; color: #8d7441; }
+.logic-action[data-action-icon="banknote"] .logic-icon { background: #f6e8ed; color: #956477; }
+.logic-action[data-action-icon="fileSearch"] .logic-icon { background: #e6f2f2; color: #4e777a; }
+.logic-action[data-action-icon="lockKeyhole"] .logic-icon { background: #eeeaf5; color: #706384; }
+.logic-action[data-action-icon="arrowDownUp"] .logic-icon { background: #f3ece4; color: #8b6c4e; }
+.logic-action[data-action-icon="calendarCheck"] .logic-icon { background: #e7f0ec; color: #537665; }
+.logic-action[data-action-icon="arrowCircle"] .logic-icon { background: #e9edf7; color: #576f9a; }
+.logic-action[data-action-icon="arrowLeftRight"] .logic-icon { background: #f2e9e4; color: #8a6255; }
+.logic-action[data-action-icon="ellipsisCircle"] .logic-icon { background: #eef0ef; color: #65716e; }

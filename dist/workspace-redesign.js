@@ -99,6 +99,7 @@
       // Custom library symbols are user content and are preserved.
       if(node.closest('.custom-library-action'))return;
       const name = actionLibraryIcons[label] || (/diligence/i.test(label)?'search':/consent|warranty|indemnity/i.test(label)?'shield':/completion|condition/i.test(label)?'check':/price|escrow/i.test(label)?'scale':'document');
+      node.closest('.logic-action')?.setAttribute('data-action-icon', name);
       node.dataset.originalIcon=node.textContent.trim();node.innerHTML=icon(name);node.dataset.vector='true';
     });
     document.querySelectorAll('.hub-item h4').forEach(heading=>{
@@ -107,6 +108,7 @@
       if(activeDealProject().hub.actions.some(action=>action.id===actionId && action.manual))return;
       const title=heading.textContent.replace(/^\S+\s/,'');
       const symbol=actionLibraryIcons[title] || (/warranty|indemnity|consent/i.test(title)?'shieldCheck':/completion|condition/i.test(title)?'circleCheck':'document');
+      heading.closest('.hub-item')?.setAttribute('data-action-icon', symbol);
       const label=document.createElement('span');label.textContent=title;
       heading.replaceChildren();heading.insertAdjacentHTML('afterbegin',icon(symbol));heading.append(label);heading.dataset.vector='true';
     });
