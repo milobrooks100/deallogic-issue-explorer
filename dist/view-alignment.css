@@ -1,4 +1,8 @@
 /* All top-level workspace views share the Deal Hub header baseline. */
+main:has(.project-rail) {
+  align-content: start;
+}
+
 .view-header {
   margin-bottom: 26px;
 }
