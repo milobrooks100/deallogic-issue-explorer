@@ -12,7 +12,19 @@
     search: '<circle cx="10" cy="10" r="6"/><path d="m15 15 6 6"/>',
     folder: '<path d="M3 6h7l2 3h9v12H3Z"/>',
     clock: '<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>',
-    scale: '<path d="M12 3v18M6 21h12M4 7h16M6 7l-4 8h8ZM18 7l-4 8h8Z"/>'
+    scale: '<path d="M12 3v18M6 21h12M4 7h16M6 7l-4 8h8ZM18 7l-4 8h8Z"/>',
+    wrench: '<path d="M14.5 6.5a4 4 0 0 0-5 5L3 18l3 3 6.5-6.5a4 4 0 0 0 5-5l-3 3-3-3 3-3Z"/>',
+    handshake: '<path d="m8 11 3 3a2 2 0 0 0 3-3l-2-2 2 2a2 2 0 0 0 3-3l-4-4a3 3 0 0 0-4 0L7 6l-2-1-3 3 5 5 1-1Z"/><path d="m14 14 1 1a2 2 0 0 0 3-3"/>',
+    circleCheck: '<circle cx="12" cy="12" r="9"/><path d="m8 12 2.5 2.5L16 9"/>',
+    penLine: '<path d="m4 20 4.5-1L19 8.5 15.5 5 5 15.5 4 20Z"/><path d="m13.5 7 3.5 3.5"/><path d="M4 4h7"/>',
+    badgeCheck: '<path d="M12 3 14.4 5l3.2-.2.8 3.1 2.6 1.9-1.4 2.9.4 3.2-3.1.8-1.9 2.6-2.9-1.4-3.2.4-.8-3.1-2.6-1.9 1.4-2.9-.4-3.2 3.1-.8L10.1 3Z"/><path d="m9 12 2 2 4-4"/>',
+    banknote: '<rect x="3" y="6" width="18" height="12" rx="2"/><circle cx="12" cy="12" r="2"/><path d="M7 9h.01M17 15h.01"/>',
+    fileSearch: '<path d="M14 3H5v18h14V8ZM14 3v5h5"/><circle cx="10.5" cy="14.5" r="2.5"/><path d="m12.5 16.5 2 2"/>',
+    lock: '<rect x="5" y="10" width="14" height="11" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/>',
+    calendarCheck: '<rect x="4" y="5" width="16" height="15" rx="2"/><path d="M8 3v4M16 3v4M4 10h16M9 15l2 2 4-4"/>',
+    arrowCircle: '<circle cx="12" cy="12" r="9"/><path d="M8 12h8m-3-3 3 3-3 3"/>',
+    doorExit: '<path d="M5 21V4a1 1 0 0 1 1-1h11a1 1 0 0 1 1 1v17"/><path d="M5 21h14M10 12h10m-3-3 3 3-3 3"/>',
+    ellipsisCircle: '<circle cx="12" cy="12" r="9"/><path d="M8 12h.01M12 12h.01M16 12h.01"/>'
   };
   const icon = name => `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${paths[name] || paths.document}</svg>`;
   const destinations = [['deal-map','Deal Map','map'],['deal-hub','Deal Hub','grid'],['action-library','Action Library','book'],['settings','Settings','settings']];
@@ -60,12 +72,28 @@
   };
   function polish() {
     decorateRail(); updateContext();
+    const actionLibraryIcons = {
+      'Further diligence':'search',
+      'Rectification':'wrench',
+      'Third-party consent':'handshake',
+      'Condition precedent':'circleCheck',
+      'Pre-completion covenant':'penLine',
+      'Warranty':'badgeCheck',
+      'Specific indemnity':'banknote',
+      'Specific disclosure':'fileSearch',
+      'Escrow or retention':'lock',
+      'Price adjustment':'scale',
+      'Completion mechanic':'calendarCheck',
+      'Post-completion action':'arrowCircle',
+      'Walk away or renegotiate':'doorExit',
+      'Other':'ellipsisCircle'
+    };
     document.querySelectorAll('.logic-icon,.action-symbol').forEach(node=>{
       if(node.dataset.vector)return;
       const label = node.parentElement.querySelector('strong')?.textContent || '';
-      const name = /diligence/i.test(label)?'search':/consent|warranty|indemnity/i.test(label)?'shield':/completion|condition/i.test(label)?'check':/price|escrow/i.test(label)?'scale':'document';
       // Custom library symbols are user content and are preserved.
       if(node.closest('.custom-library-action'))return;
+      const name = actionLibraryIcons[label] || (/diligence/i.test(label)?'search':/consent|warranty|indemnity/i.test(label)?'shield':/completion|condition/i.test(label)?'check':/price|escrow/i.test(label)?'scale':'document');
       node.dataset.originalIcon=node.textContent.trim();node.innerHTML=icon(name);node.dataset.vector='true';
     });
     document.querySelectorAll('.hub-item h4').forEach(heading=>{
