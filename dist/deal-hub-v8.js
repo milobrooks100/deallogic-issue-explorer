@@ -44,7 +44,7 @@
     const card = document.querySelector("#logic-card");
     if (issue.id === "customer-change-of-control" && card?.querySelector(".logic-section-heading")) {
       return [...card.querySelectorAll(".logic-action")].map(row => ({
-        issueId: issue.id, side: getTransactionSide(), icon: row.querySelector(".logic-icon")?.textContent.trim() || "◌",
+        issueId: issue.id, side: getTransactionSide(), icon: row.querySelector(".logic-icon")?.dataset.originalIcon || row.querySelector(".logic-icon")?.textContent.trim() || "◌",
         priority: row.querySelector(".logic-priority")?.textContent.trim() || "Recommended",
         title: row.querySelector("strong")?.textContent.trim() || "Action",
         instruction: row.querySelector("span:last-child")?.textContent.trim() || ""
@@ -201,7 +201,7 @@
     const issueOptions=state.issues.map(issue=>`<option value="${esc(issue.id)}" ${filter===issue.id?"selected":""}>${esc(issue.title)}</option>`).join("");
     hub.innerHTML=`<div class="hub-header"><div><h2>Deal Hub</h2><p>Build a deal-specific briefing and action plan from saved issues and recommendations.</p></div><div class="hub-toolbar"><button class="primary" data-new-action>＋ Custom action</button><div class="hub-export"><button data-export-csv>Export table</button><button data-export-doc>Export briefing</button></div></div></div><form class="hub-new-action screen-hidden" data-new-action-form><h3>Add custom action</h3><div class="hub-editor-grid"><label>Title<input name="title" maxlength="120" required></label><label>Related issue<select name="issueId"><option value="custom-actions">General deal action</option>${state.issues.filter(issue=>issue.id!=="custom-actions").map(issue=>`<option value="${esc(issue.id)}">${esc(issue.title)}</option>`).join("")}</select></label><label>Deal phase<select name="dealPhase">${options(phases,"Due Diligence")}</select></label></div><label>Action details<textarea name="instruction" required></textarea></label><div><button class="hub-button primary">Add action</button> <button class="hub-button" type="button" data-cancel-new-action>Cancel</button></div></form><div class="hub-tabs" role="tablist" aria-label="Deal Hub views">${[["summary","Summary"],["board","Task board"],["table","Table"],["projects","Project settings"]].map(([name,label])=>`<button role="tab" aria-selected="${view===name}" class="${view===name?"active":""}" data-hub-view="${name}">${label}</button>`).join("")}</div>${view!=="projects"?`<div class="hub-filter-row"><label>Issue <select data-filter-issue><option>All issues</option>${issueOptions}</select></label><input data-hub-search type="search" placeholder="Search actions" value="${esc(search)}" aria-label="Search Deal Hub actions"><span class="hub-meta">${state.issues.length} open issues · ${state.actions.length} actions · saved in this browser</span></div>`:""}<div class="hub-content"></div>`;
     const content=hub.querySelector(".hub-content");
-    if (!state.issues.length && !state.actions.length) {
+    if (!state.issues.length && !state.actions.length && view!=="projects") {
       content.innerHTML='<div class="hub-empty"><h3>Your Deal Hub is ready</h3><p>Open a legal issue, use the pin beside Recommended Actions, and select the actions to bring here. You can also create a custom action.</p><button class="hub-button primary" data-go-map>Explore Deal Map</button></div>';
     } else if (view==="summary") {
       const shownIssues=state.issues.filter(issue=>filter==="All issues"||issue.id===filter);

@@ -1,0 +1,36 @@
+{
+  "version": 1,
+  "project": {
+    "name": "deallogic-issue-explorer",
+    "productType": "Legal M&A transaction workspace",
+    "stack": ["HTML", "CSS", "Vanilla JavaScript"]
+  },
+  "sources": {
+    "tokens": ["dist/workspace-redesign.css"],
+    "components": [],
+    "assets": [],
+    "instructions": ["DESIGN-NOTES.md"]
+  },
+  "design": {
+    "colorMode": "light",
+    "colors": {"canvas":"#f0f1ee","ink":"#293a35","muted":"#64706b","accent":"#344c42","surface":"#ffffff"},
+    "typography": {"family":"System sans-serif"},
+    "spacing": {},
+    "radius": {},
+    "shadows": {},
+    "motion": {},
+    "density": "Comfortable workspace with compact data tables"
+  },
+  "components": {
+    "installed": [],
+    "preferredPrimitives": [],
+    "patterns": ["Persistent project navigation", "Segmented Hub views", "Summary metrics", "Task board", "Scrollable table"]
+  },
+  "constraints": {
+    "must": ["Preserve legal copy, issue rules and project storage", "Support keyboard focus and reduced motion", "Keep mobile layouts usable"],
+    "avoid": ["Decorative animations on frequent interactions", "Unnecessary framework migration", "Invented legal content"]
+  },
+  "decisions": ["Translate Nusa Bay dashboard structure into a restrained legal workspace", "Use 21st sidebar and card-tabs patterns as inspiration, without importing React dependencies"],
+  "evidence": [],
+  "generatedAt": "2026-10-19T22:09:27.299Z"
+}
