@@ -27,7 +27,11 @@
     arrowLeftRight: '<path d="M8 3 4 7l4 4M4 7h16M16 21l4-4-4-4M20 17H4"/>',
     ellipsisCircle: '<circle cx="12" cy="12" r="9"/><path d="M8 12h.01M12 12h.01M16 12h.01"/>'
   };
-  const icon = name => `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${paths[name] || paths.document}</svg>`;
+  const lucideNames = {
+    grid:'layout-grid', map:'map', book:'book-open', settings:'settings', check:'check', document:'file-text', shield:'shield-check', arrow:'arrow-right', search:'search', folder:'folder', clock:'clock', scale:'scale', wrench:'wrench', handshake:'handshake', circleCheck:'circle-check', filePenLine:'file-pen-line', shieldCheck:'shield-check', banknote:'banknote', fileSearch:'file-search', lockKeyhole:'lock-keyhole', arrowDownUp:'arrow-down-up', calendarCheck:'calendar-check', arrowCircle:'circle-arrow-right', arrowLeftRight:'arrow-left-right', ellipsisCircle:'ellipsis'
+  };
+  const icon = name => `<i data-lucide="${lucideNames[name] || lucideNames.document}" aria-hidden="true"></i>`;
+  const renderLucideIcons = () => window.lucide?.createIcons({ attrs: { 'stroke-width': 1.75 } });
   const destinations = [['deal-map','Deal Map','map'],['deal-hub','Deal Hub','grid'],['action-library','Action Library','book'],['settings','Settings','settings']];
   let currentView = 'deal-map';
   const main = document.querySelector('main');
@@ -133,6 +137,7 @@
       metrics.innerHTML=values.map(([label,count,symbol])=>`<div class="metric"><span class="metric-label">${label}</span><span class="metric-icon">${icon(symbol)}</span><strong>${count}</strong></div>`).join('');
       hub.querySelector('.hub-content')?.prepend(metrics);
     }
+    renderLucideIcons();
   }
   let queued=false;
   const observer=new MutationObserver(()=>{if(queued)return;queued=true;requestAnimationFrame(()=>{queued=false;observer.disconnect();polish();observer.observe(main,{childList:true,subtree:true});});});
