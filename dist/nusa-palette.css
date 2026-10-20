@@ -1,0 +1,82 @@
+/* Neutral dashboard palette derived from the Nusa Bay reference. */
+:root {
+  --ink: #252a2a;
+  --muted: #737979;
+  --paper: #f2f2f0;
+  --line: #e4e5e3;
+  --moss: #252f2f;
+  --lime: #e8ebea;
+  --surface: #ffffff;
+  --soft: #f7f7f6;
+  --shadow: 0 2px 6px #252a2a08, 0 14px 36px #252a2a06;
+}
+
+body { background: var(--paper); color: var(--ink); }
+
+.project-rail,
+.issue-header,
+.card,
+.hub-summary-tile,
+.hub-projects,
+.settings-card,
+.action-library,
+.project-start,
+.hub-item,
+.hub-issue,
+.hub-table-wrap { background: var(--surface); border-color: var(--line); }
+
+.map,
+.hub-column,
+.hub-summary-tile .hub-issue,
+.hub-new-action,
+.hub-editor,
+.custom-action { background: var(--soft); }
+
+.workspace-navigation nav button { color: #5e6464; }
+.workspace-navigation nav button.active,
+.hub-button.primary,
+.hub-toolbar button.primary,
+.transaction-side-options button.active,
+.export { background: var(--ink); border-color: var(--ink); }
+
+.project-rail-item.active,
+.area.open,
+.logic-side-picker button.active,
+.hub-pin.active { background: #ebedeb; color: var(--ink); }
+
+.project-dot,
+.context-status i { background: #bfc4c2; }
+.project-rail-item.active .project-dot { background: #4d5855; box-shadow: 0 0 0 3px #dde1df; }
+
+.eyebrow,
+.logic-section h4,
+.hub-text-button { color: #5d6864; }
+
+.info,
+.logic-action .logic-icon,
+.library-view .action-symbol,
+.category-symbol { background: #eff1f0; color: #66706d; }
+
+select,
+.other-input,
+.hub-editor input,
+.hub-editor textarea,
+.hub-editor select,
+.hub-new-action input,
+.hub-new-action textarea,
+.hub-new-action select { background: #fff; border-color: #d5d8d6; }
+
+.workspace-metrics { background: #eceeee; border-color: #ffffffcc; }
+.metric { background: #ffffffd9; border-color: #fff; }
+.metric-icon { background: #f0f1f0; color: #626a68; }
+
+.hub-column:nth-child(2),
+.hub-column:nth-child(3),
+.hub-column:nth-child(4) { background: #f3f4f3; }
+
+@media (hover: hover) {
+  .workspace-navigation nav button:not(.active):hover,
+  .project-rail-item:hover,
+  .explore-categories button:hover { background: #f1f2f1; border-color: #d8dcda; }
+  .export:hover { background: #394342; }
+}
