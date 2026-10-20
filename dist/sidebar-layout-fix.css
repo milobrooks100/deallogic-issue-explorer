@@ -1,0 +1,15 @@
+/* The navigation rail should only gain an internal scroll area when its content
+   cannot fit within the available viewport height. */
+@media (min-width: 981px) {
+  .project-rail {
+    top: 24px;
+    min-height: 0;
+    max-height: calc(100vh - 48px);
+    overflow-y: auto;
+    overscroll-behavior: contain;
+  }
+
+  .map {
+    top: 24px;
+  }
+}
