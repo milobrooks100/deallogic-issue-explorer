@@ -512,7 +512,7 @@
         return Math.max(1, Math.min(5, score));
       };
 
-      const ipQuestion = (id, label, options) => `<div class="question"><div class="question-top"><label for="${id}">${label}</label></div><select id="${id}">${options.map((option) => `<option ${answers[id] === option ? "selected" : ""}>${option}</option>`).join("")}</select><p class="response-note">Choose the response that best reflects the current diligence evidence.</p></div>`;
+      const ipQuestion = (id, label, options) => `<div class="question"><div class="question-top"><label for="${id}">${label}</label></div><select id="${id}">${options.map((option) => `<option ${answers[id] === option ? "selected" : ""}>${option}</option>`).join("")}</select></div>`;
       const missingIpAssignmentMarkup = () => {
         const gap = answers["ip-assignment-gap"] || "Unanswered";
         const evidence = answers["ip-ownership-evidence"] || "Unanswered";
@@ -549,6 +549,22 @@
             renderPanel();
           };
         });
+      };
+
+      const renderLogicWithMissingIpAssignment = renderLogic;
+      renderLogic = function (issue) {
+        if (!isMissingIpAssignment(issue)) return renderLogicWithMissingIpAssignment(issue);
+        const logicCard = document.querySelector("#logic-card");
+        const protectionsCard = document.querySelector("#recommendations-card");
+        const finalAnswer = answers["ip-owner-claim"] || "Unanswered";
+        if (finalAnswer === "Unanswered") {
+          protectionsCard?.remove();
+          logicCard.classList.add("coc-deal-logic", "logic-standby");
+          logicCard.innerHTML = `<h3>Apply deal logic</h3><p>Turn the recorded facts into a clear transaction response.</p>`;
+          return;
+        }
+        logicCard.classList.remove("coc-deal-logic", "logic-standby");
+        renderLogicWithMissingIpAssignment(issue);
       };
     </script>
   </body>
