@@ -559,7 +559,7 @@
         R04: ["Specific indemnity", "Include a specific indemnity for IP ownership or infringement claims by the IP owner or third parties, supported by a price escrow or retention holdback where appropriate."],
         R05: ["Specific disclosure", "Formally disclose missing title documentation, incomplete historical records or IP owner title gaps against IP warranties to manage post-closing liability."],
         R06: ["Warranty", "Set out fundamental IP title warranties paired with a capped indemnity to cover potential unknown title defects."],
-        R07: ["Rectification", "Assess the practical cost and feasibility of replacing, redesigning, or rewriting the affected IP component created by the IP owner to eliminate IP infringement risk."],
+        R07: ["Rectification", "Assess the cost, timeframe and legal feasibility of an independent \"clean-room\" rewrite to replace the affected IP without creating derivative-work infringement risks."],
         R08: ["Condition precedent", "Require a formal settlement, release and full IP transfer from the asserting IP owner as a condition precedent before completing the transaction."],
         R09: ["Price adjustment", "Review claim validity and financial exposure to consider a purchase price adjustment or account for potential litigation costs."],
         R10: ["Other", "Consider structuring the transaction as an asset purchase rather than a share purchase to isolate liabilities, while taking into account any ongoing IP risk."],
@@ -572,19 +572,19 @@
           Balanced: [["Required", "R01"]]
         },
         profile2: {
-          Buyer: [["Required", "R01"], ["Recommended", "R02"], ["Recommended", "R07"]],
+          Buyer: [["Required", "R01"], ["Recommended", "R02"], ["Consider", "R07"]],
           Seller: [["Required", "R01"], ["Recommended", "R03"]],
           Balanced: [["Required", "R01"], ["Recommended", "R02"]]
         },
         profile3: {
-          Buyer: [["Required", "R04"], ["Recommended", "R02"], ["Recommended", "R07"]],
+          Buyer: [["Required", "R04"], ["Recommended", "R02"], ["Consider", "R07"]],
           Seller: [["Required", "R05"], ["Recommended", "R02"]],
-          Balanced: [["Required", "R04"], ["Required", "R05"], ["Recommended", "R07"]]
+          Balanced: [["Required", "R04"], ["Required", "R05"], ["Consider", "R07"]]
         },
         profile4: {
-          Buyer: [["Required", "R06"], ["Recommended", "R02"], ["Recommended", "R07"]],
+          Buyer: [["Required", "R06"], ["Recommended", "R02"], ["Consider", "R07"]],
           Seller: [["Required", "R05"], ["Recommended", "R02"]],
-          Balanced: [["Required", "R05"], ["Required", "R06"], ["Recommended", "R07"]]
+          Balanced: [["Required", "R05"], ["Required", "R06"], ["Consider", "R07"]]
         },
         profile5: {
           Buyer: [["Required", "R08"], ["Required", "R04"], ["Recommended", "R09"], ["Consider", "R07"], ["Consider", "R10"], ["Consider", "R11"]],
@@ -592,7 +592,7 @@
           Balanced: [["Required", "R08"], ["Required", "R04"], ["Recommended", "R09"]]
         },
         activeClaimFallback: {
-          Buyer: [["Required", "R08"], ["Required", "R04"], ["Recommended", "R09"], ["Recommended", "R07"]],
+          Buyer: [["Required", "R08"], ["Required", "R04"], ["Recommended", "R09"], ["Consider", "R07"]],
           Seller: [["Required", "R05"], ["Required", "R08"], ["Recommended", "R09"]],
           Balanced: [["Required", "R08"], ["Required", "R04"], ["Recommended", "R09"]]
         }
@@ -618,7 +618,7 @@
           const withoutRewritePlan = configuredActions.filter(([, id]) => id !== "R07");
           const configuredRewritePlan = configuredActions.find(([, id]) => id === "R07");
           selectedActions = includeRewritePlan
-            ? [...withoutRewritePlan, configuredRewritePlan || ["Recommended", "R07"]]
+            ? [...withoutRewritePlan, configuredRewritePlan || ["Consider", "R07"]]
             : withoutRewritePlan;
         }
         return selectedActions.map(([priority, id]) => {
