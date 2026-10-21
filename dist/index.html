@@ -810,6 +810,142 @@
         link.click();
         URL.revokeObjectURL(url);
       };
+
+      const optionHolderActionRegistry = {
+        OH01: ["Further diligence", "Reconcile the option and warrant registers, plan and award documents, authorising resolutions, exercise and cancellation records and the fully diluted cap table; investigate and correct every discrepancy."],
+        OH02: ["Further diligence", "Review the plan rules, individual award terms, articles and corporate approvals to confirm vesting, exercise, lapse, acceleration, cancellation, rollover and amendment powers on the proposed transaction."],
+        OH03: ["Completion mechanic", "Agree an award-by-award treatment schedule identifying each holder, award, vesting position, exercise price, selected treatment, required document, payment and completion step."],
+        OH04: ["Rectification", "Adopt the required board and shareholder approvals and prepare and execute all exercise notices, cancellation agreements, releases, rollover or replacement documents and lapse notices needed to implement the selected treatment."],
+        OH05: ["Third-party consent", "Obtain every required holder consent, election, release or power of attorney in the agreed form before completion."],
+        OH06: ["Completion mechanic", "Prepare an agreed closing cap table, funds flow and proceeds-allocation schedule, supported by evidence that every award has been exercised, cancelled, released, rolled over, replaced or lapsed as intended."],
+        OH07: ["Further diligence", "Obtain transaction-specific share-scheme tax and payroll advice, calculate any withholding and employer liabilities, preserve available tax-advantaged treatment and complete the required PAYE and ERS reporting."],
+        OH08: ["Condition precedent", "Make completion conditional on effective implementation of the agreed award treatment and delivery of the final fully diluted closing cap table and supporting documents."],
+        OH09: ["Warranty", "Include tailored capitalisation and employee-incentive warranties, supported by specific disclosure of every award, its terms, tax status, treatment and any exception or dispute."],
+        OH10: ["Specific indemnity", "Allocate identified residual award, dilution or tax exposure through a specific indemnity, supported where proportionate by an escrow, retention or purchase-price adjustment."],
+        OH11: ["Walk away or renegotiate", "If material awards cannot be implemented by completion, consider delaying or restructuring the transaction, renegotiating value or requiring an alternative route that delivers the agreed capital structure."]
+      };
+      const optionPriorityRank = { Consider: 1, Recommended: 2, Required: 3 };
+      const addOptionHolderAction = (actions, id, priority) => {
+        const currentPriority = actions.get(id);
+        if (!currentPriority || optionPriorityRank[priority] > optionPriorityRank[currentPriority]) actions.set(id, priority);
+      };
+      const optionHolderActions = (side) => {
+        const actions = new Map();
+        const existence = answers["option-rights-exist"] || "Unanswered";
+        if (existence === "No — confirmed against the relevant records" || existence === "Unanswered") return actions;
+        const reconciliation = answers["award-register-reconciliation"] || "Unanswered";
+        const treatments = answers["award-transaction-treatment"] || [];
+        const treatmentUndecided = !treatments.length || treatments.includes("Treatment not yet decided");
+        const implementation = answers["award-treatment-implementation"] || "Unanswered";
+        const dilution = answers["award-dilution-percentage"] || "Unanswered";
+        const tax = answers["award-tax-payroll-position"] || "Unanswered";
+        const material = ["More than 5% up to 10%", "More than 10%", "Not yet calculated"].includes(dilution);
+        const implementationOpen = ["Unanswered", "Probably — documents or consents remain outstanding", "Unclear — the governing documents conflict or are incomplete", "No — it cannot currently be implemented by completion", "Not yet assessed"].includes(implementation);
+        const recordsOpen = existence !== "Yes" || ["Unanswered", "Broadly — only minor discrepancies remain", "No — material discrepancies or undocumented awards exist", "Not yet reconciled"].includes(reconciliation);
+
+        if (recordsOpen) addOptionHolderAction(actions, "OH01", ["Broadly — only minor discrepancies remain"].includes(reconciliation) ? "Recommended" : "Required");
+        addOptionHolderAction(actions, "OH02", existence === "Yes" ? "Required" : "Recommended");
+        addOptionHolderAction(actions, "OH09", side === "Balanced" ? "Recommended" : "Required");
+
+        if (treatmentUndecided) addOptionHolderAction(actions, "OH03", "Required");
+        if (!treatmentUndecided) {
+          addOptionHolderAction(actions, "OH03", "Required");
+          addOptionHolderAction(actions, "OH04", "Required");
+          addOptionHolderAction(actions, "OH06", "Required");
+        }
+        if (["Probably — documents or consents remain outstanding", "No — it cannot currently be implemented by completion"].includes(implementation)) addOptionHolderAction(actions, "OH05", "Required");
+        if (["Unclear — the governing documents conflict or are incomplete", "Not yet assessed"].includes(implementation)) addOptionHolderAction(actions, "OH05", "Recommended");
+
+        const taxReviewRequired = treatments.some((treatment) => ["Exercise and sell", "Cancel or release for cash", "Rollover or replace"].includes(treatment));
+        if (taxReviewRequired || ["Reviewed — manageable withholding or reporting is required", "Reviewed — treatment must change or a material cost arises", "Not reviewed — tax-advantaged awards are present", "Tax status is unknown"].includes(tax)) addOptionHolderAction(actions, "OH07", "Required");
+        if (tax === "Not reviewed — no tax-advantaged awards are known") addOptionHolderAction(actions, "OH07", "Recommended");
+
+        if (material && (recordsOpen || treatmentUndecided || implementationOpen)) addOptionHolderAction(actions, "OH08", "Required");
+        if (!material && implementation === "No — it cannot currently be implemented by completion") addOptionHolderAction(actions, "OH08", side === "Seller" ? "Consider" : "Recommended");
+
+        const identifiedExposure = reconciliation === "No — material discrepancies or undocumented awards exist" || implementation === "No — it cannot currently be implemented by completion" || tax === "Reviewed — treatment must change or a material cost arises";
+        if (identifiedExposure) addOptionHolderAction(actions, "OH10", side === "Buyer" ? "Required" : side === "Seller" ? "Consider" : "Recommended");
+        if (implementation === "No — it cannot currently be implemented by completion" && material) addOptionHolderAction(actions, "OH11", side === "Seller" ? "Recommended" : "Consider");
+        return actions;
+      };
+      const optionHolderActionMarkup = (actions) => [...actions.entries()]
+        .sort((left, right) => optionPriorityRank[right[1]] - optionPriorityRank[left[1]])
+        .map(([id, priority]) => {
+          const [title, description] = optionHolderActionRegistry[id];
+          return `<div class="logic-action" data-action-id="${id}"><span class="logic-icon">◌</span><div><span class="logic-priority" data-level="${priority.toLowerCase()}">${priority}</span><strong>${title}</strong><span>${description}</span></div></div>`;
+        }).join("");
+      const optionHolderSummary = () => {
+        const existence = answers["option-rights-exist"] || "Unanswered";
+        const reconciliation = answers["award-register-reconciliation"] || "Unanswered";
+        const treatments = answers["award-transaction-treatment"] || [];
+        const implementation = answers["award-treatment-implementation"] || "Unanswered";
+        const dilution = answers["award-dilution-percentage"] || "Unanswered";
+        const tax = answers["award-tax-payroll-position"] || "Unanswered";
+        if (existence === "No — confirmed against the relevant records") return "No outstanding options, warrants or other rights to acquire shares have been identified after review of the relevant records. The agreed capital structure is not currently affected by option-holder treatment.";
+        if (existence === "Not yet checked") return "The existence of outstanding options, warrants or other share rights has not yet been checked. The fully diluted ownership position and required transaction mechanics therefore remain unconfirmed.";
+        if (existence === "Possibly — the records are incomplete or inconsistent") return "Outstanding options, warrants or other share rights may exist, but the available records are incomplete or inconsistent. The fully diluted capital structure cannot yet be relied upon.";
+
+        let opening = "Outstanding options, warrants or other rights to acquire shares have been identified.";
+        if (reconciliation === "No — material discrepancies or undocumented awards exist") opening += " Material discrepancies or undocumented awards affect the current capitalisation analysis.";
+        else if (reconciliation === "Not yet reconciled") opening += " The award population has not yet been reconciled to the fully diluted cap table and supporting documents.";
+        else if (reconciliation === "Broadly — only minor discrepancies remain") opening += " The records broadly reconcile, although minor discrepancies remain to be resolved.";
+        else if (reconciliation === "Yes — fully reconciled") opening += " The award register is fully reconciled to the cap table and supporting documents.";
+
+        if (treatments.includes("Treatment not yet decided") || !treatments.length) return `${opening} The transaction treatment remains undecided, so the closing capital structure and proceeds allocation cannot yet be finalised.`;
+        const treatmentCopy = treatments.map((value) => value.toLowerCase()).join(", ");
+        opening += ` The recorded treatment is: ${treatmentCopy}.`;
+        if (implementation === "No — it cannot currently be implemented by completion") opening += " That treatment cannot currently be validly implemented by completion.";
+        else if (implementation === "Unclear — the governing documents conflict or are incomplete") opening += " Conflicting or incomplete governing documents create material implementation uncertainty.";
+        else if (implementation === "Probably — documents or consents remain outstanding") opening += " Implementation appears available, but documents or consents remain outstanding.";
+        else if (implementation === "Yes — no holder consent is required") opening += " The treatment can be implemented without holder consent.";
+        else if (implementation === "Yes — all required consents and approvals are secured") opening += " All identified consents and approvals are secured.";
+        else if (implementation === "Not yet assessed") opening += " Implementation has not yet been assessed.";
+        if (dilution && dilution !== "Unanswered") opening += ` The awards represent ${dilution.toLowerCase()} of the fully diluted share capital.`;
+        if (tax === "Reviewed — treatment must change or a material cost arises") opening += " Tax review indicates that the treatment must change or a material cost must be addressed.";
+        else if (tax === "Not reviewed — tax-advantaged awards are present") opening += " Tax-advantaged awards remain subject to transaction-specific tax review.";
+        return opening;
+      };
+      const optionHolderImplications = () => {
+        const implications = [];
+        const existence = answers["option-rights-exist"] || "Unanswered";
+        const reconciliation = answers["award-register-reconciliation"] || "Unanswered";
+        const treatments = answers["award-transaction-treatment"] || [];
+        const implementation = answers["award-treatment-implementation"] || "Unanswered";
+        const dilution = answers["award-dilution-percentage"] || "Unanswered";
+        const tax = answers["award-tax-payroll-position"] || "Unanswered";
+        if (existence === "No — confirmed against the relevant records") return ["No option-holder remediation or additional completion mechanic is currently indicated."];
+        if (existence !== "Yes" || ["Unanswered", "No — material discrepancies or undocumented awards exist", "Not yet reconciled"].includes(reconciliation)) implications.push("Pricing, proceeds allocation and the closing cap table should not be finalised until the award population is reconciled.");
+        if (!treatments.length || treatments.includes("Treatment not yet decided")) implications.push("An award-by-award treatment must be agreed before definitive completion mechanics can be prepared.");
+        else if (["Probably — documents or consents remain outstanding", "Unclear — the governing documents conflict or are incomplete", "No — it cannot currently be implemented by completion", "Not yet assessed", "Unanswered"].includes(implementation)) implications.push("The agreed treatment remains an execution dependency and may require holder participation or completion protection.");
+        else implications.push("The selected treatment appears implementable; the final cap table, funds flow and evidence of treatment should be delivered at completion.");
+        if (["More than 5% up to 10%", "More than 10%", "Not yet calculated"].includes(dilution)) implications.push("The recorded or unquantified dilution makes unresolved award mechanics material to the transaction.");
+        if (["Reviewed — treatment must change or a material cost arises", "Not reviewed — tax-advantaged awards are present", "Tax status is unknown"].includes(tax)) implications.push("Tax and payroll treatment must be resolved before the award mechanics are implemented.");
+        return implications.slice(0, 4);
+      };
+      const optionHolderNotes = `<div class="logic-note"><strong>Exit Mechanics:</strong> Whether awards accelerate, lapse, become exercisable, are cancelled for cash or roll over depends on the plan rules, individual award terms, articles and authorising resolutions. Board discretion should be exercised within those documents; an unsupported variation may create contractual and tax consequences.</div><div class="logic-note"><strong>Tax and Payroll:</strong> Exercise, assignment, release or cash compensation can create Income Tax, National Insurance, PAYE and employment-related securities reporting obligations. EMI, CSOP, SAYE and other tax-advantaged treatment can depend on the exact transaction structure and timing, so implementation should follow transaction-specific tax advice.</div>`;
+
+      const renderLogicBeforeOptionHolders = renderLogic;
+      renderLogic = function (issue) {
+        if (!isOptionHolders(issue)) return renderLogicBeforeOptionHolders(issue);
+        const logicCard = document.querySelector("#logic-card");
+        const protectionsCard = document.querySelector("#recommendations-card");
+        protectionsCard?.remove();
+        logicCard.classList.add("coc-deal-logic");
+        const existence = answers["option-rights-exist"] || "Unanswered";
+        if (existence === "Unanswered") {
+          logicCard.classList.add("logic-standby");
+          logicCard.innerHTML = `<h3>Apply deal logic</h3><p>Turn the recorded facts into a clear transaction response.</p>`;
+          return;
+        }
+        logicCard.classList.remove("logic-standby");
+        const side = getTransactionSide();
+        const actions = optionHolderActions(side);
+        const implicationMarkup = optionHolderImplications().map((implication) => `<li>${implication}</li>`).join("");
+        const sidePicker = `<div class="logic-side-picker" aria-label="Transaction side selector"><button type="button" class="active" data-logic-side-toggle>${side}</button></div>`;
+        const actionMarkup = actions.size ? optionHolderActionMarkup(actions) : `<p>There are no active transaction actions on the information recorded.</p>`;
+        logicCard.innerHTML = `<h3>Apply deal logic</h3><section class="logic-section"><h4>Summary</h4><p class="logic-conclusion">${optionHolderSummary()}</p></section><section class="logic-section"><h4>Key deal implications</h4><ul>${implicationMarkup}</ul></section><section class="logic-section"><div class="logic-section-heading"><h4>Recommended actions</h4>${actions.size ? sidePicker : ""}</div>${actionMarkup}</section><section class="logic-section"><h4>Notes</h4>${optionHolderNotes}</section>`;
+        document.dispatchEvent(new CustomEvent("option-holders-logic-rendered"));
+      };
     </script>
     <script src="./deal-logic-templates.js?v=1"></script>
   </body>

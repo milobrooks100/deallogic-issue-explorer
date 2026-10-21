@@ -1,7 +1,6 @@
 /* Shared deal-logic tile for issue areas whose substantive rules are pending. */
 (() => {
   const issueIds = new Set([
-    "option-holders",
     "threatened-litigation",
     "debt-facilities-repayment"
   ]);
