@@ -552,19 +552,116 @@
       };
 
       const renderLogicWithMissingIpAssignment = renderLogic;
+      const ipActionRegistry = {
+        R01: ["Rectification", "Execute a retroactive Confirmatory Deed of Assignment from the IP owner as a standard closing deliverable or completion condition."],
+        R02: ["Further diligence", "Prepare an asset-by-asset chain-of-title review covering owner status, engagement terms, assignments, licences, waivers, registry records and restrictions to establish secondary evidence of equitable title transferred by the IP owner."],
+        R03: ["Rectification", "Contact the IP owner early to clear assignment terms, offering nominal consideration or an execution fee if required to secure agreement."],
+        R04: ["Specific indemnity", "Include a specific indemnity for IP ownership or infringement claims by the IP owner or third parties, supported by a price escrow or retention holdback where appropriate."],
+        R05: ["Specific disclosure", "Formally disclose missing title documentation, incomplete historical records or IP owner title gaps against IP warranties to manage post-closing liability."],
+        R06: ["Warranty", "Set out fundamental IP title warranties paired with a capped indemnity to cover potential unknown title defects."],
+        R07: ["Rectification", "Assess the practical cost and feasibility of replacing, redesigning or rewriting the affected IP component created by the IP owner if a risk arises."],
+        R08: ["Condition precedent", "Require a formal settlement, release and full IP transfer from the asserting IP owner as a condition precedent before completing the transaction."],
+        R09: ["Price adjustment", "Review claim validity and financial exposure to consider a purchase price adjustment or account for potential litigation costs."],
+        R10: ["Other", "Consider structuring the transaction as an asset purchase rather than a share purchase to isolate liabilities, while taking into account any ongoing IP risk."],
+        R11: ["Walk away or renegotiate", "Evaluate whether the IP owner's assertion significantly affects target value, considering potential termination rights or deal-term renegotiation."]
+      };
+      const ipProfileActions = {
+        profile1: {
+          Buyer: [["Required", "R01"], ["Recommended", "R02"]],
+          Seller: [["Required", "R01"], ["Recommended", "R03"]],
+          Balanced: [["Required", "R01"]]
+        },
+        profile2: {
+          Buyer: [["Required", "R01"], ["Recommended", "R02"], ["Recommended", "R07"]],
+          Seller: [["Required", "R01"], ["Recommended", "R03"]],
+          Balanced: [["Required", "R01"], ["Recommended", "R02"]]
+        },
+        profile3: {
+          Buyer: [["Required", "R04"], ["Recommended", "R02"], ["Recommended", "R07"]],
+          Seller: [["Required", "R05"], ["Recommended", "R02"]],
+          Balanced: [["Required", "R04"], ["Required", "R05"], ["Recommended", "R07"]]
+        },
+        profile4: {
+          Buyer: [["Required", "R06"], ["Recommended", "R02"], ["Recommended", "R07"]],
+          Seller: [["Required", "R05"], ["Recommended", "R02"]],
+          Balanced: [["Required", "R05"], ["Required", "R06"], ["Recommended", "R07"]]
+        },
+        profile5: {
+          Buyer: [["Required", "R08"], ["Required", "R04"], ["Recommended", "R09"], ["Consider", "R07"], ["Consider", "R10"], ["Consider", "R11"]],
+          Seller: [["Required", "R05"], ["Required", "R08"], ["Recommended", "R09"]],
+          Balanced: [["Required", "R08"], ["Required", "R04"], ["Recommended", "R09"]]
+        },
+        activeClaimFallback: {
+          Buyer: [["Required", "R08"], ["Required", "R04"], ["Recommended", "R09"], ["Recommended", "R07"]],
+          Seller: [["Required", "R05"], ["Required", "R08"], ["Recommended", "R09"]],
+          Balanced: [["Required", "R08"], ["Required", "R04"], ["Recommended", "R09"]]
+        }
+      };
+      const missingIpProfile = () => {
+        const importance = answers["ip-importance"];
+        const difficulty = answers["ip-redesign-difficulty"];
+        const owner = answers["ip-owner-relationship"];
+        const claim = answers["ip-owner-claim"];
+        const material = ["Medium importance", "High importance", "Unknown"].includes(importance);
+        const difficult = ["Hard", "Unknown"].includes(difficulty);
+        if (claim === "Yes") return material && difficult ? "profile5" : "activeClaimFallback";
+        if (claim === "Unknown" || owner === "Unknown") return "profile4";
+        if (["Reachable and uncooperative", "Unreachable"].includes(owner)) return "profile3";
+        if (importance === "High importance" && difficulty === "Hard") return "profile2";
+        return "profile1";
+      };
+      const ipActionMarkup = (profile, side) => (ipProfileActions[profile][side] || []).map(([priority, id]) => {
+        const [title, description] = ipActionRegistry[id];
+        const strictAssignment = profile === "profile2" && id === "R01" ? `${description} Treat execution as a strict condition precedent.` : description;
+        return `<div class="logic-action" data-action-id="${id}"><span class="logic-icon">◌</span><div><span class="logic-priority">${priority}</span><strong>${title}</strong><span>${strictAssignment}</span></div></div>`;
+      }).join("");
       renderLogic = function (issue) {
         if (!isMissingIpAssignment(issue)) return renderLogicWithMissingIpAssignment(issue);
         const logicCard = document.querySelector("#logic-card");
         const protectionsCard = document.querySelector("#recommendations-card");
+        protectionsCard?.remove();
+        logicCard.classList.add("coc-deal-logic");
+        const gap = answers["ip-assignment-gap"] || "Unanswered";
+        const evidence = answers["ip-ownership-evidence"] || "Unanswered";
+        const noGap = gap === "No";
+        const ownershipConfirmed = evidence === "Yes";
         const finalAnswer = answers["ip-owner-claim"] || "Unanswered";
-        if (finalAnswer === "Unanswered") {
-          protectionsCard?.remove();
-          logicCard.classList.add("coc-deal-logic", "logic-standby");
+        if (!noGap && !ownershipConfirmed && finalAnswer === "Unanswered") {
+          logicCard.classList.add("logic-standby");
           logicCard.innerHTML = `<h3>Apply deal logic</h3><p>Turn the recorded facts into a clear transaction response.</p>`;
           return;
         }
-        logicCard.classList.remove("coc-deal-logic", "logic-standby");
-        renderLogicWithMissingIpAssignment(issue);
+        logicCard.classList.remove("logic-standby");
+        const transactionSide = getTransactionSide();
+        if (noGap || ownershipConfirmed) {
+          const conclusion = noGap
+            ? "No potentially missing IP assignment has been identified on the information recorded."
+            : "The target has complete, executed and enforceable documents evidencing ownership or a sufficient right to use the affected IP.";
+          const implication = noGap
+            ? "No title-gap remediation is currently indicated."
+            : "No corrective assignment or additional title protection is currently indicated.";
+          logicCard.innerHTML = `<h3>Apply deal logic</h3><section class="logic-section"><h4>Summary</h4><p class="logic-conclusion">${conclusion}</p></section><section class="logic-section"><h4>Key deal implications</h4><ul><li>${implication}</li></ul></section><section class="logic-section"><div class="logic-section-heading"><h4>Recommended actions</h4></div><p>There are no active transaction actions on the information recorded.</p></section><section class="logic-section"><h4>Residual risk</h4><p class="logic-residual"><strong>Position:</strong> No residual IP title risk is currently indicated, subject to the recorded diligence remaining complete and accurate.</p></section>`;
+          document.dispatchEvent(new CustomEvent("missing-ip-logic-rendered"));
+          return;
+        }
+        const importance = answers["ip-importance"];
+        const difficulty = answers["ip-redesign-difficulty"];
+        const owner = answers["ip-owner-relationship"];
+        const claim = answers["ip-owner-claim"];
+        const profile = missingIpProfile();
+        const profileCopy = {
+          profile1: ["The IP owner is reachable and cooperative, no claim has been asserted, and a proportionate rectification route is available.", "A confirmatory assignment should be obtainable through a proportionate pre-completion process.", "Residual risk should reduce once a valid confirmatory assignment and supporting chain-of-title evidence are in place."],
+          profile2: ["The affected IP is highly important, difficult to replace, and the cooperative IP owner has not asserted a claim.", "Execution of the assignment should be treated as a strict completion dependency because a failed signature would leave a material operational gap.", "Residual risk remains material until the confirmatory assignment has been executed and the chain of title verified."],
+          profile3: ["The IP owner is uncooperative or unreachable and no claim has been asserted, creating execution uncertainty around the title gap.", "Contractual protection and a practical rewrite or redesign contingency should be developed in parallel with further title diligence.", "Residual risk remains until the ownership position is cured, adequately protected or supported by a viable operational workaround."],
+          profile4: ["The owner, claim position or supporting records remain unknown, so the extent of the title gap cannot yet be established.", "The transaction documents should allocate unknown title risk while the chain of title and replacement options are investigated.", "Residual risk remains unresolved until the owner and claim position are confirmed and the historical title evidence has been audited."],
+          profile5: ["An active ownership claim or litigation threat affects IP of medium-to-high importance that is difficult to replace.", "Settlement and full transfer should be a completion condition, supported by financial protection and a merits and valuation assessment.", "Residual risk remains high until the dispute is settled, the IP is transferred and the resulting financial exposure is addressed."],
+          activeClaimFallback: ["An ownership claim, royalty demand or litigation threat has been asserted in relation to the affected IP.", "The claim requires pre-completion settlement and financial protection; the practical replacement route should also be assessed proportionately.", "Residual risk remains material until the claim is settled, the IP position is secured and the financial exposure is quantified."]
+        }[profile];
+        const recordedFacts = `The IP is recorded as ${importance.toLowerCase()}, replacement is ${difficulty.toLowerCase()}, and the IP owner is ${owner.toLowerCase()}.`;
+        const actions = ipActionMarkup(profile, transactionSide);
+        const sidePicker = `<div class="logic-side-picker" aria-label="Transaction side selector"><button type="button" class="active" data-logic-side-toggle>${transactionSide}</button></div>`;
+        logicCard.innerHTML = `<h3>Apply deal logic</h3><section class="logic-section"><h4>Summary</h4><p class="logic-conclusion">${profileCopy[0]} ${recordedFacts}</p></section><section class="logic-section"><h4>Key deal implications</h4><ul><li>${profileCopy[1]}</li><li>The recorded claim status is ${claim.toLowerCase()}.</li></ul></section><section class="logic-section"><div class="logic-section-heading"><h4>Recommended actions</h4>${sidePicker}</div>${actions}</section><section class="logic-section"><h4>Residual risk</h4><p class="logic-residual"><strong>Position:</strong> ${profileCopy[2]}</p></section>`;
+        document.dispatchEvent(new CustomEvent("missing-ip-logic-rendered"));
       };
     </script>
   </body>

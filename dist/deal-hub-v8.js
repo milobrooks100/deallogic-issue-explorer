@@ -42,7 +42,7 @@
     const issue = currentIssue();
     if (!issue) return [];
     const card = document.querySelector("#logic-card");
-    if (issue.id === "customer-change-of-control" && card?.querySelector(".logic-section-heading")) {
+    if (["customer-change-of-control", "missing-ip-assignment"].includes(issue.id) && card?.querySelector(".logic-section-heading")) {
       return [...card.querySelectorAll(".logic-action")].map(row => ({
         issueId: issue.id, side: getTransactionSide(), icon: row.querySelector(".logic-icon")?.dataset.originalIcon || row.querySelector(".logic-icon")?.textContent.trim() || "◌",
         priority: row.querySelector(".logic-priority")?.textContent.trim() || "Recommended",
@@ -294,6 +294,7 @@
   hub.addEventListener("drop",event=>{const target=event.target.closest("[data-drop-status]");if(!target)return;event.preventDefault();const action=actionById(event.dataTransfer.getData("text/plain"));if(action){action.status=target.dataset.dropStatus;save();renderHub();}});
   const priorRender=renderLogic;
   renderLogic=function(issue){priorRender(issue);decorateRecommendations();};
+  document.addEventListener("missing-ip-logic-rendered",decorateRecommendations);
   renderProjectRail();
   showProjectStart();
   renderHub();
