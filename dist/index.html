@@ -688,7 +688,7 @@
       const optionHolderQuestions = [
         "Are there any outstanding options, warrants or other rights to acquire shares?",
         "Does the award register reconcile with the fully diluted cap table and supporting documents?",
-        "How will the outstanding awards be treated in the transaction?",
+        "How will the outstanding awards be treated in the transaction? (select all that apply)",
         "Can the proposed treatment be validly implemented by completion?",
         "What proportion of the fully diluted share capital is represented by the outstanding awards?",
         "What is the tax and payroll position for the proposed treatment?"
@@ -731,7 +731,7 @@
         return score;
       };
 
-      const optionSelectQuestion = (id, label, options) => `<div class="question"><div class="question-top"><label for="${id}">${label}</label></div><select id="${id}">${options.map((option) => `<option ${answers[id] === option ? "selected" : ""}>${option}</option>`).join("")}</select><p class="response-note">Choose the response that best reflects the current diligence evidence.</p></div>`;
+      const optionSelectQuestion = (id, label, options) => `<div class="question"><div class="question-top"><label for="${id}">${label}</label></div><select id="${id}">${options.map((option) => `<option ${answers[id] === option ? "selected" : ""}>${option}</option>`).join("")}</select></div>`;
       const optionHoldersQuestionMarkup = () => {
         const existence = answers["option-rights-exist"] || "Unanswered";
         const showReconciliation = ["Yes", "Possibly — the records are incomplete or inconsistent"].includes(existence);
@@ -744,11 +744,12 @@
         const dilution = answers["award-dilution-percentage"] || "Unanswered";
         const showTax = showDilution && dilution !== "Unanswered";
         const treatmentOptions = ["Exercise and sell", "Cancel or release for cash", "Rollover or replace", "Lapse without payment", "Another documented treatment", "Treatment not yet decided"];
+        const treatmentUndecided = treatments.includes("Treatment not yet decided");
 
         return [
           optionSelectQuestion("option-rights-exist", optionHolderQuestions[0], ["Unanswered", "No — confirmed against the relevant records", "Yes", "Possibly — the records are incomplete or inconsistent", "Not yet checked"]),
           showReconciliation ? optionSelectQuestion("award-register-reconciliation", optionHolderQuestions[1], ["Unanswered", "Yes — fully reconciled", "Broadly — only minor discrepancies remain", "No — material discrepancies or undocumented awards exist", "Not yet reconciled"]) : "",
-          showTreatment ? `<div class="question"><div class="question-top"><label>${optionHolderQuestions[2]}</label></div><div class="choice-grid">${treatmentOptions.map((option) => `<label><input type="checkbox" class="option-treatment" value="${option}" ${treatments.includes(option) ? "checked" : ""}> ${option}</label>`).join("")}</div><p class="response-note">Select all treatments that apply. “Treatment not yet decided” cannot be combined with another response.</p></div>` : "",
+          showTreatment ? `<div class="question"><div class="question-top"><label>${optionHolderQuestions[2]}</label></div><div class="choice-grid">${treatmentOptions.map((option) => { const disabled = treatmentUndecided && option !== "Treatment not yet decided"; return `<label ${disabled ? 'style="opacity:.45"' : ""}><input type="checkbox" class="option-treatment" value="${option}" ${treatments.includes(option) ? "checked" : ""} ${disabled ? "disabled" : ""}> ${option}</label>`; }).join("")}</div></div>` : "",
           showImplementation ? optionSelectQuestion("award-treatment-implementation", optionHolderQuestions[3], ["Unanswered", "Yes — no holder consent is required", "Yes — all required consents and approvals are secured", "Probably — documents or consents remain outstanding", "Unclear — the governing documents conflict or are incomplete", "No — it cannot currently be implemented by completion", "Not yet assessed"]) : "",
           showDilution ? optionSelectQuestion("award-dilution-percentage", optionHolderQuestions[4], ["Unanswered", "1% or less", "More than 1% up to 5%", "More than 5% up to 10%", "More than 10%", "Not yet calculated"]) : "",
           showTax ? optionSelectQuestion("award-tax-payroll-position", optionHolderQuestions[5], ["Unanswered", "Reviewed — no material tax or payroll issue", "Reviewed — manageable withholding or reporting is required", "Reviewed — treatment must change or a material cost arises", "Not reviewed — tax-advantaged awards are present", "Not reviewed — no tax-advantaged awards are known", "Tax status is unknown"]) : ""
