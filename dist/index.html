@@ -657,7 +657,7 @@
           const implication = noGap
             ? "No title-gap remediation is currently indicated."
             : "No corrective assignment or additional title protection is currently indicated.";
-          logicCard.innerHTML = `<h3>Apply deal logic</h3><section class="logic-section"><h4>Summary</h4><p class="logic-conclusion">${conclusion}</p></section><section class="logic-section"><h4>Key deal implications</h4><ul><li>${implication}</li></ul></section><section class="logic-section"><div class="logic-section-heading"><h4>Recommended actions</h4></div><p>There are no active transaction actions on the information recorded.</p></section><section class="logic-section"><h4>Notes</h4><p class="logic-residual"><strong>Position:</strong> No residual IP title risk is currently indicated, subject to the recorded diligence remaining complete and accurate.</section>`;
+          logicCard.innerHTML = `<h3>Apply deal logic</h3><section class="logic-section"><h4>Summary</h4><p class="logic-conclusion">${conclusion}</p></section><section class="logic-section"><h4>Key deal implications</h4><ul><li>${implication}</li></ul></section><section class="logic-section"><div class="logic-section-heading"><h4>Recommended actions</h4></div><p>There are no active transaction actions on the information recorded.</p></section><section class="logic-section"><h4>Notes</h4>${missingIpNotes}</section>`;
           document.dispatchEvent(new CustomEvent("missing-ip-logic-rendered"));
           return;
         }
