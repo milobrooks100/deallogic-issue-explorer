@@ -682,5 +682,31 @@
         document.dispatchEvent(new CustomEvent("missing-ip-logic-rendered"));
       };
     </script>
+    <script>
+      const templateIssueIds = new Set([
+        "option-holders",
+        "threatened-litigation",
+        "debt-facilities-repayment"
+      ]);
+      const renderLogicWithTemplates = renderLogic;
+      const actionPriority = (relevance) => ({ required: "Required", recommended: "Recommended" }[relevance] || "Consider");
+      const templateActionMarkup = (actions) => actions.length
+        ? actions.map((action) => {
+          const priority = actionPriority(action.relevance);
+          return `<div class="logic-action"><span class="logic-icon">◌</span><div><span class="logic-priority" data-level="${priority.toLowerCase()}">${priority}</span><strong>${escapeLogicText(titleCase(action.type || "Action"))}</strong><span>${escapeLogicText(action.recommendation || "Filler — action detail to be confirmed.")}</span></div></div>`;
+        }).join("")
+        : `<p>Filler — recommended actions will be added once this issue’s deal logic is finalised.</p>`;
+      renderLogic = function (issue) {
+        if (!templateIssueIds.has(issue?.id)) return renderLogicWithTemplates(issue);
+        const logicCard = document.querySelector("#logic-card");
+        const protectionsCard = document.querySelector("#recommendations-card");
+        protectionsCard?.remove();
+        logicCard.classList.add("coc-deal-logic");
+        const actions = (issue.recommended_actions || []).slice(0, 3);
+        const draftImplication = "Draft template — the tailored trigger analysis and transaction response will be added once the substantive deal logic is finalised.";
+        const notes = issue.notes || "Filler — issue-specific legal notes will be added during content finalisation.";
+        logicCard.innerHTML = `<h3>Apply deal logic</h3><section class="logic-section"><h4>Summary</h4><p class="logic-conclusion">${escapeLogicText(issue.summary || "Filler — issue summary to be confirmed.")}</p></section><section class="logic-section"><h4>Key deal implications</h4><ul><li>${draftImplication}</li></ul></section><section class="logic-section"><div class="logic-section-heading"><h4>Recommended actions</h4></div>${templateActionMarkup(actions)}</section><section class="logic-section"><h4>Notes</h4><div class="logic-note">${escapeLogicText(notes)}</div></section>`;
+      };
+    </script>
   </body>
 </html>
