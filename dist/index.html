@@ -489,6 +489,67 @@
     <link rel="stylesheet" href="./nusa-palette.css" />
     <link rel="stylesheet" href="./workflow-colours.css" />
     <link rel="stylesheet" href="./view-alignment.css?v=2" />
-<script src="./workspace-redesign.js?v=1"></script>
+    <script src="./workspace-redesign.js?v=1"></script>
+    <script>
+      const isMissingIpAssignment = (issue) => issue?.id === "missing-ip-assignment";
+      const defaultRiskScore = riskScore;
+      riskScore = function () {
+        if (!isMissingIpAssignment(current())) return defaultRiskScore();
+        const possibleGap = answers["ip-assignment-gap"] || "Unanswered";
+        if (possibleGap === "No") return 1;
+        if (!["Yes", "Partly / unclear"].includes(possibleGap)) return 1;
+
+        const ownershipEvidence = answers["ip-ownership-evidence"] || "Unanswered";
+        if (ownershipEvidence === "Yes") return 1;
+        if (!["No", "Partly / unclear"].includes(ownershipEvidence)) return 2;
+
+        let score = 3;
+        if (answers["ip-importance"] === "High importance") score += 1;
+        if (answers["ip-redesign-difficulty"] === "Easy") score -= 1;
+        if (["Reachable and uncooperative", "Unreachable"].includes(answers["ip-owner-relationship"])) score += 1;
+        if (answers["ip-owner-relationship"] === "Reachable and cooperative") score -= 1;
+        if (answers["ip-owner-claim"] === "Yes") score += 1;
+        return Math.max(1, Math.min(5, score));
+      };
+
+      const ipQuestion = (id, label, options) => `<div class="question"><div class="question-top"><label for="${id}">${label}</label></div><select id="${id}">${options.map((option) => `<option ${answers[id] === option ? "selected" : ""}>${option}</option>`).join("")}</select><p class="response-note">Choose the response that best reflects the current diligence evidence.</p></div>`;
+      const missingIpAssignmentMarkup = () => {
+        const gap = answers["ip-assignment-gap"] || "Unanswered";
+        const evidence = answers["ip-ownership-evidence"] || "Unanswered";
+        const showEvidence = ["Yes", "Partly / unclear"].includes(gap);
+        const showImportance = showEvidence && ["No", "Partly / unclear"].includes(evidence);
+        const showRedesign = showImportance && answers["ip-importance"] && answers["ip-importance"] !== "Unanswered";
+        const showRelationship = showRedesign && answers["ip-redesign-difficulty"] && answers["ip-redesign-difficulty"] !== "Unanswered";
+        const showClaim = showRelationship && answers["ip-owner-relationship"] && answers["ip-owner-relationship"] !== "Unanswered";
+        return [
+          ipQuestion("ip-assignment-gap", "Is there a potentially missing IP assignment?", ["Unanswered", "Yes", "No", "Partly / unclear"]),
+          showEvidence ? ipQuestion("ip-ownership-evidence", "Does the target have complete, executed and enforceable documents evidencing ownership or a sufficient right to use the IP?", ["Unanswered", "Yes", "No", "Partly / unclear"]) : "",
+          showImportance ? ipQuestion("ip-importance", "How important is the affected IP to the target's operations and value?", ["Unanswered", "Low importance", "Medium importance", "High importance", "Unknown"]) : "",
+          showRedesign ? ipQuestion("ip-redesign-difficulty", "How difficult would it be to rewrite or redesign the affected asset from scratch?", ["Unanswered", "Easy", "Manageable", "Hard", "Unknown"]) : "",
+          showRelationship ? ipQuestion("ip-owner-relationship", "What is the relationship between the target and the current IP owner? i.e. the current IP owner is in relation to the target…", ["Unanswered", "Reachable and cooperative", "Reachable and uncooperative", "Unreachable", "Unknown"]) : "",
+          showClaim ? ipQuestion("ip-owner-claim", "Has the IP owner ever asserted an ownership claim, royalty demand, or threat of litigation?", ["Unanswered", "Yes", "No", "Unknown"]) : ""
+        ].join("");
+      };
+
+      const renderPanelWithMissingIpAssignment = renderPanel;
+      renderPanel = function () {
+        renderPanelWithMissingIpAssignment();
+        if (!isMissingIpAssignment(current())) return;
+        const factsCard = document.querySelector(".content-grid > .card");
+        if (!factsCard) return;
+        const heading = factsCard.querySelector("h3");
+        factsCard.innerHTML = "";
+        factsCard.append(heading);
+        factsCard.insertAdjacentHTML("beforeend", missingIpAssignmentMarkup());
+        ["ip-assignment-gap", "ip-ownership-evidence", "ip-importance", "ip-redesign-difficulty", "ip-owner-relationship", "ip-owner-claim"].forEach((id) => {
+          const input = document.getElementById(id);
+          if (input) input.onchange = (event) => {
+            answers[id] = event.target.value;
+            localStorage.setItem(storedKey(), JSON.stringify(answers));
+            renderPanel();
+          };
+        });
+      };
+    </script>
   </body>
 </html>
