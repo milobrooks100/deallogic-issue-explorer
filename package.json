@@ -2,6 +2,7 @@
   "name": "deallogic-issue-explorer",
   "private": true,
   "scripts": {
-    "build": "node scripts/build.mjs"
+    "build": "node scripts/build.mjs",
+    "check": "node scripts/check-runtime.mjs"
   }
 }
