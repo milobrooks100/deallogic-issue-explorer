@@ -932,9 +932,16 @@
         protectionsCard?.remove();
         logicCard.classList.add("coc-deal-logic");
         const existence = answers["option-rights-exist"] || "Unanswered";
-        if (existence === "Unanswered") {
-          logicCard.classList.add("logic-standby");
-          logicCard.innerHTML = `<h3>Apply deal logic</h3><p>Turn the recorded facts into a clear transaction response.</p>`;
+        const questionnaireComplete = existence === "No — confirmed against the relevant records" || (
+          ["Yes", "Possibly — the records are incomplete or inconsistent"].includes(existence) &&
+          answers["award-register-reconciliation"] && answers["award-register-reconciliation"] !== "Unanswered" &&
+          (answers["award-transaction-treatment"] || []).length > 0 &&
+          answers["award-treatment-implementation"] && answers["award-treatment-implementation"] !== "Unanswered" &&
+          answers["award-dilution-percentage"] && answers["award-dilution-percentage"] !== "Unanswered" &&
+          answers["award-tax-payroll-position"] && answers["award-tax-payroll-position"] !== "Unanswered"
+        );
+        if (!questionnaireComplete) {
+          logicCard.remove();
           return;
         }
         logicCard.classList.remove("logic-standby");
