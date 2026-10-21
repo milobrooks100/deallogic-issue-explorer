@@ -509,7 +509,7 @@
         if (["Reachable and uncooperative", "Unreachable"].includes(answers["ip-owner-relationship"])) score += 1;
         if (answers["ip-owner-relationship"] === "Reachable and cooperative") score -= 1;
         if (answers["ip-owner-claim"] === "Yes") score += 1;
-        return Math.max(1, Math.min(5, score));
+        return Math.max(2, Math.min(5, score));
       };
 
       const ipQuestion = (id, label, options) => `<div class="question"><div class="question-top"><label for="${id}">${label}</label></div><select id="${id}">${options.map((option) => `<option ${answers[id] === option ? "selected" : ""}>${option}</option>`).join("")}</select></div>`;
@@ -559,7 +559,7 @@
         R04: ["Specific indemnity", "Include a specific indemnity for IP ownership or infringement claims by the IP owner or third parties, supported by a price escrow or retention holdback where appropriate."],
         R05: ["Specific disclosure", "Formally disclose missing title documentation, incomplete historical records or IP owner title gaps against IP warranties to manage post-closing liability."],
         R06: ["Warranty", "Set out fundamental IP title warranties paired with a capped indemnity to cover potential unknown title defects."],
-        R07: ["Rectification", "Assess the practical cost and feasibility of replacing, redesigning or rewriting the affected IP component created by the IP owner if a risk arises."],
+        R07: ["Rectification", "Assess the practical cost and feasibility of replacing, redesigning, or rewriting the affected IP component created by the IP owner to eliminate IP infringement risk."],
         R08: ["Condition precedent", "Require a formal settlement, release and full IP transfer from the asserting IP owner as a condition precedent before completing the transaction."],
         R09: ["Price adjustment", "Review claim validity and financial exposure to consider a purchase price adjustment or account for potential litigation costs."],
         R10: ["Other", "Consider structuring the transaction as an asset purchase rather than a share purchase to isolate liabilities, while taking into account any ongoing IP risk."],
@@ -610,11 +610,23 @@
         if (importance === "High importance" && difficulty === "Hard") return "profile2";
         return "profile1";
       };
-      const ipActionMarkup = (profile, side) => (ipProfileActions[profile][side] || []).map(([priority, id]) => {
+      const ipActionMarkup = (profile, side) => {
+        const configuredActions = ipProfileActions[profile][side] || [];
+        let selectedActions = configuredActions;
+        if (side === "Buyer") {
+          const includeRewritePlan = ["Easy", "Manageable", "Unknown"].includes(answers["ip-redesign-difficulty"]);
+          const withoutRewritePlan = configuredActions.filter(([, id]) => id !== "R07");
+          const configuredRewritePlan = configuredActions.find(([, id]) => id === "R07");
+          selectedActions = includeRewritePlan
+            ? [...withoutRewritePlan, configuredRewritePlan || ["Recommended", "R07"]]
+            : withoutRewritePlan;
+        }
+        return selectedActions.map(([priority, id]) => {
         const [title, description] = ipActionRegistry[id];
         const strictAssignment = profile === "profile2" && id === "R01" ? `${description} Treat execution as a strict condition precedent.` : description;
         return `<div class="logic-action" data-action-id="${id}"><span class="logic-icon">◌</span><div><span class="logic-priority">${priority}</span><strong>${title}</strong><span>${strictAssignment}</span></div></div>`;
-      }).join("");
+        }).join("");
+      };
       renderLogic = function (issue) {
         if (!isMissingIpAssignment(issue)) return renderLogicWithMissingIpAssignment(issue);
         const logicCard = document.querySelector("#logic-card");
