@@ -11,7 +11,7 @@
   function activeHub(){
     const store=getDealProjects(),project=store.projects.find(item=>item.id===store.activeProjectId)||store.projects[0];
     if(!project.hub){
-      const legacy=parse(localStorage.getItem(LEGACY_KEY),{issues:[],actions:[],projects:[]});
+      const legacy=parse(DealLogicStorage.getItem(LEGACY_KEY),{issues:[],actions:[],projects:[]});
       const groups=Array.isArray(legacy.projects)?legacy.projects:(Array.isArray(legacy.workstreams)?legacy.workstreams.map(name=>({id:uid(),name})):[]);
       project.hub={issues:Array.isArray(legacy.issues)?legacy.issues:[],actions:Array.isArray(legacy.actions)?legacy.actions:[],groups};
     }
@@ -61,7 +61,7 @@
     risk: riskLabel(), summary: liveSummary(), answers: answerSnapshot(), capturedAt: new Date().toISOString(),
     sourceDocument: "", sourceClause: "", sourceUrl: ""
   });
-  const isStale = issue => JSON.stringify(issue.answers) !== JSON.stringify(parse(localStorage.getItem(`deallogic:deal-project:${activeDealProjectId()}:issue:${issue.id}`), {}));
+  const isStale = issue => JSON.stringify(issue.answers) !== JSON.stringify(parse(DealLogicStorage.getItem(`deallogic:deal-project:${activeDealProjectId()}:issue:${issue.id}`), {}));
   const toast = message => { document.querySelector(".hub-toast")?.remove(); const node = document.createElement("div"); node.className="hub-toast"; node.setAttribute("role","status"); node.textContent=message; document.body.append(node); setTimeout(()=>node.remove(),3000); };
   const hub = document.createElement("section");
   hub.className = "deal-hub-view screen-hidden";
@@ -267,7 +267,7 @@
       store.projects=store.projects.filter(project=>project.id!==id);
       store.activeProjectId="quick-workspace";
       saveDealProjects(store);
-      localStorage.removeItem(`deallogic:deal-project:${id}:issue:customer-change-of-control`);
+      DealLogicStorage.removeItem(`deallogic:deal-project:${id}:issue:customer-change-of-control`);
       document.dispatchEvent(new CustomEvent("deal-project-change",{detail:{id:"quick-workspace"}}));
       toast("Project deleted");
     }
