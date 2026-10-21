@@ -79,8 +79,12 @@
       };
       document.addEventListener("click", (event) => {
         if (!event.target.closest(".reset-answers")) return;
-        localStorage.removeItem(`deallogic:${current().id}`);
-        location.reload();
+        const issue = current();
+        if (!issue) return;
+        localStorage.removeItem(storedKey());
+        answers = {};
+        renderMap();
+        renderPanel();
       });
       const baseExportReport = exportReport;
       exportReport = function () {
