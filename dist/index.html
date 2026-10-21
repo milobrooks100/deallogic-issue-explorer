@@ -429,7 +429,7 @@
         }
         const actionMarkup = actions.length ? actions.map(([icon, priority, title, rationale]) => `<div class="logic-action"><span class="logic-icon">${icon}</span><div><span class="logic-priority">${priority}</span><strong>${title}</strong><span>${rationale}</span></div></div>`).join("") : `<p>There are no active transaction actions on the information recorded.</p>`;
         const sidePicker = `<div class="logic-side-picker" aria-label="Transaction side selector"><button type="button" class="active" data-logic-side-toggle>${transactionSide}</button></div>`;
-        logicCard.innerHTML = `<h3>Apply deal logic</h3><section class="logic-section"><h4>Summary</h4><p class="logic-conclusion">${conclusion}</p></section><section class="logic-section"><h4>Key deal implications</h4><ul>${implications.map((item) => `<li>${item}</li>`).join("")}</ul></section><section class="logic-section"><div class="logic-section-heading"><h4>Recommended actions</h4>${sidePicker}</div>${actionMarkup}</section><section class="logic-section"><h4>Residual risk</h4><p class="logic-residual"><strong>Position:</strong> ${residual}</p></section>`;
+        logicCard.innerHTML = `<h3>Apply deal logic</h3><section class="logic-section"><h4>Summary</h4><p class="logic-conclusion">${conclusion}</p></section><section class="logic-section"><h4>Key deal implications</h4><ul>${implications.map((item) => `<li>${item}</li>`).join("")}</ul></section><section class="logic-section"><div class="logic-section-heading"><h4>Recommended actions</h4>${sidePicker}</div>${actionMarkup}</section><section class="logic-section"><h4>Notes</h4><p class="logic-residual"><strong>Position:</strong> ${residual}</p></section>`;
       };
     </script>
     <script>
@@ -641,6 +641,7 @@
         const evidence = answers["ip-ownership-evidence"] || "Unanswered";
         const noGap = gap === "No";
         const ownershipConfirmed = evidence === "Yes";
+        const missingIpNotes = `<p class="logic-note"><strong>Contractor vs Employee Ownership:</strong> Under s.11 CDPA 1988, IP created by employees in the course of employment automatically vests in the company. However, this rule never applies to independent contractors. Also note that any IP created by founders pre-incorporation does not automatically transfer to the company. Without an express written assignment the target company may not legally own its core assets, such as its logo, website or software.</p><p class="logic-note"><strong>Deeds are Advisable:</strong> Under English law, an assignment of existing copyright must be in writing and signed by the assignor (s.90 CDPA 1988). When assigning future IP, curing past oversights, or where financial consideration is nominal or missing, the assignment should be executed as a deed to avoid enforceability risks.</p>`;
         const finalAnswer = answers["ip-owner-claim"] || "Unanswered";
         if (!noGap && !ownershipConfirmed && finalAnswer === "Unanswered") {
           logicCard.classList.add("logic-standby");
@@ -656,7 +657,7 @@
           const implication = noGap
             ? "No title-gap remediation is currently indicated."
             : "No corrective assignment or additional title protection is currently indicated.";
-          logicCard.innerHTML = `<h3>Apply deal logic</h3><section class="logic-section"><h4>Summary</h4><p class="logic-conclusion">${conclusion}</p></section><section class="logic-section"><h4>Key deal implications</h4><ul><li>${implication}</li></ul></section><section class="logic-section"><div class="logic-section-heading"><h4>Recommended actions</h4></div><p>There are no active transaction actions on the information recorded.</p></section><section class="logic-section"><h4>Residual risk</h4><p class="logic-residual"><strong>Position:</strong> No residual IP title risk is currently indicated, subject to the recorded diligence remaining complete and accurate.</p></section>`;
+          logicCard.innerHTML = `<h3>Apply deal logic</h3><section class="logic-section"><h4>Summary</h4><p class="logic-conclusion">${conclusion}</p></section><section class="logic-section"><h4>Key deal implications</h4><ul><li>${implication}</li></ul></section><section class="logic-section"><div class="logic-section-heading"><h4>Recommended actions</h4></div><p>There are no active transaction actions on the information recorded.</p></section><section class="logic-section"><h4>Notes</h4><p class="logic-residual"><strong>Position:</strong> No residual IP title risk is currently indicated, subject to the recorded diligence remaining complete and accurate.</p></section><section class="logic-section">${missingIpNotes}</section>`;
           document.dispatchEvent(new CustomEvent("missing-ip-logic-rendered"));
           return;
         }
@@ -676,7 +677,7 @@
         const recordedFacts = `The IP is recorded as ${importance.toLowerCase()}, replacement is ${difficulty.toLowerCase()}, and the IP owner is ${owner.toLowerCase()}.`;
         const actions = ipActionMarkup(profile, transactionSide);
         const sidePicker = `<div class="logic-side-picker" aria-label="Transaction side selector"><button type="button" class="active" data-logic-side-toggle>${transactionSide}</button></div>`;
-        logicCard.innerHTML = `<h3>Apply deal logic</h3><section class="logic-section"><h4>Summary</h4><p class="logic-conclusion">${profileCopy[0]} ${recordedFacts}</p></section><section class="logic-section"><h4>Key deal implications</h4><ul><li>${profileCopy[1]}</li><li>The recorded claim status is ${claim.toLowerCase()}.</li></ul></section><section class="logic-section"><div class="logic-section-heading"><h4>Recommended actions</h4>${sidePicker}</div>${actions}</section><section class="logic-section"><h4>Residual risk</h4><p class="logic-residual"><strong>Position:</strong> ${profileCopy[2]}</p></section>`;
+        logicCard.innerHTML = `<h3>Apply deal logic</h3><section class="logic-section"><h4>Summary</h4><p class="logic-conclusion">${profileCopy[0]} ${recordedFacts}</p></section><section class="logic-section"><h4>Key deal implications</h4><ul><li>${profileCopy[1]}</li><li>The recorded claim status is ${claim.toLowerCase()}.</li></ul></section><section class="logic-section"><div class="logic-section-heading"><h4>Recommended actions</h4>${sidePicker}</div>${actions}</section><section class="logic-section"><h4>Notes</h4><p class="logic-residual"><strong>Position:</strong> ${profileCopy[2]}</p></section><section class="logic-section">${missingIpNotes}</section>`;
         document.dispatchEvent(new CustomEvent("missing-ip-logic-rendered"));
       };
     </script>
