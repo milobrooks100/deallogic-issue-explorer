@@ -812,17 +812,15 @@
       };
 
       const optionHolderActionRegistry = {
-        OH01: ["Further diligence", "Reconcile the option and warrant registers, plan and award documents, authorising resolutions, exercise and cancellation records and the fully diluted cap table; investigate and correct every discrepancy."],
-        OH02: ["Further diligence", "Review the plan rules, individual award terms, articles and corporate approvals to confirm vesting, exercise, lapse, acceleration, cancellation, rollover and amendment powers on the proposed transaction."],
-        OH03: ["Completion mechanic", "Agree an award-by-award treatment schedule identifying each holder, award, vesting position, exercise price, selected treatment, required document, payment and completion step."],
-        OH04: ["Rectification", "Adopt the required board and shareholder approvals and prepare and execute all exercise notices, cancellation agreements, releases, rollover or replacement documents and lapse notices needed to implement the selected treatment."],
-        OH05: ["Third-party consent", "Obtain every required holder consent, election, release or power of attorney in the agreed form before completion."],
-        OH06: ["Completion mechanic", "Prepare an agreed closing cap table, funds flow and proceeds-allocation schedule, supported by evidence that every award has been exercised, cancelled, released, rolled over, replaced or lapsed as intended."],
-        OH07: ["Further diligence", "Obtain transaction-specific share-scheme tax and payroll advice, calculate any withholding and employer liabilities, preserve available tax-advantaged treatment and complete the required PAYE and ERS reporting."],
-        OH08: ["Condition precedent", "Make completion conditional on effective implementation of the agreed award treatment and delivery of the final fully diluted closing cap table and supporting documents."],
-        OH09: ["Warranty", "Include tailored capitalisation and employee-incentive warranties, supported by specific disclosure of every award, its terms, tax status, treatment and any exception or dispute."],
-        OH10: ["Specific indemnity", "Allocate identified residual award, dilution or tax exposure through a specific indemnity, supported where proportionate by an escrow, retention or purchase-price adjustment."],
-        OH11: ["Walk away or renegotiate", "If material awards cannot be implemented by completion, consider delaying or restructuring the transaction, renegotiating value or requiring an alternative route that delivers the agreed capital structure."]
+        OH01: ["Further diligence", "Reconcile the option and award registers, historic exercises/cancellations and fully diluted cap table."],
+        OH03: ["Completion mechanic", "Agree an award treatment schedule covering each holder, award, treatment and closing step."],
+        OH04: ["Rectification", "Obtain required board/shareholder approvals and draft the required documents."],
+        OH05: ["Third-party consent", "Obtain each required holder consent, election, release or power of attorney."],
+        OH06: ["Completion mechanic", "Produce the final closing cap table."],
+        OH07: ["Further diligence", "Obtain transaction-specific share-scheme tax and payroll advice."],
+        OH08: ["Condition precedent", "Make completion conditional on effective implementation of the agreed treatment and delivery of the final cap table and supporting documents."],
+        OH10: ["Specific indemnity", "Allocate identified residual award, dilution or tax exposure through an indemnity, potentially supported by escrow, retention or a price adjustment."],
+        OH11: ["Walk away or renegotiate", "Where material awards cannot be implemented by completion, consider delaying/restructuring the deal, renegotiating value or requiring an alternative route to the agreed capital structure."]
       };
       const optionPriorityRank = { Consider: 1, Recommended: 2, Required: 3 };
       const addOptionHolderAction = (actions, id, priority) => {
@@ -844,8 +842,6 @@
         const recordsOpen = existence !== "Yes" || ["Unanswered", "Broadly — only minor discrepancies remain", "No — material discrepancies or undocumented awards exist", "Not yet reconciled"].includes(reconciliation);
 
         if (recordsOpen) addOptionHolderAction(actions, "OH01", ["Broadly — only minor discrepancies remain"].includes(reconciliation) ? "Recommended" : "Required");
-        addOptionHolderAction(actions, "OH02", existence === "Yes" ? "Required" : "Recommended");
-        addOptionHolderAction(actions, "OH09", side === "Balanced" ? "Recommended" : "Required");
 
         if (treatmentUndecided) addOptionHolderAction(actions, "OH03", "Required");
         if (!treatmentUndecided) {
@@ -866,7 +862,12 @@
         const identifiedExposure = reconciliation === "No — material discrepancies or undocumented awards exist" || implementation === "No — it cannot currently be implemented by completion" || tax === "Reviewed — treatment must change or a material cost arises";
         if (identifiedExposure) addOptionHolderAction(actions, "OH10", side === "Buyer" ? "Required" : side === "Seller" ? "Consider" : "Recommended");
         if (implementation === "No — it cannot currently be implemented by completion" && material) addOptionHolderAction(actions, "OH11", side === "Seller" ? "Recommended" : "Consider");
-        return actions;
+        // Keep every required action; fill remaining places with recommended,
+        // then consider actions. Some critical buyer profiles require eight.
+        const requiredCount = [...actions.values()].filter(priority => priority === "Required").length;
+        return new Map([...actions.entries()]
+          .sort((left, right) => optionPriorityRank[right[1]] - optionPriorityRank[left[1]])
+          .slice(0, Math.max(7, requiredCount)));
       };
       const optionHolderActionMarkup = (actions) => [...actions.entries()]
         .sort((left, right) => optionPriorityRank[right[1]] - optionPriorityRank[left[1]])

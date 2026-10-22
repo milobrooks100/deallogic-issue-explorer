@@ -30,6 +30,23 @@ if (!Array.isArray(issues) || !issues.length || issues.some(issue => !issue.id |
   throw new Error("Expected a non-empty collection of valid DealLogic issues.");
 }
 
+// The Option Holders questionnaire uses its tailored action registry. Remove
+// the retired warranty from legacy issue data too, including on future builds.
+const optionHolders = issues.find(issue => issue.id === "option-holders");
+if (optionHolders) {
+  optionHolders.recommended_actions = (optionHolders.recommended_actions || [])
+    .filter(action => action.id !== "capitalisation-warranty");
+  for (const rule of optionHolders.decision_rules || []) {
+    rule.then.action_ids = rule.then.action_ids.filter(id => id !== "capitalisation-warranty");
+    if (rule.id === "make-material-option-mechanics-a-cp") {
+      rule.then.explanation = "Where awards remain capable of affecting the agreed acquisition, completion protection should be considered.";
+    }
+  }
+  for (const position of optionHolders.positions || []) {
+    position.action_ids = position.action_ids.filter(id => id !== "capitalisation-warranty");
+  }
+}
+
 await mkdir(distRoot, { recursive: true });
 await writeFile(path.join(distRoot, "issues.json"), `${JSON.stringify(issues, null, 2)}\n`);
 console.log(`Prepared ${issues.length} DealLogic issue records.`);
