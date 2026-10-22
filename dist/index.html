@@ -12,7 +12,7 @@
       :root{--ink:#15251c;--muted:#66756c;--line:#d8dfd9;--paper:#f8faf6;--moss:#245b47;--lime:#dff05a;--red5:#54203f;--red4:#b73138;--orange3:#ee773b;--yellow2:#c3c34c;--green1:#4d9d64}*{box-sizing:border-box}body{margin:0;background:var(--paper);color:var(--ink);font:15px/1.5 Inter,ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif}header{background:var(--ink);color:#fff;padding:24px max(24px,calc((100vw - 1400px)/2))}.brand{display:flex;justify-content:space-between;align-items:center;gap:20px}.brand h1{font:600 26px/1 Georgia,serif;margin:0}.brand p{margin:6px 0 0;color:#c5d2c8}.badge{border:1px solid #53685a;color:var(--lime);border-radius:20px;padding:5px 10px;font-size:12px}main{max-width:1400px;margin:auto;padding:34px 24px 55px}.intro h2{font:500 32px/1.1 Georgia,serif;margin:0}.intro p{max-width:760px;color:var(--muted);margin:8px 0 25px}.workspace{display:grid;grid-template-columns:minmax(300px,.9fr) minmax(0,1.6fr);gap:24px;align-items:start}.map{background:#f1f5ef;border:1px solid var(--line);border-radius:15px;padding:20px;min-height:690px;position:sticky;top:16px}.map h3{font:600 16px Georgia,serif;margin:0}.map-intro{color:var(--muted);font-size:13px;margin:6px 0 22px}.root-node{display:inline-flex;align-items:center;gap:8px;background:var(--ink);color:#fff;border-radius:8px;padding:10px 13px;font-weight:700;margin-bottom:16px}.root-node:before{content:"";height:8px;width:8px;background:var(--lime);border-radius:50%}.branch{position:relative;padding:0 0 13px 22px;border-left:1px solid #aac3af;margin-left:9px}.branch:last-child{padding-bottom:0}.area{width:100%;display:flex;justify-content:space-between;align-items:center;border:0;background:transparent;color:var(--ink);padding:8px 0;text-align:left;cursor:pointer;font-weight:700}.area:before{content:"";height:9px;width:9px;border-radius:50%;background:var(--moss);position:absolute;left:-5px}.chevron{font-size:18px;color:var(--moss);transition:transform .18s}.area.open .chevron{transform:rotate(90deg)}.issue-nodes{display:none;padding:5px 0 0 9px}.issue-nodes.open{display:block}.issue-node{display:block;width:100%;border:0;background:transparent;text-align:left;padding:8px 10px;border-radius:7px;color:#415148;cursor:pointer;font-size:13px}.issue-node:hover,.issue-node.active{background:#fff;color:var(--moss);box-shadow:0 1px 4px rgba(19,44,28,.08);font-weight:700}.empty-state{background:#fff;border:1px dashed #b7c5b9;border-radius:15px;padding:70px 32px;text-align:center;color:var(--muted)}.issue-header{background:#fff;border:1px solid var(--line);border-radius:15px;padding:25px;margin-bottom:18px}.eyebrow{font-size:11px;letter-spacing:.12em;text-transform:uppercase;font-weight:800;color:var(--moss);margin-bottom:8px}.issue-headline{display:flex;align-items:start;justify-content:space-between;gap:18px}.issue-headline h3{font:500 29px/1.08 Georgia,serif;margin:0}.summary{color:#405047;margin:12px 0 20px}.risk-wrap{border-top:1px solid var(--line);padding-top:17px}.risk-heading{display:flex;justify-content:space-between;gap:15px;font-size:13px;font-weight:700;margin-bottom:9px}.risk-label span{font-size:12px;color:var(--muted);font-weight:500;margin-left:8px}.risk-score{white-space:nowrap}.risk-track{display:grid;grid-template-columns:repeat(5,1fr);gap:4px;position:relative;padding-top:13px}.risk-step{height:12px;border-radius:3px;opacity:.2;cursor:help}.risk-step.active{opacity:1;box-shadow:0 1px 4px rgba(0,0,0,.18)}.risk-pointer{position:absolute;top:0;z-index:2;width:0;height:0;border-left:7px solid transparent;border-right:7px solid transparent;border-top:9px solid var(--ink);transform:translateX(-50%);transition:left .25s ease}.s1{background:var(--green1)}.s2{background:var(--yellow2)}.s3{background:var(--orange3)}.s4{background:var(--red4)}.s5{background:var(--red5)}.content-grid{display:grid;grid-template-columns:minmax(0,1.18fr) minmax(280px,.82fr);gap:18px}.card{background:#fff;border:1px solid var(--line);border-radius:15px;padding:22px}.card h3{font:600 18px/1.15 Georgia,serif;margin:0 0 16px}.question{border-top:1px solid var(--line);padding:15px 0}.question:first-of-type{border-top:0;padding-top:0}.question-top{display:flex;gap:8px;align-items:flex-start}.question label{font-weight:700;line-height:1.35;flex:1}.info{appearance:none;width:20px;height:20px;flex:0 0 20px;border-radius:50%;border:1px solid #9fb5a5;background:#f5faf3;color:var(--moss);font:700 12px Georgia,serif;line-height:18px;text-align:center;cursor:help;position:relative}.tooltip{position:absolute;z-index:10;right:0;top:27px;width:min(330px,75vw);padding:11px 12px;background:var(--ink);color:#fff;border-radius:8px;font:12px/1.45 Inter,sans-serif;text-align:left;box-shadow:0 8px 25px rgba(7,27,15,.25);opacity:0;visibility:hidden;transform:translateY(-3px);transition:opacity .14s,transform .14s;pointer-events:none}.info:hover .tooltip,.info:focus .tooltip{opacity:1;visibility:visible;transform:translateY(0)}select{width:100%;margin-top:10px;border:1px solid #b8c6bb;background:#fff;border-radius:7px;padding:9px;color:var(--ink);font:inherit}.response-note{font-size:12px;color:var(--muted);margin:7px 0 0}.logic{background:var(--ink);color:#fff}.logic p{color:#d0dcd3;margin:0}.rule{padding-top:13px;margin-top:13px;border-top:1px solid #405a4a;font-size:13px}.recommendation{border-top:1px solid var(--line);padding:14px 0}.recommendation:first-of-type{border-top:0;padding-top:0}.pill{font-size:10px;letter-spacing:.08em;text-transform:uppercase;font-weight:800;color:var(--moss)}.recommendation strong{display:block;margin-top:4px;line-height:1.35}.recommendation p{font-size:13px;color:var(--muted);margin:5px 0 0}.export{width:100%;margin-top:18px;border:0;border-radius:8px;background:var(--lime);color:var(--ink);font:700 14px/1.2 Inter,sans-serif;padding:12px;cursor:pointer}footer{max-width:1400px;margin:auto;padding:0 24px 35px;color:var(--muted);font-size:12px}@media(max-width:980px){.workspace,.content-grid{grid-template-columns:1fr}.map{position:static;min-height:0}.map-branches{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}.branch{padding-bottom:0}.badge{display:none}}@media(max-width:560px){main{padding:25px 16px 42px}.map-branches{grid-template-columns:1fr}.issue-header,.card,.map{padding:18px}.issue-headline h3{font-size:25px}}
     </style>
     <style>
-      .choice-grid{display:grid;gap:8px;margin-top:10px}.choice-grid label{display:flex;gap:8px;align-items:center;font-weight:500}.other-input{margin-top:10px;width:100%;border:1px solid #b8c6bb;border-radius:7px;padding:9px;font:inherit}.importance{margin-top:13px}.importance input{width:100%;accent-color:var(--moss)}.importance-scale{display:grid;grid-template-columns:1fr 1fr 1fr;color:var(--muted);font-size:11px;margin-top:4px}.importance-scale span:nth-child(2){text-align:center}.importance-scale span:last-child{text-align:right}.risk-outcome{margin:10px 0 0;color:var(--moss);font-size:13px;font-weight:700}
+      .choice-grid{display:grid;gap:8px;margin-top:10px}.choice-grid label{display:flex;gap:8px;align-items:center;font-weight:500}.other-input{margin-top:10px;width:100%;border:1px solid #b8c6bb;border-radius:7px;padding:9px;font:inherit}.other-consent-input{grid-column:1/-1}.choice-grid input.other-input{width:100%;height:auto;min-height:40px;accent-color:auto}.importance{margin-top:13px}.importance input{width:100%;accent-color:var(--moss)}.importance-scale{display:grid;grid-template-columns:1fr 1fr 1fr;color:var(--muted);font-size:11px;margin-top:4px}.importance-scale span:nth-child(2){text-align:center}.importance-scale span:last-child{text-align:right}.risk-outcome{margin:10px 0 0;color:var(--moss);font-size:13px;font-weight:700}
       .facts-heading{display:flex;align-items:center;justify-content:space-between;gap:12px}.reset-answers{border:1px solid #aabbb0;background:#fff;color:var(--moss);border-radius:6px;padding:6px 9px;font:600 12px/1 Inter,sans-serif;cursor:pointer}.reset-answers:hover{background:#edf5ee}.inline-info{float:right;margin:0 0 2px 10px}.choice-grid label:has(input:disabled){color:#8d9a90;opacity:.55;cursor:not-allowed}
       .left-rail{display:grid;gap:16px}.action-library{background:#fff;border:1px solid var(--line);border-radius:15px;padding:18px}.action-library h3{font:600 16px Georgia,serif;margin:0}.action-library p{font-size:12px;color:var(--muted);margin:5px 0 13px}.action-items{display:grid;gap:8px}.action-item{display:grid;grid-template-columns:25px 1fr;gap:8px;align-items:start;padding:8px;border-radius:7px}.action-item:hover{background:#f1f5ef}.action-symbol{height:22px;width:22px;display:grid;place-items:center;border-radius:6px;background:#e8f2e9;font-size:13px}.action-item strong{display:block;font-size:12px;line-height:1.2}.action-item span:last-child{display:block;font-size:11px;line-height:1.3;color:var(--muted);margin-top:2px}
       .app-menu-wrap{position:relative}.app-menu{width:38px;height:34px;border:1px solid #587062;border-radius:7px;background:transparent;color:#fff;font-size:21px;line-height:1;cursor:pointer}.app-menu:hover{background:#284233}.app-menu-list{position:absolute;right:0;top:43px;z-index:30;min-width:170px;padding:6px;background:#fff;border:1px solid var(--line);border-radius:9px;box-shadow:0 10px 26px rgba(12,35,21,.2);display:none}.app-menu-list.open{display:block}.app-menu-list button{display:block;width:100%;border:0;background:transparent;text-align:left;padding:9px 10px;border-radius:6px;color:var(--ink);font:600 13px Inter,sans-serif;cursor:pointer}.app-menu-list button:hover{background:#edf5ee;color:var(--moss)}.library-view,.settings-view{max-width:1400px;margin:0 auto;padding:0 24px 50px}.library-view .action-library{padding:28px}.library-view .action-items{grid-template-columns:repeat(2,minmax(0,1fr));column-gap:28px}.library-view .action-library p,.library-view .action-item strong,.library-view .action-item span:last-child{font-size:15px}.library-view .action-item{grid-template-columns:29px 1fr;gap:10px}.library-view .action-symbol{height:26px;width:26px;font-size:15px}.custom-action{position:relative;grid-column:1/-1;background:#f1f5ef;border:1px dashed #aec2b2;border-radius:9px;padding:14px}.custom-action h4{margin:0 0 9px;font:600 15px Georgia,serif}.custom-action form{display:grid;grid-template-columns:65px 1fr 1.4fr auto;gap:8px}.custom-action input{border:1px solid #b8c6bb;border-radius:6px;padding:8px;font:14px Inter,sans-serif}.custom-action button{border:0;border-radius:6px;background:var(--moss);color:#fff;padding:8px 11px;font:600 13px Inter,sans-serif;cursor:pointer}.custom-action .emoji-trigger{font-size:18px;padding:4px;background:#fff;color:var(--ink);border:1px solid #b8c6bb}.emoji-picker{position:absolute;z-index:5;left:14px;bottom:57px;width:280px;padding:10px;background:#fff;border:1px solid var(--line);border-radius:9px;box-shadow:0 10px 24px rgba(12,35,21,.2);display:none}.emoji-picker.open{display:grid;grid-template-columns:repeat(7,1fr);gap:4px}.emoji-picker button{padding:6px;background:#f1f5ef;color:var(--ink);font-size:18px}.emoji-picker button:hover{background:#dcebdd}.settings-view{display:none}.settings-card{background:#fff;border:1px solid var(--line);border-radius:15px;padding:28px}.settings-card h2{font:500 28px Georgia,serif;margin:0 0 7px}.settings-card p{color:var(--muted);margin:0}.screen-hidden{display:none!important}@media(max-width:700px){.library-view .action-items{grid-template-columns:1fr}.custom-action form{grid-template-columns:1fr}.emoji-picker{bottom:auto;top:90px;left:14px}}
@@ -127,10 +127,12 @@
         otherLabel.innerHTML = `<input type="checkbox" class="consent-other-factor" value="Other" ${factors.includes("Other") ? "checked" : ""}> Other`;
         grid.append(otherLabel);
         if (factors.includes("Other")) {
+          const inputWrap = document.createElement("div");
+          inputWrap.className = "other-consent-input";
           const input = document.createElement("input");
-          input.className = "other-input"; input.id = "other-consent-prospects"; input.placeholder = "Describe the other consent or waiver consideration"; input.value = answers["other-consent-prospects"] || "";
-          input.onchange = (event) => { answers["other-consent-prospects"] = event.target.value; DealLogicStorage.setItem(storedKey(), JSON.stringify(answers)); renderPanel(); };
-          grid.append(input);
+          input.type = "text"; input.className = "other-input"; input.id = "other-consent-prospects"; input.placeholder = "Describe the other consent or waiver consideration"; input.setAttribute("aria-label", "Describe the other consent or waiver consideration"); input.value = answers["other-consent-prospects"] || "";
+          input.oninput = (event) => { answers["other-consent-prospects"] = event.target.value; DealLogicStorage.setItem(storedKey(), JSON.stringify(answers)); renderLogic(current()); };
+          inputWrap.append(input); grid.append(inputWrap);
         }
         const inputs = [...grid.querySelectorAll('input[type="checkbox"]')];
         inputs.forEach((input) => {
@@ -518,7 +520,16 @@
         return Math.max(2, Math.min(5, score));
       };
 
-      const ipQuestion = (id, label, options) => `<div class="question"><div class="question-top"><label for="${id}">${label}</label></div><select id="${id}">${options.map((option) => `<option ${answers[id] === option ? "selected" : ""}>${option}</option>`).join("")}</select></div>`;
+      const missingIpGuidance = {
+        "ip-assignment-gap": "Review founder, employee, contractor and agency documents, together with the IP schedule, for written assignments covering work created for the target.",
+        "ip-ownership-evidence": "Check the signed engagement terms, assignments, licences and company records to confirm that the relevant rights were validly transferred or licensed to the target.",
+        "ip-importance": "Ask the commercial and technical teams how losing the asset would affect products, revenue, customers, operations and valuation.",
+        "ip-redesign-difficulty": "Ask the technical team to assess the time, cost and feasibility of independently recreating the asset without using or deriving from the disputed material.",
+        "ip-owner-relationship": "Confirm the owner's current contact details, commercial relationship and willingness to engage, including through management or historic correspondence.",
+        "ip-owner-claim": "Review correspondence, invoices, payment history and dispute records for any assertion of ownership, royalty demand or litigation threat."
+      };
+      const missingIpInfoButton = (id) => `<button class="info" type="button" aria-label="Guidance for this question">i<span class="tooltip">${missingIpGuidance[id]}</span></button>`;
+      const ipQuestion = (id, label, options) => `<div class="question"><div class="question-top"><label for="${id}">${label}</label>${missingIpInfoButton(id)}</div><select id="${id}">${options.map((option) => `<option ${answers[id] === option ? "selected" : ""}>${option}</option>`).join("")}</select></div>`;
       const missingIpAssignmentMarkup = () => {
         const gap = answers["ip-assignment-gap"] || "Unanswered";
         const evidence = answers["ip-ownership-evidence"] || "Unanswered";
@@ -681,6 +692,298 @@
         const sidePicker = `<div class="logic-side-picker" aria-label="Transaction side selector"><button type="button" class="active" data-logic-side-toggle>${transactionSide}</button></div>`;
         logicCard.innerHTML = `<h3>Apply deal logic</h3><section class="logic-section"><h4>Summary</h4><p class="logic-conclusion">${profileCopy[0]} ${recordedFacts}</p></section><section class="logic-section"><h4>Key deal implications</h4><ul><li>${profileCopy[1]}</li><li>The recorded claim status is ${claim.toLowerCase()}.</li></ul></section><section class="logic-section"><div class="logic-section-heading"><h4>Recommended actions</h4>${sidePicker}</div>${actions}</section><section class="logic-section"><h4>Notes</h4>${missingIpNotes}</section>`;
         document.dispatchEvent(new CustomEvent("missing-ip-logic-rendered"));
+      };
+    </script>
+    <script>
+      const isOptionHolders = (issue) => issue?.id === "option-holders";
+      const optionHolderQuestions = [
+        "Are there any outstanding options, warrants or other rights to acquire shares?",
+        "Does the award register reconcile with the fully diluted cap table and supporting documents?",
+        "How will the outstanding awards be treated in the transaction? (select all that apply)",
+        "Can the proposed treatment be validly implemented by completion?",
+        "What proportion of the fully diluted share capital is represented by the outstanding awards?",
+        "What is the tax and payroll position for the proposed treatment?"
+      ];
+      const riskScoreBeforeOptionHolders = riskScore;
+      riskScore = function () {
+        if (!isOptionHolders(current())) return riskScoreBeforeOptionHolders();
+
+        const existence = answers["option-rights-exist"] || "Unanswered";
+        if (existence === "No — confirmed against the relevant records") return 1;
+        if (existence === "Not yet checked") return 2;
+        if (existence === "Unanswered") return 1;
+
+        let score = existence === "Possibly — the records are incomplete or inconsistent" ? 3 : 2;
+        const reconciliation = answers["award-register-reconciliation"];
+        if (reconciliation === "No — material discrepancies or undocumented awards exist") score = Math.max(score, 4);
+        if (reconciliation === "Not yet reconciled") score = Math.max(score, 3);
+
+        const treatments = answers["award-transaction-treatment"] || [];
+        if (treatments.includes("Treatment not yet decided")) score = Math.max(score, 3);
+        if (treatments.filter((value) => value !== "Treatment not yet decided").length > 1) score = Math.max(score, 3);
+
+        const implementation = answers["award-treatment-implementation"];
+        if (implementation === "Probably — documents or consents remain outstanding") score = Math.max(score, 3);
+        if (implementation === "Unclear — the governing documents conflict or are incomplete") score = Math.max(score, 4);
+        if (implementation === "No — it cannot currently be implemented by completion") score = Math.max(score, 4);
+        if (implementation === "Not yet assessed") score = Math.max(score, 3);
+
+        const dilution = answers["award-dilution-percentage"];
+        if (dilution === "More than 5% up to 10%" || dilution === "More than 10%") score = Math.max(score, 4);
+        if (dilution === "Not yet calculated") score = Math.max(score, 3);
+
+        const tax = answers["award-tax-payroll-position"];
+        if (tax === "Reviewed — treatment must change or a material cost arises") score = Math.max(score, 4);
+        if (tax === "Not reviewed — tax-advantaged awards are present") score = Math.max(score, 4);
+        if (["Not reviewed — no tax-advantaged awards are known", "Tax status is unknown"].includes(tax)) score = Math.max(score, 3);
+
+        const materialAwards = ["More than 5% up to 10%", "More than 10%", "Not yet calculated"].includes(dilution);
+        if (implementation === "No — it cannot currently be implemented by completion" && materialAwards) score = 5;
+        return score;
+      };
+
+      const optionHolderGuidance = {
+        "option-rights-exist": "Check the current option and warrant registers, scheme records, board minutes and cap table for any unexercised awards or other rights to acquire shares.",
+        "award-register-reconciliation": "Reconcile the register against grant documentation, historic exercises and cancellations, board approvals and the fully diluted cap table.",
+        "award-transaction-treatment": "Review the transaction documents, scheme rules and award terms to identify every treatment proposed for outstanding awards.",
+        "award-treatment-implementation": "Check the scheme rules, award terms, articles and approval or consent requirements against the intended completion timetable.",
+        "award-dilution-percentage": "Calculate the shares issuable under outstanding awards as a percentage of the fully diluted share capital.",
+        "award-tax-payroll-position": "Ask the company's tax and payroll advisers to assess the proposed treatment, including PAYE, NICs, reporting and any tax-advantaged scheme rules."
+      };
+      const optionInfoButton = (id) => `<button class="info" type="button" aria-label="Guidance for this question">i<span class="tooltip">${optionHolderGuidance[id]}</span></button>`;
+      const optionSelectQuestion = (id, label, options) => `<div class="question"><div class="question-top"><label for="${id}">${label}</label>${optionInfoButton(id)}</div><select id="${id}">${options.map((option) => `<option ${answers[id] === option ? "selected" : ""}>${option}</option>`).join("")}</select></div>`;
+      const optionHoldersQuestionMarkup = () => {
+        const existence = answers["option-rights-exist"] || "Unanswered";
+        const showReconciliation = ["Yes", "Possibly — the records are incomplete or inconsistent"].includes(existence);
+        const reconciliation = answers["award-register-reconciliation"] || "Unanswered";
+        const showTreatment = showReconciliation && reconciliation !== "Unanswered";
+        const treatments = answers["award-transaction-treatment"] || [];
+        const showImplementation = showTreatment && treatments.length > 0;
+        const implementation = answers["award-treatment-implementation"] || "Unanswered";
+        const showDilution = showImplementation && implementation !== "Unanswered";
+        const dilution = answers["award-dilution-percentage"] || "Unanswered";
+        const showTax = showDilution && dilution !== "Unanswered";
+        const treatmentOptions = ["Exercise and sell", "Cancel or release for cash", "Rollover or replace", "Lapse without payment", "Another documented treatment", "Treatment not yet decided"];
+        const treatmentUndecided = treatments.includes("Treatment not yet decided");
+
+        return [
+          optionSelectQuestion("option-rights-exist", optionHolderQuestions[0], ["Unanswered", "No — confirmed against the relevant records", "Yes", "Possibly — the records are incomplete or inconsistent", "Not yet checked"]),
+          showReconciliation ? optionSelectQuestion("award-register-reconciliation", optionHolderQuestions[1], ["Unanswered", "Yes — fully reconciled", "Broadly — only minor discrepancies remain", "No — material discrepancies or undocumented awards exist", "Not yet reconciled"]) : "",
+          showTreatment ? `<div class="question"><div class="question-top"><label>${optionHolderQuestions[2]}</label>${optionInfoButton("award-transaction-treatment")}</div><div class="choice-grid">${treatmentOptions.map((option) => { const disabled = treatmentUndecided && option !== "Treatment not yet decided"; return `<label ${disabled ? 'style="opacity:.45"' : ""}><input type="checkbox" class="option-treatment" value="${option}" ${treatments.includes(option) ? "checked" : ""} ${disabled ? "disabled" : ""}> ${option}</label>`; }).join("")}</div></div>` : "",
+          showImplementation ? optionSelectQuestion("award-treatment-implementation", optionHolderQuestions[3], ["Unanswered", "Yes — no holder consent is required", "Yes — all required consents and approvals are secured", "Probably — documents or consents remain outstanding", "Unclear — the governing documents conflict or are incomplete", "No — it cannot currently be implemented by completion", "Not yet assessed"]) : "",
+          showDilution ? optionSelectQuestion("award-dilution-percentage", optionHolderQuestions[4], ["Unanswered", "1% or less", "More than 1% up to 5%", "More than 5% up to 10%", "More than 10%", "Not yet calculated"]) : "",
+          showTax ? optionSelectQuestion("award-tax-payroll-position", optionHolderQuestions[5], ["Unanswered", "Reviewed — no material tax or payroll issue", "Reviewed — manageable withholding or reporting is required", "Reviewed — treatment must change or a material cost arises", "Not reviewed — tax-advantaged awards are present", "Not reviewed — no tax-advantaged awards are known", "Tax status is unknown"]) : ""
+        ].join("");
+      };
+
+      const renderPanelBeforeOptionHolders = renderPanel;
+      renderPanel = function () {
+        renderPanelBeforeOptionHolders();
+        if (!isOptionHolders(current())) return;
+        const factsCard = document.querySelector(".content-grid > .card");
+        if (!factsCard) return;
+        const heading = factsCard.querySelector("h3");
+        factsCard.innerHTML = "";
+        factsCard.append(heading);
+        factsCard.insertAdjacentHTML("beforeend", optionHoldersQuestionMarkup());
+
+        const saveOptionAnswers = () => {
+          DealLogicStorage.setItem(storedKey(), JSON.stringify(answers));
+          renderPanel();
+        };
+        ["option-rights-exist", "award-register-reconciliation", "award-treatment-implementation", "award-dilution-percentage", "award-tax-payroll-position"].forEach((id) => {
+          const input = document.getElementById(id);
+          if (input) input.onchange = (event) => {
+            answers[id] = event.target.value;
+            saveOptionAnswers();
+          };
+        });
+        document.querySelectorAll(".option-treatment").forEach((input) => {
+          input.onchange = (event) => {
+            const selected = event.target.value;
+            let values = [...document.querySelectorAll(".option-treatment:checked")].map((item) => item.value);
+            if (selected === "Treatment not yet decided" && event.target.checked) values = [selected];
+            if (selected !== "Treatment not yet decided" && event.target.checked) values = values.filter((value) => value !== "Treatment not yet decided");
+            answers["award-transaction-treatment"] = values;
+            saveOptionAnswers();
+          };
+        });
+      };
+
+      const exportReportBeforeOptionHolders = exportReport;
+      exportReport = function () {
+        const issue = current();
+        if (!isOptionHolders(issue)) return exportReportBeforeOptionHolders();
+        const responseIds = ["option-rights-exist", "award-register-reconciliation", "award-transaction-treatment", "award-treatment-implementation", "award-dilution-percentage", "award-tax-payroll-position"];
+        const lines = optionHolderQuestions.map((question, index) => {
+          const response = answers[responseIds[index]];
+          const display = Array.isArray(response) ? (response.join(", ") || "Unanswered") : (response || "Unanswered");
+          return `- ${question}\n  Response: ${display}`;
+        });
+        const score = riskScore();
+        const report = ["DEALLOGIC ISSUE REPORT", "", issue.title, `${areas[issue.category]} · ${issue.jurisdiction.primary}`, `Risk score: ${score}/5 — ${riskNames[score - 1]}`, "", "DILIGENCE ANSWERS", ...lines, "", "NOTE", "Prototype content only. Obtain transaction-specific legal advice."].join("\n");
+        const blob = new Blob([report], { type: "text/plain" });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement("a");
+        link.href = url;
+        link.download = `${issue.id}-report.txt`;
+        link.click();
+        URL.revokeObjectURL(url);
+      };
+
+      const optionHolderActionRegistry = {
+        OH01: ["Further diligence", "Reconcile the option and award registers, historic exercises/cancellations and fully diluted cap table."],
+        OH03: ["Completion mechanic", "Agree an award treatment schedule covering each holder, award, treatment and closing step."],
+        OH04: ["Rectification", "Obtain required board/shareholder approvals and draft the required documents."],
+        OH05: ["Third-party consent", "Obtain each required holder consent, election, release or power of attorney."],
+        OH06: ["Completion mechanic", "Produce the final closing cap table."],
+        OH07: ["Further diligence", "Obtain transaction-specific share-scheme tax and payroll advice."],
+        OH08: ["Condition precedent", "Make completion conditional on effective implementation of the agreed treatment and delivery of the final cap table and supporting documents."],
+        OH10: ["Specific indemnity", "Allocate identified residual award, dilution or tax exposure through an indemnity, potentially supported by escrow, retention or a price adjustment."],
+        OH11: ["Walk away or renegotiate", "Where material awards cannot be implemented by completion, consider delaying/restructuring the deal, renegotiating value or requiring an alternative route to the agreed capital structure."]
+      };
+      const optionPriorityRank = { Consider: 1, Recommended: 2, Required: 3 };
+      const addOptionHolderAction = (actions, id, priority) => {
+        const currentPriority = actions.get(id);
+        if (!currentPriority || optionPriorityRank[priority] > optionPriorityRank[currentPriority]) actions.set(id, priority);
+      };
+      const optionHolderActions = (side) => {
+        const actions = new Map();
+        const sidePriority = (buyer, seller, balanced) => ({ Buyer: buyer, Seller: seller, Balanced: balanced }[side] || balanced);
+        const existence = answers["option-rights-exist"] || "Unanswered";
+        if (existence === "No — confirmed against the relevant records" || existence === "Unanswered") return actions;
+        const reconciliation = answers["award-register-reconciliation"] || "Unanswered";
+        const treatments = answers["award-transaction-treatment"] || [];
+        const treatmentUndecided = !treatments.length || treatments.includes("Treatment not yet decided");
+        const implementation = answers["award-treatment-implementation"] || "Unanswered";
+        const dilution = answers["award-dilution-percentage"] || "Unanswered";
+        const tax = answers["award-tax-payroll-position"] || "Unanswered";
+        const material = ["More than 5% up to 10%", "More than 10%", "Not yet calculated"].includes(dilution);
+        const implementationOpen = ["Unanswered", "Probably — documents or consents remain outstanding", "Unclear — the governing documents conflict or are incomplete", "No — it cannot currently be implemented by completion", "Not yet assessed"].includes(implementation);
+        const recordsOpen = existence !== "Yes" || ["Unanswered", "Broadly — only minor discrepancies remain", "No — material discrepancies or undocumented awards exist", "Not yet reconciled"].includes(reconciliation);
+
+        if (recordsOpen) addOptionHolderAction(actions, "OH01", reconciliation === "Broadly — only minor discrepancies remain" ? sidePriority("Required", "Recommended", "Recommended") : "Required");
+
+        if (treatmentUndecided) addOptionHolderAction(actions, "OH03", "Required");
+        if (!treatmentUndecided) {
+          addOptionHolderAction(actions, "OH03", "Required");
+          addOptionHolderAction(actions, "OH04", implementation === "Yes — all required consents and approvals are secured" ? sidePriority("Required", "Recommended", "Recommended") : "Required");
+          addOptionHolderAction(actions, "OH06", "Required");
+        }
+        if (["Probably — documents or consents remain outstanding", "No — it cannot currently be implemented by completion"].includes(implementation)) addOptionHolderAction(actions, "OH05", "Required");
+        if (["Unclear — the governing documents conflict or are incomplete", "Not yet assessed"].includes(implementation)) addOptionHolderAction(actions, "OH05", "Recommended");
+
+        const taxSensitiveTreatment = treatments.some((treatment) => ["Exercise and sell", "Cancel or release for cash", "Rollover or replace"].includes(treatment));
+        const taxAlreadyReviewed = ["Reviewed — no material tax or payroll issue", "Reviewed — manageable withholding or reporting is required"].includes(tax);
+        if (["Reviewed — treatment must change or a material cost arises", "Not reviewed — tax-advantaged awards are present", "Tax status is unknown"].includes(tax) || (taxSensitiveTreatment && !taxAlreadyReviewed)) addOptionHolderAction(actions, "OH07", "Required");
+        if (taxAlreadyReviewed && (taxSensitiveTreatment || tax === "Reviewed — manageable withholding or reporting is required")) addOptionHolderAction(actions, "OH07", tax === "Reviewed — manageable withholding or reporting is required" ? sidePriority("Required", "Recommended", "Recommended") : sidePriority("Recommended", "Consider", "Recommended"));
+        if (tax === "Not reviewed — no tax-advantaged awards are known") addOptionHolderAction(actions, "OH07", sidePriority("Required", "Recommended", "Recommended"));
+
+        const blocked = implementation === "No — it cannot currently be implemented by completion";
+        if (material && (recordsOpen || treatmentUndecided || implementationOpen)) addOptionHolderAction(actions, "OH08", blocked ? sidePriority("Required", "Recommended", "Required") : sidePriority("Required", "Consider", "Recommended"));
+        if (!material && blocked) addOptionHolderAction(actions, "OH08", sidePriority("Required", "Consider", "Recommended"));
+        if (!material && implementation === "Probably — documents or consents remain outstanding" && side === "Buyer") addOptionHolderAction(actions, "OH08", "Recommended");
+
+        const identifiedExposure = reconciliation === "No — material discrepancies or undocumented awards exist" || implementation === "No — it cannot currently be implemented by completion" || tax === "Reviewed — treatment must change or a material cost arises";
+        if (identifiedExposure) addOptionHolderAction(actions, "OH10", side === "Buyer" ? "Required" : side === "Seller" ? "Consider" : "Recommended");
+        if (blocked && material) addOptionHolderAction(actions, "OH11", sidePriority("Recommended", "Required", "Recommended"));
+        // Keep every required action; fill remaining places with recommended,
+        // then consider actions. Some critical buyer profiles require eight.
+        const requiredCount = [...actions.values()].filter(priority => priority === "Required").length;
+        return new Map([...actions.entries()]
+          .sort((left, right) => optionPriorityRank[right[1]] - optionPriorityRank[left[1]])
+          .slice(0, Math.max(7, requiredCount)));
+      };
+      const optionHolderActionMarkup = (actions, side) => [...actions.entries()]
+        .sort((left, right) => optionPriorityRank[right[1]] - optionPriorityRank[left[1]])
+        .map(([id, priority]) => {
+          const [title, description] = optionHolderActionRegistry[id];
+          const sellerDescriptions = {
+            OH08: "Limit any completion condition to material unresolved award steps, with objective satisfaction criteria and an agreed deadline.",
+            OH10: "Limit any indemnity for identified award or tax exposure by scope, cap and duration; resist overlapping escrow, retention or price deductions.",
+            OH11: "Where material awards block completion, propose a workable alternative treatment or timetable and agree its effect on value."
+          };
+          const instruction = side === "Seller" ? (sellerDescriptions[id] || description) : description;
+          return `<div class="logic-action" data-action-id="${id}"><span class="logic-icon">◌</span><div><span class="logic-priority" data-level="${priority.toLowerCase()}">${priority}</span><strong>${title}</strong><span>${instruction}</span></div></div>`;
+        }).join("");
+      const optionHolderSummary = () => {
+        const existence = answers["option-rights-exist"] || "Unanswered";
+        const reconciliation = answers["award-register-reconciliation"] || "Unanswered";
+        const treatments = answers["award-transaction-treatment"] || [];
+        const implementation = answers["award-treatment-implementation"] || "Unanswered";
+        const dilution = answers["award-dilution-percentage"] || "Unanswered";
+        const tax = answers["award-tax-payroll-position"] || "Unanswered";
+        if (existence === "No — confirmed against the relevant records") return "No outstanding options, warrants or other rights to acquire shares have been identified after review of the relevant records. The agreed capital structure is not currently affected by option-holder treatment.";
+        if (existence === "Not yet checked") return "The existence of outstanding options, warrants or other share rights has not yet been checked. The fully diluted ownership position and required transaction mechanics therefore remain unconfirmed.";
+        if (existence === "Possibly — the records are incomplete or inconsistent") return "Outstanding options, warrants or other share rights may exist, but the available records are incomplete or inconsistent. The fully diluted capital structure cannot yet be relied upon.";
+
+        let opening = "Outstanding options, warrants or other rights to acquire shares have been identified.";
+        if (reconciliation === "No — material discrepancies or undocumented awards exist") opening += " Material discrepancies or undocumented awards affect the current capitalisation analysis.";
+        else if (reconciliation === "Not yet reconciled") opening += " The award population has not yet been reconciled to the fully diluted cap table and supporting documents.";
+        else if (reconciliation === "Broadly — only minor discrepancies remain") opening += " The records broadly reconcile, although minor discrepancies remain to be resolved.";
+        else if (reconciliation === "Yes — fully reconciled") opening += " The award register is fully reconciled to the cap table and supporting documents.";
+
+        if (treatments.includes("Treatment not yet decided") || !treatments.length) return `${opening} The transaction treatment remains undecided, so the closing capital structure and proceeds allocation cannot yet be finalised.`;
+        const treatmentCopy = treatments.map((value) => value.toLowerCase()).join(", ");
+        opening += ` The recorded treatment is: ${treatmentCopy}.`;
+        if (implementation === "No — it cannot currently be implemented by completion") opening += " That treatment cannot currently be validly implemented by completion.";
+        else if (implementation === "Unclear — the governing documents conflict or are incomplete") opening += " Conflicting or incomplete governing documents create material implementation uncertainty.";
+        else if (implementation === "Probably — documents or consents remain outstanding") opening += " Implementation appears available, but documents or consents remain outstanding.";
+        else if (implementation === "Yes — no holder consent is required") opening += " The treatment can be implemented without holder consent.";
+        else if (implementation === "Yes — all required consents and approvals are secured") opening += " All identified consents and approvals are secured.";
+        else if (implementation === "Not yet assessed") opening += " Implementation has not yet been assessed.";
+        if (dilution && dilution !== "Unanswered") opening += ` The awards represent ${dilution.toLowerCase()} of the fully diluted share capital.`;
+        if (tax === "Reviewed — treatment must change or a material cost arises") opening += " Tax review indicates that the treatment must change or a material cost must be addressed.";
+        else if (tax === "Not reviewed — tax-advantaged awards are present") opening += " Tax-advantaged awards remain subject to transaction-specific tax review.";
+        return opening;
+      };
+      const optionHolderImplications = () => {
+        const implications = [];
+        const existence = answers["option-rights-exist"] || "Unanswered";
+        const reconciliation = answers["award-register-reconciliation"] || "Unanswered";
+        const treatments = answers["award-transaction-treatment"] || [];
+        const implementation = answers["award-treatment-implementation"] || "Unanswered";
+        const dilution = answers["award-dilution-percentage"] || "Unanswered";
+        const tax = answers["award-tax-payroll-position"] || "Unanswered";
+        if (existence === "No — confirmed against the relevant records") return ["No option-holder remediation or additional completion mechanic is currently indicated."];
+        if (existence !== "Yes" || ["Unanswered", "No — material discrepancies or undocumented awards exist", "Not yet reconciled"].includes(reconciliation)) implications.push("Pricing, proceeds allocation and the closing cap table should not be finalised until the award population is reconciled.");
+        if (!treatments.length || treatments.includes("Treatment not yet decided")) implications.push("An award-by-award treatment must be agreed before definitive completion mechanics can be prepared.");
+        else if (["Probably — documents or consents remain outstanding", "Unclear — the governing documents conflict or are incomplete", "No — it cannot currently be implemented by completion", "Not yet assessed", "Unanswered"].includes(implementation)) implications.push("The agreed treatment remains an execution dependency and may require holder participation or completion protection.");
+        else implications.push("The selected treatment appears implementable; the final cap table, funds flow and evidence of treatment should be delivered at completion.");
+        if (["More than 5% up to 10%", "More than 10%", "Not yet calculated"].includes(dilution)) implications.push("The recorded or unquantified dilution makes unresolved award mechanics material to the transaction.");
+        if (["Reviewed — treatment must change or a material cost arises", "Not reviewed — tax-advantaged awards are present", "Tax status is unknown"].includes(tax)) implications.push("Tax and payroll treatment must be resolved before the award mechanics are implemented.");
+        return implications.slice(0, 4);
+      };
+      const optionHolderNotes = `<div class="logic-note"><strong>Exit Mechanics:</strong> Whether options accelerate, lapse, cash out, or roll over is governed by scheme rules, grant terms, articles, and resolutions. The board must act within these explicit powers; unsupported changes risk contractual disputes and tax liabilities.</div><div class="logic-note"><strong>Tax and Payroll:</strong> Cashing out or exercising options triggers Income Tax, PAYE withholding, NICs, and annual HMRC reporting. Transaction timing can disqualify tax-favoured schemes (EMI, CSOP, SAYE), so implementation must follow transaction-specific tax guidance.</div>`;
+
+      const renderLogicBeforeOptionHolders = renderLogic;
+      renderLogic = function (issue) {
+        if (!isOptionHolders(issue)) return renderLogicBeforeOptionHolders(issue);
+        const logicCard = document.querySelector("#logic-card");
+        const protectionsCard = document.querySelector("#recommendations-card");
+        protectionsCard?.remove();
+        logicCard.classList.add("coc-deal-logic");
+        const existence = answers["option-rights-exist"] || "Unanswered";
+        const questionnaireComplete = existence === "No — confirmed against the relevant records" || (
+          ["Yes", "Possibly — the records are incomplete or inconsistent"].includes(existence) &&
+          answers["award-register-reconciliation"] && answers["award-register-reconciliation"] !== "Unanswered" &&
+          (answers["award-transaction-treatment"] || []).length > 0 &&
+          answers["award-treatment-implementation"] && answers["award-treatment-implementation"] !== "Unanswered" &&
+          answers["award-dilution-percentage"] && answers["award-dilution-percentage"] !== "Unanswered" &&
+          answers["award-tax-payroll-position"] && answers["award-tax-payroll-position"] !== "Unanswered"
+        );
+        if (!questionnaireComplete) {
+          logicCard.remove();
+          return;
+        }
+        logicCard.classList.remove("logic-standby");
+        const side = getTransactionSide();
+        const actions = optionHolderActions(side);
+        const implicationMarkup = optionHolderImplications().map((implication) => `<li>${implication}</li>`).join("");
+        const sidePicker = `<div class="logic-side-picker" aria-label="Transaction side selector"><button type="button" class="active" data-logic-side-toggle>${side}</button></div>`;
+        const actionMarkup = actions.size ? optionHolderActionMarkup(actions, side) : `<p>There are no active transaction actions on the information recorded.</p>`;
+        logicCard.innerHTML = `<h3>Apply deal logic</h3><section class="logic-section"><h4>Summary</h4><p class="logic-conclusion">${optionHolderSummary()}</p></section><section class="logic-section"><h4>Key deal implications</h4><ul>${implicationMarkup}</ul></section><section class="logic-section"><div class="logic-section-heading"><h4>Recommended actions</h4>${actions.size ? sidePicker : ""}</div>${actionMarkup}</section><section class="logic-section"><h4>Notes</h4>${optionHolderNotes}</section>`;
+        document.dispatchEvent(new CustomEvent("option-holders-logic-rendered"));
       };
     </script>
     <script src="./deal-logic-templates.js?v=1"></script>

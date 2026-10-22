@@ -575,15 +575,6 @@
         ]
       },
       {
-        "id": "capitalisation-warranty",
-        "type": "warranty",
-        "recommendation": "Obtain a tailored warranty that the disclosed cap table and award registers are complete and accurate and that no undisclosed options, warrants or rights to acquire securities exist.",
-        "relevance": "recommended",
-        "rationale": "Provides a remedy if the seller's disclosed capitalisation position is inaccurate, subject to negotiated limitations and disclosure.",
-        "owner": "seller",
-        "timing": "signing"
-      },
-      {
         "id": "option-holder-specific-disclosure",
         "type": "disclosure",
         "recommendation": "Require specific disclosure of each award, its terms, vesting and exercise status, intended treatment, tax status, holder documentation and any exceptions or disputes.",
@@ -670,10 +661,9 @@
         "then": {
           "action_ids": [
             "option-mechanics-condition-precedent",
-            "capitalisation-warranty",
             "option-holder-specific-disclosure"
           ],
-          "explanation": "Where awards remain capable of affecting the agreed acquisition, completion protection and capitalisation warranties should be considered."
+          "explanation": "Where awards remain capable of affecting the agreed acquisition, completion protection should be considered."
         }
       },
       {
@@ -709,7 +699,6 @@
           "complete-award-and-cap-table-review",
           "obtain-holder-participation-documents",
           "option-mechanics-condition-precedent",
-          "capitalisation-warranty",
           "completion-cap-table-and-proceeds-schedule"
         ]
       },
