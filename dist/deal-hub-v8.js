@@ -42,7 +42,7 @@
     const issue = currentIssue();
     if (!issue) return [];
     const card = document.querySelector("#logic-card");
-    if (["customer-change-of-control", "missing-ip-assignment", "option-holders"].includes(issue.id) && card?.querySelector(".logic-section-heading")) {
+    if (["customer-change-of-control", "missing-ip-assignment", "option-holders", "threatened-litigation"].includes(issue.id) && card?.querySelector(".logic-section-heading")) {
       return [...card.querySelectorAll(".logic-action")].map(row => ({
         issueId: issue.id, side: getTransactionSide(), icon: row.querySelector(".logic-icon")?.dataset.originalIcon || row.querySelector(".logic-icon")?.textContent.trim() || "◌",
         priority: row.querySelector(".logic-priority")?.textContent.trim() || "Recommended",
@@ -296,6 +296,7 @@
   renderLogic=function(issue){priorRender(issue);decorateRecommendations();};
   document.addEventListener("missing-ip-logic-rendered",decorateRecommendations);
   document.addEventListener("option-holders-logic-rendered",decorateRecommendations);
+  document.addEventListener("threatened-litigation-logic-rendered",decorateRecommendations);
   renderProjectRail();
   showProjectStart();
   renderHub();
