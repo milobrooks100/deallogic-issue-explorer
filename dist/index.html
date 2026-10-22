@@ -1185,17 +1185,54 @@
         return ["Yes", "Possibly — relevant allegations or circumstances exist, but the records are incomplete or inconsistent"].includes(threat)
           && litigationQuestionIds.slice(1).every((id) => answers[id] && answers[id] !== "Unanswered");
       };
-      const litigationSummary = () => {
-        const threat = answers[litigationQuestionIds[0]] || "Unanswered";
-        const stage = answers[litigationQuestionIds[1]] || "Unanswered";
-        const merits = answers[litigationQuestionIds[2]] || "Unanswered";
-        const impact = answers[litigationQuestionIds[3]] || "Unanswered";
-        const resolution = answers[litigationQuestionIds[5]] || "Unanswered";
-        if (threat.startsWith("No —")) return "No credible threat of legal action has been identified after review of the relevant records and enquiries.";
-        if (threat === "Not yet checked") return "The target's dispute position has not yet been checked, so the existence and significance of any threatened legal action remain unconfirmed.";
-        if (resolution.startsWith("Already resolved —")) return "The matter has been resolved through binding documentation, with all material obligations recorded as satisfied.";
-        return `A credible threat of legal action has been recorded. ${stage}. ${merits}. ${impact}. ${resolution}.`;
+      const litigationSummaryCopy = {
+        "litigation-threat-exists": {
+          "No — confirmed after reviewing the disputes register, material correspondence and adviser enquiries": "No credible threat of legal action has been identified after review of the relevant records and enquiries.",
+          "Yes": "A credible threat of legal action has been recorded.",
+          "Possibly — relevant allegations or circumstances exist, but the records are incomplete or inconsistent": "Circumstances may indicate a credible threat of legal action, but the available records are incomplete or inconsistent.",
+          "Not yet checked": "The target's dispute position has not yet been checked, so the existence and significance of any threatened legal action remain unconfirmed."
+        },
+        "litigation-stage-deadlines": {
+          "Informal allegation or demand only — no formal pre-action document or proceeding": "The matter remains at the informal allegation or demand stage; no formal pre-action document or proceeding has been received.",
+          "Formal pre-action correspondence or letter before claim received": "Formal pre-action correspondence or a letter before claim has been received.",
+          "Court, tribunal or arbitration proceedings commenced": "Court, tribunal or arbitration proceedings have been commenced.",
+          "Urgent relief, a hearing or another material deadline falls before or close to completion": "Urgent relief, a hearing or another material deadline falls before or close to completion.",
+          "Stage or deadlines are unclear": "The current stage of the matter or the relevant procedural deadlines remain unclear."
+        },
+        "litigation-merits": {
+          "Reviewed — claim appears weak and the target has strong, evidenced defences": "The claim appears weak and the target has strong, evidenced defences.",
+          "Reviewed — merits and defences are finely balanced or materially uncertain": "Merits and defences are finely balanced or materially uncertain.",
+          "Reviewed — claim appears credible and the target has material adverse exposure": "The claim appears credible and the target has material adverse exposure.",
+          "Partly reviewed — preliminary assessment only or material evidence is missing": "The claim and the target's available defences have only been assessed preliminarily, or material evidence remains missing.",
+          "Not yet assessed": ""
+        },
+        "litigation-impact": {
+          "Immaterial — within ordinary-course tolerances and no material non-financial remedy is threatened": "The claim is expected to remain within ordinary-course tolerances and no material non-financial remedy is threatened.",
+          "Manageable — meaningful exposure, but absorbable without changing the transaction rationale": "The claim could result in meaningful exposure, but it is expected to be absorbable without changing the transaction rationale.",
+          "Material — could materially affect price, operations, a key asset or contract, or completion": "The claim could materially affect price, operations, a key asset or contract, or completion.",
+          "Fundamental — could prevent completion or materially undermine the target's ability to operate or the deal rationale": "The claim could prevent completion or materially undermine the target's ability to operate or the deal rationale.",
+          "Not yet quantified or assessed": ""
+        },
+        "litigation-risk-transfer": {
+          "Yes — recovery is confirmed, required notices and approvals are satisfied, and available limits are adequate": "The target's exposure is reduced by confirmed insurance or other recovery rights; required notices and approvals have been satisfied and available limits are considered adequate.",
+          "Potentially — timely notice has been given, but coverage or recovery remains undecided": "The target may benefit from insurance or other recovery rights. Timely notice has been given, but coverage or recovery remains undecided.",
+          "Potentially — cover or recovery may exist, but notice, consent or other preservation steps remain outstanding": "The target may benefit from insurance or other recovery rights, but notice, consent or other preservation steps remain outstanding.",
+          "No — cover or recovery is unavailable, denied, insufficient or not enforceable": "No insurance, indemnity, limitation or contribution right has been identified that materially reduces the target's exposure.",
+          "Not reviewed or unknown": ""
+        },
+        "litigation-resolution": {
+          "Already resolved — binding settlement, withdrawal, dismissal or full release completed, with all material obligations satisfied": "The matter has since been resolved through binding documentation, and all material obligations are recorded as satisfied.",
+          "Resolution documents are signed, but payment, approval or other conditions remain outstanding": "Resolution documents have been signed, but payment, approval or other conditions remain outstanding.",
+          "A credible resolution route is likely before completion, but it is not yet binding": "A credible resolution route is likely before completion, but it is not yet binding.",
+          "Resolution is possible, but timing or terms are materially uncertain": "Resolution may be possible, but its timing or terms remain materially uncertain.",
+          "Resolution before completion is unlikely or no viable route has been identified": "Resolution before completion is unlikely or no viable route has been identified.",
+          "Not assessed": ""
+        }
       };
+      const litigationSummary = () => litigationQuestionIds
+        .map((id) => litigationSummaryCopy[id]?.[answers[id] || "Unanswered"] || "")
+        .filter(Boolean)
+        .join(" ");
       const litigationImplications = () => {
         const implications = [];
         const threat = answers[litigationQuestionIds[0]] || "Unanswered";
