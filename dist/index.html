@@ -491,6 +491,7 @@
       }
     </script>
     <link rel="stylesheet" href="./deal-hub-v14.css" />
+    <script src="./action-registry.js"></script>
     <script src="./deal-hub-v8.js"></script>
     <link rel="stylesheet" href="./workspace-redesign.css" />
     <link rel="stylesheet" href="./sidebar-layout-fix.css" />
@@ -1507,7 +1508,7 @@
         ? actions.map((action) => {
           const priority = action.priority || (action.relevance === "required" ? "Required" : action.relevance === "recommended" ? "Recommended" : "Consider");
           const title = litigationActionTitles[action.id] || titleCase(action.type);
-          return `<div class="logic-action"><span class="logic-icon">◌</span><div><span class="logic-priority" data-level="${priority.toLowerCase()}">${priority}</span><strong>${escapeLogicText(title)}</strong><span>${escapeLogicText(action.recommendation)}</span></div></div>`;
+          return `<div class="logic-action" data-action-id="${escapeLogicText(action.id)}"><span class="logic-icon">◌</span><div><span class="logic-priority" data-level="${priority.toLowerCase()}">${priority}</span><strong>${escapeLogicText(title)}</strong><span>${escapeLogicText(action.recommendation)}</span></div></div>`;
         }).join("")
         : `<p>There are no active transaction actions on the information recorded.</p>`;
 
@@ -1531,5 +1532,7 @@
         document.dispatchEvent(new CustomEvent("threatened-litigation-logic-rendered"));
       };
     </script>
+    <link rel="stylesheet" href="./action-playbooks.css" />
+    <script src="./action-playbooks.js"></script>
   </body>
 </html>

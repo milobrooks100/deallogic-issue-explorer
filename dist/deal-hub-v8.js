@@ -37,7 +37,14 @@
     if (/spa|warranty|indemnity|covenant|disclos|price/.test(text)) return "SPA Drafting";
     return "Due Diligence";
   };
-  const actionKey = (issueId, side, title, instruction) => `${issueId}|${side}|${title}|${instruction}`;
+  const actionKey = (issueId, side, title, instruction, stableActionId="") => stableActionId ? `${issueId}|action|${stableActionId}` : `${issueId}|${side}|${title}|${instruction}`;
+  const stableActionIdFor = (issueId, title, instruction, explicitId="") => window.DealLogicActionRegistry?.resolveActionId(issueId,title,instruction,explicitId) || explicitId;
+  const hasEquivalentAction = item => state.actions.some(action => {
+    if (action.issueId !== item.issueId) return false;
+    const existingId = action.stableActionId || stableActionIdFor(action.issueId,action.originalTitle||action.title,action.originalInstruction||action.instruction);
+    if (item.actionId && existingId) return item.actionId === existingId;
+    return action.sourceKey === actionKey(item.issueId,item.side,item.title,item.instruction,item.actionId);
+  });
   const available = () => {
     const issue = currentIssue();
     if (!issue) return [];
@@ -45,13 +52,14 @@
     if (["customer-change-of-control", "missing-ip-assignment", "option-holders", "threatened-litigation"].includes(issue.id) && card?.querySelector(".logic-section-heading")) {
       return [...card.querySelectorAll(".logic-action")].map(row => ({
         issueId: issue.id, side: getTransactionSide(), icon: row.querySelector(".logic-icon")?.dataset.originalIcon || row.querySelector(".logic-icon")?.textContent.trim() || "◌",
+        actionId: stableActionIdFor(issue.id,row.querySelector("strong")?.textContent.trim(),row.querySelector("span:last-child")?.textContent.trim(),row.dataset.actionId),
         priority: row.querySelector(".logic-priority")?.textContent.trim() || "Recommended",
         title: row.querySelector("strong")?.textContent.trim() || "Action",
         instruction: row.querySelector("span:last-child")?.textContent.trim() || ""
       }));
     }
     return [...document.querySelectorAll("#recommendations-card .recommendation")].map(row => ({
-      issueId: issue.id, side: getTransactionSide(), icon: "◌", priority: row.querySelector(".pill")?.textContent.trim() || "Recommended",
+      issueId: issue.id, side: getTransactionSide(), icon: "◌", actionId: stableActionIdFor(issue.id,row.querySelector("strong")?.textContent.trim(),row.querySelector("p")?.textContent.trim()), priority: row.querySelector(".pill")?.textContent.trim() || "Recommended",
       title: row.querySelector("strong")?.textContent.trim() || "Action",
       instruction: row.querySelector("p")?.textContent.trim() || ""
     }));
@@ -118,7 +126,7 @@
     (cocHeading || genericHeading).append(pin);
     pin.onclick = () => {
       if (!picking) picking = true;
-      for (const item of availableActions) picks.set(actionKey(item.issueId,item.side,item.title,item.instruction), {...item, issueSnapshot:snapshot(issue)});
+      for (const item of availableActions) picks.set(actionKey(item.issueId,item.side,item.title,item.instruction,item.actionId), {...item, issueSnapshot:snapshot(issue)});
       decorateRecommendations();
     };
     const rows = cocHeading ? [...document.querySelectorAll("#logic-card .logic-action")] : [...document.querySelectorAll("#recommendations-card .recommendation")];
@@ -126,7 +134,7 @@
       row.querySelector(".hub-pick")?.remove();
       if (!picking) return;
       const item = availableActions[index];
-      const key = actionKey(item.issueId,item.side,item.title,item.instruction);
+      const key = actionKey(item.issueId,item.side,item.title,item.instruction,item.actionId);
       const checkbox = document.createElement("input"); checkbox.type="checkbox"; checkbox.className="hub-pick"; checkbox.checked=picks.has(key); checkbox.setAttribute("aria-label",`Add ${item.title} for Deal Hub`);
       checkbox.onchange=()=>{ if (checkbox.checked) picks.set(key,{...item,issueSnapshot:snapshot(issue)}); else picks.delete(key); updatePickbar(); };
       row.append(checkbox);
@@ -159,17 +167,30 @@
     }
     let added=0;
     for (const item of selected) {
-      const key=actionKey(item.issueId,item.side,item.title,item.instruction);
-      if (state.actions.some(action=>action.sourceKey===key)) continue;
-      state.actions.push({id:uid(),sourceKey:key,issueId:item.issueId,side:item.side,icon:item.icon,priority:item.priority,
+      const key=actionKey(item.issueId,item.side,item.title,item.instruction,item.actionId);
+      if (hasEquivalentAction(item)) continue;
+      state.actions.push({id:uid(),sourceKey:key,stableActionId:item.actionId||"",issueId:item.issueId,side:item.side,icon:item.icon,priority:item.priority,
         title:item.title,instruction:item.instruction,originalTitle:item.title,originalInstruction:item.instruction,
         status:statuses[0],dealPhase:phaseFor(item.title,item.instruction),
         urgency:"Medium",notes:"",createdAt:new Date().toISOString(),manual:false});
       added++;
     }
-    save(); picking=false;picks.clear();decorateRecommendations();renderHub();
+    save(); picking=false;picks.clear();decorateRecommendations();renderHub();document.dispatchEvent(new CustomEvent("deal-hub-actions-change"));
     toast(added?`${added} action${added===1?"":"s"} added to Deal Hub`:"These actions are already in Deal Hub");
   }
+  const libraryPhase = phase => ({"Due diligence":"Due Diligence","SPA drafting":"SPA Drafting","Signing":"Post-Signing / Integration","Closing condition":"Closing Condition","Post-completion":"Post-Signing / Integration"}[phase] || "Due Diligence");
+  window.isActionInDealHub = (issueId, actionId) => hasEquivalentAction({issueId,actionId,side:getTransactionSide(),title:"",instruction:""});
+  window.addLibraryActionToDealHub = (issueId, action) => {
+    const item={issueId,actionId:action.id,side:getTransactionSide(),title:action.title,instruction:action.description};
+    if (hasEquivalentAction(item)) {toast("This action is already in Deal Hub");return false;}
+    const source=(typeof issues!=="undefined"?issues:[]).find(issue=>issue.id===issueId);
+    if(source && !issueById(issueId)){
+      const storedAnswers=parse(DealLogicStorage.getItem(`deallogic:deal-project:${activeDealProjectId()}:issue:${issueId}`),{});
+      state.issues.push({id:source.id,title:source.title,category:(typeof areas==="object"&&areas[source.category])||source.category,risk:currentIssue()?.id===issueId?riskLabel():"Not assessed",summary:source.summary||"Manually selected from the Action Library.",answers:storedAnswers,capturedAt:new Date().toISOString(),sourceDocument:"",sourceClause:"",sourceUrl:""});
+    }
+    state.actions.push({id:uid(),sourceKey:actionKey(issueId,item.side,item.title,item.instruction,action.id),stableActionId:action.id,issueId,side:item.side,icon:"◌",iconKey:action.icon,priority:"Consider",title:item.title,instruction:item.instruction,originalTitle:item.title,originalInstruction:item.instruction,status:statuses[0],dealPhase:libraryPhase(action.phase),urgency:"Medium",notes:"",createdAt:new Date().toISOString(),manual:true,selectionSource:"library"});
+    save();renderHub();renderProjectRail();document.dispatchEvent(new CustomEvent("deal-hub-actions-change"));toast("Action added to Deal Hub");return true;
+  };
   function issueMarkup(issue) {
     const actionCount=state.actions.filter(action=>action.issueId===issue.id).length;
     const answerEntries=Object.entries(issue.answers||{}).filter(([,value])=>value && value!=="Unanswered");
@@ -260,7 +281,7 @@
     const refresh=event.target.closest("[data-refresh-issue]");if(refresh){refreshIssue(refresh.dataset.refreshIssue);return;}
     const edit=event.target.closest("[data-edit-action]");if(edit){const card=edit.closest(".hub-item");if(card){card.outerHTML=actionMarkup(actionById(edit.dataset.editAction),!card.querySelector(".hub-editor"));}else{view="summary";renderHub();hub.querySelector(`[data-action-id="${CSS.escape(edit.dataset.editAction)}"] [data-edit-action]`)?.click();}return;}
     const saveButton=event.target.closest("[data-save-action]");if(saveButton){const action=actionById(saveButton.dataset.saveAction),card=saveButton.closest(".hub-item");if(!action||!card)return;card.querySelectorAll("[data-action-field]").forEach(field=>{action[field.dataset.actionField]=field.value;});save();renderHub();toast("Action updated");return;}
-    const remove=event.target.closest("[data-delete-action]");if(remove){if(remove.dataset.confirm!=="yes"){remove.dataset.confirm="yes";remove.textContent="Click again to remove";return;}state.actions=state.actions.filter(action=>action.id!==remove.dataset.deleteAction);save();renderHub();toast("Action removed from Deal Hub");}
+    const remove=event.target.closest("[data-delete-action]");if(remove){if(remove.dataset.confirm!=="yes"){remove.dataset.confirm="yes";remove.textContent="Click again to remove";return;}state.actions=state.actions.filter(action=>action.id!==remove.dataset.deleteAction);save();renderHub();document.dispatchEvent(new CustomEvent("deal-hub-actions-change"));toast("Action removed from Deal Hub");}
     const deleteProject=event.target.closest("[data-delete-deal-project]");if(deleteProject){
       if(deleteProject.dataset.confirm!=="yes"){deleteProject.dataset.confirm="yes";deleteProject.textContent="Click again to delete";return;}
       const store=getDealProjects(),id=deleteProject.dataset.deleteDealProject;

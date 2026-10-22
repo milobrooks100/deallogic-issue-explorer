@@ -8,9 +8,11 @@ const indexPath = path.join(distRoot, "index.html");
 const indexSource = await readFile(indexPath, "utf8");
 const activeScripts = [
   "app-storage.js",
+  "action-registry.js",
   "deal-hub-v8.js",
   "workspace-redesign.js",
-  "deal-logic-templates.js"
+  "deal-logic-templates.js",
+  "action-playbooks.js"
 ];
 
 for (const filename of activeScripts) {
@@ -24,17 +26,31 @@ for (const filename of activeScripts) {
 }
 
 const storageIndex = indexSource.indexOf("./app-storage.js");
+const actionRegistryIndex = indexSource.indexOf("./action-registry.js");
 const hubIndex = indexSource.indexOf("./deal-hub-v8.js");
 const templatesIndex = indexSource.indexOf("./deal-logic-templates.js");
-if (!(storageIndex >= 0 && storageIndex < hubIndex && hubIndex < templatesIndex)) {
+const playbooksIndex = indexSource.indexOf("./action-playbooks.js");
+if (!(storageIndex >= 0 && storageIndex < actionRegistryIndex && actionRegistryIndex < hubIndex && hubIndex < templatesIndex && templatesIndex < playbooksIndex)) {
   throw new Error("Runtime scripts are not loaded in their required order.");
 }
+
+const registrySource = await readFile(path.join(distRoot, "action-registry.js"), "utf8");
+const registrySandbox = { window: {} };
+vm.runInNewContext(registrySource, registrySandbox, { filename: "action-registry.js" });
+const playbookTopics = registrySandbox.window.DealLogicActionRegistry?.topics || [];
+const expectedCounts = new Map([["customer-change-of-control",9],["missing-ip-assignment",11],["option-holders",9],["threatened-litigation",14]]);
+for (const [topicId, expectedCount] of expectedCounts) {
+  const topic = playbookTopics.find(item => item.id === topicId);
+  if (!topic || topic.actions.length !== expectedCount) throw new Error(`Expected ${expectedCount} actions for ${topicId}.`);
+}
+if (playbookTopics.flatMap(topic => topic.actions).length !== 43) throw new Error("Expected 43 issue-playbook actions.");
 
 const storageConsumers = [
   indexPath,
   path.join(distRoot, "deal-hub-v8.js"),
   path.join(distRoot, "workspace-redesign.js"),
-  path.join(distRoot, "deal-logic-templates.js")
+  path.join(distRoot, "deal-logic-templates.js"),
+  path.join(distRoot, "action-playbooks.js")
 ];
 for (const filePath of storageConsumers) {
   const source = await readFile(filePath, "utf8");
