@@ -1519,12 +1519,12 @@
         const logicCard = document.querySelector("#logic-card");
         const protectionsCard = document.querySelector("#recommendations-card");
         protectionsCard?.remove();
+        logicCard.classList.add("coc-deal-logic");
         if (!litigationAnswerComplete()) {
           logicCard.classList.add("logic-standby");
           logicCard.innerHTML = `<h3>Apply deal logic</h3><p>Turn the recorded facts into a clear transaction response.</p>`;
           return;
         }
-        logicCard.classList.add("coc-deal-logic");
         logicCard.classList.remove("logic-standby");
         const implications = litigationImplications().map((item) => `<li>${item}</li>`).join("");
         const side = getTransactionSide();
