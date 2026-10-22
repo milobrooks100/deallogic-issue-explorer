@@ -49,6 +49,11 @@
 .hub-table th{background:#f1f5ef}
 .hub-table select{min-width:125px;margin:0;font-size:12px}
 .hub-table button{border:0;background:transparent;color:var(--moss);cursor:pointer}
+.hub-table-edit{display:inline-grid;place-items:center;width:28px;height:28px;padding:4px!important;border-radius:6px}
+.hub-table-edit:hover{background:#edf5ee}
+.hub-table-edit svg{width:16px;height:16px}
+.hub-table-editor td{padding:0;border-bottom:1px solid var(--line)}
+.hub-table-editor .hub-editor{margin:0;padding:16px}
 .hub-export{display:flex;gap:8px}
 .hub-source-link{color:var(--moss);font-size:12px;font-weight:700}
 .hub-confirm{color:#8c1d27}
