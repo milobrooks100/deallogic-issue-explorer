@@ -205,7 +205,10 @@
   function actionMarkup(action, expanded=false) {
     const issue=issueById(action.issueId);
     const actionLevel = ["Required", "Recommended", "Consider"].includes(action.priority) ? action.priority : "Consider";
-    return `<article class="hub-item" draggable="true" data-action-id="${esc(action.id)}"><div class="hub-item-top"><div><h4>${esc(action.icon||"◌")} ${esc(action.title)}</h4><div class="hub-tags"><span class="hub-tag hub-level-${actionLevel.toLowerCase()}">${esc(actionLevel)}</span><span class="hub-tag hub-stage">${esc(action.dealPhase)}</span></div></div><button class="hub-text-button" data-edit-action="${esc(action.id)}">${expanded?"Close":"Edit"}</button></div><p>${esc(action.instruction)}</p><div class="hub-meta">${esc(issue?.title||"Custom action")} · ${esc(action.status)}</div>${action.notes?`<p class="hub-meta">Note: ${esc(action.notes)}</p>`:""}${expanded?editorMarkup(action):""}</article>`;
+    const editControl = view === "board"
+      ? `<button class="hub-item-edit" type="button" data-edit-action="${esc(action.id)}" aria-label="Edit ${esc(action.title)}" title="Edit action"><i data-lucide="pencil" aria-hidden="true"></i></button>`
+      : `<button class="hub-text-button" data-edit-action="${esc(action.id)}">${expanded?"Close":"Edit"}</button>`;
+    return `<article class="hub-item" draggable="true" data-action-id="${esc(action.id)}"><div class="hub-item-top"><div><h4>${esc(action.icon||"◌")} ${esc(action.title)}</h4><div class="hub-tags"><span class="hub-tag hub-level-${actionLevel.toLowerCase()}">${esc(actionLevel)}</span><span class="hub-tag hub-stage">${esc(action.dealPhase)}</span></div></div>${editControl}</div><p>${esc(action.instruction)}</p><div class="hub-meta">${esc(issue?.title||"Custom action")} · ${esc(action.status)}</div>${action.notes?`<p class="hub-meta">Note: ${esc(action.notes)}</p>`:""}${expanded?editorMarkup(action):""}</article>`;
   }
   const options=(values,currentValue)=>values.map(value=>`<option ${value===currentValue?"selected":""}>${esc(value)}</option>`).join("");
   function editorMarkup(action) {
