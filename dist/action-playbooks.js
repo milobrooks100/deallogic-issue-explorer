@@ -6,7 +6,6 @@
   const coreItems=library.querySelector(".action-items");
   let activeArea="core",activeTopic=registry.topics[0].id;
 
-  const intro=document.createElement("div");intro.className="library-intro";intro.innerHTML="<p>Explore common transaction tools and issue-specific action playbooks.</p>";
   const areaTabs=document.createElement("div");areaTabs.className="library-tabs";areaTabs.setAttribute("role","tablist");areaTabs.setAttribute("aria-label","Action Library sections");
   areaTabs.innerHTML='<button type="button" role="tab" id="library-tab-core" aria-controls="library-panel-core" aria-selected="true" tabindex="0" data-library-area="core">Core M&amp;A responses</button><button type="button" role="tab" id="library-tab-playbooks" aria-controls="library-panel-playbooks" aria-selected="false" tabindex="-1" data-library-area="playbooks">Issue playbooks</button>';
   const corePanel=document.createElement("section");corePanel.id="library-panel-core";corePanel.className="library-panel core-library-panel";corePanel.setAttribute("role","tabpanel");corePanel.setAttribute("aria-labelledby","library-tab-core");
@@ -14,7 +13,7 @@
   if(coreItems)corePanel.append(coreItems);
   const playbooksPanel=document.createElement("section");playbooksPanel.id="library-panel-playbooks";playbooksPanel.className="library-panel";playbooksPanel.setAttribute("role","tabpanel");playbooksPanel.setAttribute("aria-labelledby","library-tab-playbooks");playbooksPanel.hidden=true;
   playbooksPanel.innerHTML=`<div class="playbook-tabs" role="tablist" aria-label="Issue playbooks">${registry.topics.map((topic,index)=>`<button type="button" role="tab" id="playbook-tab-${esc(topic.id)}" aria-controls="playbook-panel-active" aria-selected="${index===0}" tabindex="${index===0?0:-1}" data-playbook-topic="${esc(topic.id)}">${esc(topic.shortLabel)}</button>`).join("")}</div><section class="playbook-panel" id="playbook-panel-active" role="tabpanel"></section>`;
-  library.replaceChildren(intro,areaTabs,corePanel,playbooksPanel);
+  library.replaceChildren(areaTabs,corePanel,playbooksPanel);
 
   const focusTab=(tabs,next)=>{tabs[next].focus();tabs[next].click();};
   const wireTabs=tablist=>{
