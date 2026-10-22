@@ -974,7 +974,8 @@
           answers["award-tax-payroll-position"] && answers["award-tax-payroll-position"] !== "Unanswered"
         );
         if (!questionnaireComplete) {
-          logicCard.remove();
+          logicCard.classList.add("logic-standby");
+          logicCard.innerHTML = `<h3>Apply deal logic</h3><p>Turn the recorded facts into a clear transaction response.</p>`;
           return;
         }
         logicCard.classList.remove("logic-standby");
@@ -1519,10 +1520,12 @@
         const protectionsCard = document.querySelector("#recommendations-card");
         protectionsCard?.remove();
         if (!litigationAnswerComplete()) {
-          logicCard?.remove();
+          logicCard.classList.add("logic-standby");
+          logicCard.innerHTML = `<h3>Apply deal logic</h3><p>Turn the recorded facts into a clear transaction response.</p>`;
           return;
         }
         logicCard.classList.add("coc-deal-logic");
+        logicCard.classList.remove("logic-standby");
         const implications = litigationImplications().map((item) => `<li>${item}</li>`).join("");
         const side = getTransactionSide();
         const actions = litigationActions(issue, side);
