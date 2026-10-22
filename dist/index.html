@@ -829,6 +829,7 @@
       };
       const optionHolderActions = (side) => {
         const actions = new Map();
+        const sidePriority = (buyer, seller, balanced) => ({ Buyer: buyer, Seller: seller, Balanced: balanced }[side] || balanced);
         const existence = answers["option-rights-exist"] || "Unanswered";
         if (existence === "No — confirmed against the relevant records" || existence === "Unanswered") return actions;
         const reconciliation = answers["award-register-reconciliation"] || "Unanswered";
@@ -841,27 +842,31 @@
         const implementationOpen = ["Unanswered", "Probably — documents or consents remain outstanding", "Unclear — the governing documents conflict or are incomplete", "No — it cannot currently be implemented by completion", "Not yet assessed"].includes(implementation);
         const recordsOpen = existence !== "Yes" || ["Unanswered", "Broadly — only minor discrepancies remain", "No — material discrepancies or undocumented awards exist", "Not yet reconciled"].includes(reconciliation);
 
-        if (recordsOpen) addOptionHolderAction(actions, "OH01", ["Broadly — only minor discrepancies remain"].includes(reconciliation) ? "Recommended" : "Required");
+        if (recordsOpen) addOptionHolderAction(actions, "OH01", reconciliation === "Broadly — only minor discrepancies remain" ? sidePriority("Required", "Recommended", "Recommended") : "Required");
 
         if (treatmentUndecided) addOptionHolderAction(actions, "OH03", "Required");
         if (!treatmentUndecided) {
           addOptionHolderAction(actions, "OH03", "Required");
-          addOptionHolderAction(actions, "OH04", "Required");
+          addOptionHolderAction(actions, "OH04", implementation === "Yes — all required consents and approvals are secured" ? sidePriority("Required", "Recommended", "Recommended") : "Required");
           addOptionHolderAction(actions, "OH06", "Required");
         }
         if (["Probably — documents or consents remain outstanding", "No — it cannot currently be implemented by completion"].includes(implementation)) addOptionHolderAction(actions, "OH05", "Required");
         if (["Unclear — the governing documents conflict or are incomplete", "Not yet assessed"].includes(implementation)) addOptionHolderAction(actions, "OH05", "Recommended");
 
-        const taxReviewRequired = treatments.some((treatment) => ["Exercise and sell", "Cancel or release for cash", "Rollover or replace"].includes(treatment));
-        if (taxReviewRequired || ["Reviewed — manageable withholding or reporting is required", "Reviewed — treatment must change or a material cost arises", "Not reviewed — tax-advantaged awards are present", "Tax status is unknown"].includes(tax)) addOptionHolderAction(actions, "OH07", "Required");
-        if (tax === "Not reviewed — no tax-advantaged awards are known") addOptionHolderAction(actions, "OH07", "Recommended");
+        const taxSensitiveTreatment = treatments.some((treatment) => ["Exercise and sell", "Cancel or release for cash", "Rollover or replace"].includes(treatment));
+        const taxAlreadyReviewed = ["Reviewed — no material tax or payroll issue", "Reviewed — manageable withholding or reporting is required"].includes(tax);
+        if (["Reviewed — treatment must change or a material cost arises", "Not reviewed — tax-advantaged awards are present", "Tax status is unknown"].includes(tax) || (taxSensitiveTreatment && !taxAlreadyReviewed)) addOptionHolderAction(actions, "OH07", "Required");
+        if (taxAlreadyReviewed && (taxSensitiveTreatment || tax === "Reviewed — manageable withholding or reporting is required")) addOptionHolderAction(actions, "OH07", tax === "Reviewed — manageable withholding or reporting is required" ? sidePriority("Required", "Recommended", "Recommended") : sidePriority("Recommended", "Consider", "Recommended"));
+        if (tax === "Not reviewed — no tax-advantaged awards are known") addOptionHolderAction(actions, "OH07", sidePriority("Required", "Recommended", "Recommended"));
 
-        if (material && (recordsOpen || treatmentUndecided || implementationOpen)) addOptionHolderAction(actions, "OH08", "Required");
-        if (!material && implementation === "No — it cannot currently be implemented by completion") addOptionHolderAction(actions, "OH08", side === "Seller" ? "Consider" : "Recommended");
+        const blocked = implementation === "No — it cannot currently be implemented by completion";
+        if (material && (recordsOpen || treatmentUndecided || implementationOpen)) addOptionHolderAction(actions, "OH08", blocked ? sidePriority("Required", "Recommended", "Required") : sidePriority("Required", "Consider", "Recommended"));
+        if (!material && blocked) addOptionHolderAction(actions, "OH08", sidePriority("Required", "Consider", "Recommended"));
+        if (!material && implementation === "Probably — documents or consents remain outstanding" && side === "Buyer") addOptionHolderAction(actions, "OH08", "Recommended");
 
         const identifiedExposure = reconciliation === "No — material discrepancies or undocumented awards exist" || implementation === "No — it cannot currently be implemented by completion" || tax === "Reviewed — treatment must change or a material cost arises";
         if (identifiedExposure) addOptionHolderAction(actions, "OH10", side === "Buyer" ? "Required" : side === "Seller" ? "Consider" : "Recommended");
-        if (implementation === "No — it cannot currently be implemented by completion" && material) addOptionHolderAction(actions, "OH11", side === "Seller" ? "Recommended" : "Consider");
+        if (blocked && material) addOptionHolderAction(actions, "OH11", sidePriority("Recommended", "Required", "Recommended"));
         // Keep every required action; fill remaining places with recommended,
         // then consider actions. Some critical buyer profiles require eight.
         const requiredCount = [...actions.values()].filter(priority => priority === "Required").length;
@@ -869,11 +874,17 @@
           .sort((left, right) => optionPriorityRank[right[1]] - optionPriorityRank[left[1]])
           .slice(0, Math.max(7, requiredCount)));
       };
-      const optionHolderActionMarkup = (actions) => [...actions.entries()]
+      const optionHolderActionMarkup = (actions, side) => [...actions.entries()]
         .sort((left, right) => optionPriorityRank[right[1]] - optionPriorityRank[left[1]])
         .map(([id, priority]) => {
           const [title, description] = optionHolderActionRegistry[id];
-          return `<div class="logic-action" data-action-id="${id}"><span class="logic-icon">◌</span><div><span class="logic-priority" data-level="${priority.toLowerCase()}">${priority}</span><strong>${title}</strong><span>${description}</span></div></div>`;
+          const sellerDescriptions = {
+            OH08: "Limit any completion condition to material unresolved award steps, with objective satisfaction criteria and an agreed deadline.",
+            OH10: "Limit any indemnity for identified award or tax exposure by scope, cap and duration; resist overlapping escrow, retention or price deductions.",
+            OH11: "Where material awards block completion, propose a workable alternative treatment or timetable and agree its effect on value."
+          };
+          const instruction = side === "Seller" ? (sellerDescriptions[id] || description) : description;
+          return `<div class="logic-action" data-action-id="${id}"><span class="logic-icon">◌</span><div><span class="logic-priority" data-level="${priority.toLowerCase()}">${priority}</span><strong>${title}</strong><span>${instruction}</span></div></div>`;
         }).join("");
       const optionHolderSummary = () => {
         const existence = answers["option-rights-exist"] || "Unanswered";
@@ -950,7 +961,7 @@
         const actions = optionHolderActions(side);
         const implicationMarkup = optionHolderImplications().map((implication) => `<li>${implication}</li>`).join("");
         const sidePicker = `<div class="logic-side-picker" aria-label="Transaction side selector"><button type="button" class="active" data-logic-side-toggle>${side}</button></div>`;
-        const actionMarkup = actions.size ? optionHolderActionMarkup(actions) : `<p>There are no active transaction actions on the information recorded.</p>`;
+        const actionMarkup = actions.size ? optionHolderActionMarkup(actions, side) : `<p>There are no active transaction actions on the information recorded.</p>`;
         logicCard.innerHTML = `<h3>Apply deal logic</h3><section class="logic-section"><h4>Summary</h4><p class="logic-conclusion">${optionHolderSummary()}</p></section><section class="logic-section"><h4>Key deal implications</h4><ul>${implicationMarkup}</ul></section><section class="logic-section"><div class="logic-section-heading"><h4>Recommended actions</h4>${actions.size ? sidePicker : ""}</div>${actionMarkup}</section><section class="logic-section"><h4>Notes</h4>${optionHolderNotes}</section>`;
         document.dispatchEvent(new CustomEvent("option-holders-logic-rendered"));
       };
