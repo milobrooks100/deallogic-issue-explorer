@@ -198,7 +198,7 @@
         }
         const libraryView = document.createElement("section");
         libraryView.className = "library-view screen-hidden";
-        libraryView.innerHTML = '<div class="view-header"><h2>Action Library</h2></div>';
+        libraryView.innerHTML = '<div class="view-header"><h2>Action Library</h2><p>Explore common transaction tools and issue-specific action playbooks.</p></div>';
         libraryView.append(library);
         workspace.insertAdjacentElement("beforebegin", libraryView);
         const settingsView = document.createElement("section");
@@ -491,6 +491,7 @@
       }
     </script>
     <link rel="stylesheet" href="./deal-hub-v14.css" />
+    <script src="./action-registry.js"></script>
     <script src="./deal-hub-v8.js"></script>
     <link rel="stylesheet" href="./workspace-redesign.css" />
     <link rel="stylesheet" href="./sidebar-layout-fix.css" />
@@ -973,7 +974,8 @@
           answers["award-tax-payroll-position"] && answers["award-tax-payroll-position"] !== "Unanswered"
         );
         if (!questionnaireComplete) {
-          logicCard.remove();
+          logicCard.classList.add("logic-standby");
+          logicCard.innerHTML = `<h3>Apply deal logic</h3><p>Turn the recorded facts into a clear transaction response.</p>`;
           return;
         }
         logicCard.classList.remove("logic-standby");
@@ -987,5 +989,553 @@
       };
     </script>
     <script src="./deal-logic-templates.js?v=1"></script>
+    <script>
+      const isThreatenedLitigation = (issue) => issue?.id === "threatened-litigation";
+      const litigationQuestions = [
+        "Has the target received, or is it aware of, a credible threat of legal action?",
+        "What stage has the matter reached and are the relevant procedural deadlines understood?",
+        "Has the claim and the target's available defences been assessed?",
+        "What is the likely impact on the target and the transaction?",
+        "Is the target's exposure reduced by insurance, indemnities, limitations or contribution rights?",
+        "Can the matter be fully and durably resolved before completion?"
+      ];
+      const litigationQuestionIds = [
+        "litigation-threat-exists",
+        "litigation-stage-deadlines",
+        "litigation-merits",
+        "litigation-impact",
+        "litigation-risk-transfer",
+        "litigation-resolution"
+      ];
+      const litigationAnswerOptions = {
+        "litigation-threat-exists": [
+          "Unanswered",
+          "No — confirmed after reviewing the disputes register, material correspondence and adviser enquiries",
+          "Yes",
+          "Possibly — relevant allegations or circumstances exist, but the records are incomplete or inconsistent",
+          "Not yet checked"
+        ],
+        "litigation-stage-deadlines": [
+          "Unanswered",
+          "Informal allegation or demand only — no formal pre-action document or proceeding",
+          "Formal pre-action correspondence or letter before claim received",
+          "Court, tribunal or arbitration proceedings commenced",
+          "Urgent relief, a hearing or another material deadline falls before or close to completion",
+          "Stage or deadlines are unclear"
+        ],
+        "litigation-merits": [
+          "Unanswered",
+          "Reviewed — claim appears weak and the target has strong, evidenced defences",
+          "Reviewed — merits and defences are finely balanced or materially uncertain",
+          "Reviewed — claim appears credible and the target has material adverse exposure",
+          "Partly reviewed — preliminary assessment only or material evidence is missing",
+          "Not yet assessed"
+        ],
+        "litigation-impact": [
+          "Unanswered",
+          "Immaterial — within ordinary-course tolerances and no material non-financial remedy is threatened",
+          "Manageable — meaningful exposure, but absorbable without changing the transaction rationale",
+          "Material — could materially affect price, operations, a key asset or contract, or completion",
+          "Fundamental — could prevent completion or materially undermine the target's ability to operate or the deal rationale",
+          "Not yet quantified or assessed"
+        ],
+        "litigation-risk-transfer": [
+          "Unanswered",
+          "Yes — recovery is confirmed, required notices and approvals are satisfied, and available limits are adequate",
+          "Potentially — timely notice has been given, but coverage or recovery remains undecided",
+          "Potentially — cover or recovery may exist, but notice, consent or other preservation steps remain outstanding",
+          "No — cover or recovery is unavailable, denied, insufficient or not enforceable",
+          "Not reviewed or unknown"
+        ],
+        "litigation-resolution": [
+          "Unanswered",
+          "Already resolved — binding settlement, withdrawal, dismissal or full release completed, with all material obligations satisfied",
+          "Resolution documents are signed, but payment, approval or other conditions remain outstanding",
+          "A credible resolution route is likely before completion, but it is not yet binding",
+          "Resolution is possible, but timing or terms are materially uncertain",
+          "Resolution before completion is unlikely or no viable route has been identified",
+          "Not assessed"
+        ]
+      };
+      const litigationGuidance = {
+        "litigation-threat-exists": "Review the disputes register, material correspondence, board papers and adviser enquiries. Record the potential claimant, alleged legal basis, remedy demanded and relevant source documents.",
+        "litigation-stage-deadlines": "Identify any pre-action protocol, response date, limitation issue, hearing, evidence-preservation step or other deadline that could affect signing, completion or the target's defence.",
+        "litigation-merits": "Record only the broad merits category reached through appropriately privileged legal review. Do not reproduce privileged advice or counsel's detailed reasoning in the answer.",
+        "litigation-impact": "Consider damages, claimant and defence costs, business interruption, injunctions, licences, key contracts, management time, regulatory consequences and reputational effects.",
+        "litigation-risk-transfer": "Review applicable policies, notifications, insurer approvals, contractual indemnities, liability limitations and contribution rights. Confirm whether they reduce only financial exposure or also address the threatened remedy.",
+        "litigation-resolution": "Check whether settlement, withdrawal, dismissal or release documentation is binding, sufficiently comprehensive and capable of being fully performed before completion."
+      };
+      const litigationInfoButton = (id) => `<button class="info" type="button" aria-label="Guidance for this question">i<span class="tooltip">${litigationGuidance[id]}</span></button>`;
+      const litigationSelectQuestion = (id, label) => `<div class="question"><div class="question-top"><label for="${id}">${label}</label>${litigationInfoButton(id)}</div><select id="${id}">${litigationAnswerOptions[id].map((option) => `<option ${answers[id] === option ? "selected" : ""}>${option}</option>`).join("")}</select></div>`;
+      const threatenedLitigationQuestionMarkup = () => {
+        const threat = answers[litigationQuestionIds[0]] || "Unanswered";
+        const showStage = ["Yes", "Possibly — relevant allegations or circumstances exist, but the records are incomplete or inconsistent"].includes(threat);
+        const showMerits = showStage && answers[litigationQuestionIds[1]] && answers[litigationQuestionIds[1]] !== "Unanswered";
+        const showImpact = showMerits && answers[litigationQuestionIds[2]] && answers[litigationQuestionIds[2]] !== "Unanswered";
+        const showRiskTransfer = showImpact && answers[litigationQuestionIds[3]] && answers[litigationQuestionIds[3]] !== "Unanswered";
+        const showResolution = showRiskTransfer && answers[litigationQuestionIds[4]] && answers[litigationQuestionIds[4]] !== "Unanswered";
+        return [
+          litigationSelectQuestion(litigationQuestionIds[0], litigationQuestions[0]),
+          showStage ? litigationSelectQuestion(litigationQuestionIds[1], litigationQuestions[1]) : "",
+          showMerits ? litigationSelectQuestion(litigationQuestionIds[2], litigationQuestions[2]) : "",
+          showImpact ? litigationSelectQuestion(litigationQuestionIds[3], litigationQuestions[3]) : "",
+          showRiskTransfer ? litigationSelectQuestion(litigationQuestionIds[4], litigationQuestions[4]) : "",
+          showResolution ? litigationSelectQuestion(litigationQuestionIds[5], litigationQuestions[5]) : ""
+        ].join("");
+      };
+
+      const litigationRiskScore = () => {
+        const threat = answers[litigationQuestionIds[0]] || "Unanswered";
+        if (threat === "No — confirmed after reviewing the disputes register, material correspondence and adviser enquiries") return 1;
+        if (threat === "Not yet checked") return 2;
+        if (threat === "Unanswered") return 1;
+
+        let score = threat.startsWith("Possibly") ? 3 : 2;
+        const stage = answers[litigationQuestionIds[1]] || "Unanswered";
+        const merits = answers[litigationQuestionIds[2]] || "Unanswered";
+        const impact = answers[litigationQuestionIds[3]] || "Unanswered";
+        const transfer = answers[litigationQuestionIds[4]] || "Unanswered";
+        const resolution = answers[litigationQuestionIds[5]] || "Unanswered";
+        const issued = stage === "Court, tribunal or arbitration proceedings commenced";
+        const urgent = stage === "Urgent relief, a hearing or another material deadline falls before or close to completion";
+        const formal = stage === "Formal pre-action correspondence or letter before claim received";
+        const material = impact.startsWith("Material —");
+        const fundamental = impact.startsWith("Fundamental —");
+        const meaningfulImpact = impact.startsWith("Manageable —") || material || fundamental;
+
+        if (formal) score = Math.max(score, 3);
+        if (issued || urgent) score = Math.max(score, 4);
+        if (stage === "Stage or deadlines are unclear") score = Math.max(score, 3);
+
+        if (merits.startsWith("Reviewed — claim appears weak")) score = Math.max(issued ? 3 : 2, score - 1);
+        if (merits.startsWith("Reviewed — merits and defences are finely balanced")) score = Math.max(score, 3);
+        if (merits.startsWith("Reviewed — claim appears credible")) score = Math.max(score, 4);
+        if (merits.startsWith("Partly reviewed") || merits === "Not yet assessed") score = Math.max(score, issued ? 4 : 3);
+
+        if (impact.startsWith("Immaterial —")) score = Math.max(issued ? 3 : 2, score - 1);
+        if (impact.startsWith("Manageable —")) score = Math.max(score, 3);
+        if (material) score = Math.max(score, 4);
+        if (fundamental) score = 5;
+        if (impact === "Not yet quantified or assessed") score = Math.max(score, formal || issued || urgent ? 4 : 3);
+        if (urgent && (material || fundamental)) score = 5;
+
+        if (transfer.startsWith("Yes — recovery is confirmed")) {
+          const nonFinancialFloor = fundamental ? 5 : urgent ? 4 : issued ? 3 : 2;
+          score = Math.max(nonFinancialFloor, score - 1);
+        }
+        if (transfer.startsWith("Potentially — cover or recovery may exist")) score = Math.max(3, score + 1);
+        if (transfer.startsWith("No — cover or recovery is unavailable") && meaningfulImpact) score += 1;
+        if (transfer === "Not reviewed or unknown") score = Math.max(score, 3);
+
+        if (resolution.startsWith("Already resolved —")) return 1;
+        if (resolution.startsWith("Resolution documents are signed")) score = Math.max(2, score - 1);
+        if (resolution.startsWith("Resolution is possible")) score = Math.max(score, 3);
+        if (resolution.startsWith("Resolution before completion is unlikely")) score = Math.max(material || fundamental ? 4 : 2, score + 1);
+        if (resolution === "Not assessed") score = Math.max(score, 3);
+        return Math.max(1, Math.min(5, score));
+      };
+
+      const riskScoreBeforeThreatenedLitigation = riskScore;
+      riskScore = function () {
+        return isThreatenedLitigation(current()) ? litigationRiskScore() : riskScoreBeforeThreatenedLitigation();
+      };
+
+      const renderPanelBeforeThreatenedLitigation = renderPanel;
+      renderPanel = function () {
+        renderPanelBeforeThreatenedLitigation();
+        if (!isThreatenedLitigation(current())) return;
+        const factsCard = document.querySelector(".content-grid > .card");
+        if (!factsCard) return;
+        const heading = factsCard.querySelector("h3");
+        factsCard.innerHTML = "";
+        factsCard.append(heading);
+        factsCard.insertAdjacentHTML("beforeend", threatenedLitigationQuestionMarkup());
+        litigationQuestionIds.forEach((id) => {
+          const input = document.getElementById(id);
+          if (input) input.onchange = (event) => {
+            answers[id] = event.target.value;
+            const changedIndex = litigationQuestionIds.indexOf(id);
+            litigationQuestionIds.slice(changedIndex + 1).forEach((downstreamId) => delete answers[downstreamId]);
+            DealLogicStorage.setItem(storedKey(), JSON.stringify(answers));
+            renderPanel();
+          };
+        });
+      };
+
+      const exportReportBeforeThreatenedLitigation = exportReport;
+      exportReport = function () {
+        const issue = current();
+        if (!isThreatenedLitigation(issue)) return exportReportBeforeThreatenedLitigation();
+        const lines = litigationQuestions.map((question, index) => `- ${question}\n  Response: ${answers[litigationQuestionIds[index]] || "Unanswered"}`);
+        const score = riskScore();
+        const report = ["DEALLOGIC ISSUE REPORT", "", issue.title, `${areas[issue.category]} · ${issue.jurisdiction.primary}`, `Risk score: ${score}/5 — ${riskNames[score - 1]}`, "", "DILIGENCE ANSWERS", ...lines, "", "NOTE", "Prototype content only. Obtain transaction-specific legal advice."].join("\n");
+        const blob = new Blob([report], { type: "text/plain" });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement("a");
+        link.href = url;
+        link.download = `${issue.id}-report.txt`;
+        link.click();
+        URL.revokeObjectURL(url);
+      };
+
+      const litigationAnswerComplete = () => {
+        const threat = answers[litigationQuestionIds[0]] || "Unanswered";
+        if ([
+          "No — confirmed after reviewing the disputes register, material correspondence and adviser enquiries",
+          "Not yet checked"
+        ].includes(threat)) return true;
+        return ["Yes", "Possibly — relevant allegations or circumstances exist, but the records are incomplete or inconsistent"].includes(threat)
+          && litigationQuestionIds.slice(1).every((id) => answers[id] && answers[id] !== "Unanswered");
+      };
+      const litigationSummaryCopy = {
+        "litigation-threat-exists": {
+          "No — confirmed after reviewing the disputes register, material correspondence and adviser enquiries": "No credible threat of legal action has been identified after review of the relevant records and enquiries.",
+          "Yes": "A credible threat of legal action has been recorded.",
+          "Possibly — relevant allegations or circumstances exist, but the records are incomplete or inconsistent": "Circumstances may indicate a credible threat of legal action, but the available records are incomplete or inconsistent.",
+          "Not yet checked": "The target's dispute position has not yet been checked, so the existence and significance of any threatened legal action remain unconfirmed."
+        },
+        "litigation-stage-deadlines": {
+          "Informal allegation or demand only — no formal pre-action document or proceeding": "The matter remains at the informal allegation or demand stage; no formal pre-action document or proceeding has been received.",
+          "Formal pre-action correspondence or letter before claim received": "Formal pre-action correspondence or a letter before claim has been received.",
+          "Court, tribunal or arbitration proceedings commenced": "Court, tribunal or arbitration proceedings have been commenced.",
+          "Urgent relief, a hearing or another material deadline falls before or close to completion": "Urgent relief, a hearing or another material deadline falls before or close to completion.",
+          "Stage or deadlines are unclear": "The current stage of the matter or the relevant procedural deadlines remain unclear."
+        },
+        "litigation-merits": {
+          "Reviewed — claim appears weak and the target has strong, evidenced defences": "The claim appears weak and the target has strong, evidenced defences.",
+          "Reviewed — merits and defences are finely balanced or materially uncertain": "Merits and defences are finely balanced or materially uncertain.",
+          "Reviewed — claim appears credible and the target has material adverse exposure": "The claim appears credible and the target has material adverse exposure.",
+          "Partly reviewed — preliminary assessment only or material evidence is missing": "The claim and the target's available defences have only been assessed preliminarily, or material evidence remains missing.",
+          "Not yet assessed": ""
+        },
+        "litigation-impact": {
+          "Immaterial — within ordinary-course tolerances and no material non-financial remedy is threatened": "The claim is expected to remain within ordinary-course tolerances and no material non-financial remedy is threatened.",
+          "Manageable — meaningful exposure, but absorbable without changing the transaction rationale": "The claim could result in meaningful exposure, but it is expected to be absorbable without changing the transaction rationale.",
+          "Material — could materially affect price, operations, a key asset or contract, or completion": "The claim could materially affect price, operations, a key asset or contract, or completion.",
+          "Fundamental — could prevent completion or materially undermine the target's ability to operate or the deal rationale": "The claim could prevent completion or materially undermine the target's ability to operate or the deal rationale.",
+          "Not yet quantified or assessed": ""
+        },
+        "litigation-risk-transfer": {
+          "Yes — recovery is confirmed, required notices and approvals are satisfied, and available limits are adequate": "The target's exposure is reduced by confirmed insurance or other recovery rights; required notices and approvals have been satisfied and available limits are considered adequate.",
+          "Potentially — timely notice has been given, but coverage or recovery remains undecided": "The target may benefit from insurance or other recovery rights. Timely notice has been given, but coverage or recovery remains undecided.",
+          "Potentially — cover or recovery may exist, but notice, consent or other preservation steps remain outstanding": "The target may benefit from insurance or other recovery rights, but notice, consent or other preservation steps remain outstanding.",
+          "No — cover or recovery is unavailable, denied, insufficient or not enforceable": "No insurance, indemnity, limitation or contribution right has been identified that materially reduces the target's exposure.",
+          "Not reviewed or unknown": ""
+        },
+        "litigation-resolution": {
+          "Already resolved — binding settlement, withdrawal, dismissal or full release completed, with all material obligations satisfied": "The matter has since been resolved through binding documentation, and all material obligations are recorded as satisfied.",
+          "Resolution documents are signed, but payment, approval or other conditions remain outstanding": "Resolution documents have been signed, but payment, approval or other conditions remain outstanding.",
+          "A credible resolution route is likely before completion, but it is not yet binding": "A credible resolution route is likely before completion, but it is not yet binding.",
+          "Resolution is possible, but timing or terms are materially uncertain": "Resolution may be possible, but its timing or terms remain materially uncertain.",
+          "Resolution before completion is unlikely or no viable route has been identified": "Resolution before completion is unlikely or no viable route has been identified.",
+          "Not assessed": ""
+        }
+      };
+      const litigationSummary = () => litigationQuestionIds
+        .map((id) => litigationSummaryCopy[id]?.[answers[id] || "Unanswered"] || "")
+        .filter(Boolean)
+        .join(" ");
+      const litigationImplications = () => {
+        const implications = [];
+        const threat = answers[litigationQuestionIds[0]] || "Unanswered";
+        const stage = answers[litigationQuestionIds[1]] || "Unanswered";
+        const merits = answers[litigationQuestionIds[2]] || "Unanswered";
+        const impact = answers[litigationQuestionIds[3]] || "Unanswered";
+        const transfer = answers[litigationQuestionIds[4]] || "Unanswered";
+        const resolution = answers[litigationQuestionIds[5]] || "Unanswered";
+        if (threat.startsWith("No —")) return ["No litigation-specific completion protection is currently indicated."];
+        if (threat === "Not yet checked") return ["The disputes register, relevant correspondence and adviser position should be reviewed before the transaction risk allocation is settled."];
+        if (stage.includes("proceedings commenced") || stage.startsWith("Urgent relief")) implications.push("The dispute timetable and procedural obligations should be integrated into the signing and completion plan.");
+        if (merits.includes("material adverse exposure") || impact.startsWith("Material —") || impact.startsWith("Fundamental —")) implications.push("The claim may affect value, completion certainty or the target's ability to operate and requires deal-specific protection.");
+        if (!transfer.startsWith("Yes — recovery is confirmed")) implications.push("The net exposure remains uncertain until insurance and other recovery rights are confirmed and preserved.");
+        if (!resolution.startsWith("Already resolved —")) implications.push("The parties must decide whether resolution is a completion dependency or whether the remaining risk will be allocated contractually and economically.");
+        return implications.slice(0, 4);
+      };
+      const litigationPriorityRank = { Consider: 1, Recommended: 2, Required: 3 };
+      const litigationActionTitles = {
+        "conduct-dispute-diligence": "Further diligence",
+        "obtain-contentious-advice": "Specialist legal assessment",
+        "specific-litigation-disclosure": "Specific disclosure",
+        "confirm-insurance-and-recovery-rights": "Confirm insurance and recovery rights",
+        "resolve-claim-before-completion": "Resolve before completion",
+        "litigation-resolution-condition-precedent": "Condition precedent",
+        "pre-completion-litigation-covenant": "Pre-completion conduct covenant",
+        "litigation-warranty": "Specific warranty",
+        "specific-litigation-indemnity": "Specific indemnity",
+        "litigation-ring-fencing-retention": "Ring-fencing or purchase-price retention",
+        "litigation-purchase-price-adjustment": "Purchase-price adjustment",
+        "litigation-closing-loss-reserve": "Closing balance-sheet loss reserve or net working capital true-up",
+        "litigation-wi-insurance": "Warranty and indemnity insurance",
+        "specific-mae-mac-walk-right": "Specific MAE/MAC walk-right"
+      };
+      const litigationActionOrder = [
+        "resolve-claim-before-completion",
+        "litigation-resolution-condition-precedent",
+        "specific-mae-mac-walk-right",
+        "specific-litigation-indemnity",
+        "litigation-ring-fencing-retention",
+        "litigation-purchase-price-adjustment",
+        "litigation-closing-loss-reserve",
+        "conduct-dispute-diligence",
+        "obtain-contentious-advice",
+        "confirm-insurance-and-recovery-rights",
+        "specific-litigation-disclosure",
+        "pre-completion-litigation-covenant",
+        "litigation-warranty",
+        "litigation-wi-insurance"
+      ];
+      const litigationSidePriority = (side, buyer, balanced, seller) => ({ Buyer: buyer, Balanced: balanced, Seller: seller }[side] || balanced);
+      const addLitigationAction = (actions, id, priority) => {
+        if (!priority) return;
+        const current = actions.get(id);
+        if (!current || litigationPriorityRank[priority] > litigationPriorityRank[current]) actions.set(id, priority);
+      };
+      const limitLitigationFamily = (actions, ids, maximum, preference) => {
+        const active = ids.filter((id) => actions.has(id));
+        if (active.length <= maximum) return;
+        const preferenceIndex = new Map(preference.map((id, index) => [id, index]));
+        const retained = active
+          .sort((left, right) => litigationPriorityRank[actions.get(right)] - litigationPriorityRank[actions.get(left)]
+            || (preferenceIndex.get(left) ?? 99) - (preferenceIndex.get(right) ?? 99))
+          .slice(0, maximum);
+        active.filter((id) => !retained.includes(id)).forEach((id) => actions.delete(id));
+      };
+      const litigationActions = (issue, side) => {
+        const actionsById = new Map((issue.recommended_actions || []).map((action) => [action.id, action]));
+        const actions = new Map();
+        const add = (id, buyer, balanced, seller) => addLitigationAction(actions, id, litigationSidePriority(side, buyer, balanced, seller));
+        const threat = answers[litigationQuestionIds[0]] || "Unanswered";
+        const stage = answers[litigationQuestionIds[1]] || "Unanswered";
+        const merits = answers[litigationQuestionIds[2]] || "Unanswered";
+        const impact = answers[litigationQuestionIds[3]] || "Unanswered";
+        const transfer = answers[litigationQuestionIds[4]] || "Unanswered";
+        const resolution = answers[litigationQuestionIds[5]] || "Unanswered";
+        const informal = stage.startsWith("Informal allegation");
+        const formal = stage.startsWith("Formal pre-action");
+        const issued = stage.startsWith("Court, tribunal or arbitration");
+        const urgent = stage.startsWith("Urgent relief");
+        const stageUnclear = stage === "Stage or deadlines are unclear";
+        const weak = merits.startsWith("Reviewed — claim appears weak");
+        const balancedMerits = merits.startsWith("Reviewed — merits and defences");
+        const adverseMerits = merits.startsWith("Reviewed — claim appears credible");
+        const partlyReviewed = merits.startsWith("Partly reviewed");
+        const immaterial = impact.startsWith("Immaterial —");
+        const manageable = impact.startsWith("Manageable —");
+        const material = impact.startsWith("Material —");
+        const fundamental = impact.startsWith("Fundamental —");
+        const meaningfulImpact = manageable || material || fundamental;
+        const confirmedRecovery = transfer.startsWith("Yes — recovery is confirmed");
+        const recoveryUndecided = transfer.startsWith("Potentially — timely notice");
+        const recoveryStepsOpen = transfer.startsWith("Potentially — cover or recovery may exist");
+        const noRecovery = transfer.startsWith("No — cover or recovery is unavailable");
+        const resolutionSigned = resolution.startsWith("Resolution documents are signed");
+        const resolutionLikely = resolution.startsWith("A credible resolution route");
+        const resolutionUncertain = resolution.startsWith("Resolution is possible");
+        const resolutionUnlikely = resolution.startsWith("Resolution before completion is unlikely");
+
+        if (threat === "Unanswered" || threat.startsWith("No —") || resolution.startsWith("Already resolved —")) return [];
+        if (threat === "Not yet checked") {
+          add("conduct-dispute-diligence", "Required", "Required", "Required");
+        } else {
+          // Gateway actions: establish the record and the contractual disclosure position.
+          add("conduct-dispute-diligence", "Required", "Required", threat === "Yes" ? "Recommended" : "Required");
+          add("specific-litigation-disclosure", "Required", "Required", "Required");
+          add("litigation-warranty", "Recommended", "Recommended", "Consider");
+          if (threat.startsWith("Possibly —")) add("obtain-contentious-advice", "Recommended", "Recommended", "Consider");
+
+          // Stage and deadline modifiers.
+          if (informal) {
+            add("obtain-contentious-advice", "Consider", "Consider", "Consider");
+            add("pre-completion-litigation-covenant", "Consider", "Consider", "Consider");
+          }
+          if (formal) {
+            add("obtain-contentious-advice", "Recommended", "Recommended", "Consider");
+            add("pre-completion-litigation-covenant", "Recommended", "Recommended", "Recommended");
+          }
+          if (issued) {
+            add("obtain-contentious-advice", "Required", "Required", "Recommended");
+            add("pre-completion-litigation-covenant", "Required", "Recommended", "Required");
+            add("specific-litigation-indemnity", "Recommended", "Recommended", "Consider");
+          }
+          if (urgent) {
+            add("obtain-contentious-advice", "Required", "Required", "Required");
+            add("litigation-resolution-condition-precedent", "Required", "Recommended", "Consider");
+            add("pre-completion-litigation-covenant", "Required", "Required", "Required");
+            add("specific-litigation-indemnity", "Recommended", "Recommended", "Consider");
+            if (material || fundamental) add("specific-mae-mac-walk-right", "Recommended", "Consider", "Consider");
+          }
+          if (stageUnclear) {
+            add("conduct-dispute-diligence", "Required", "Required", "Required");
+            add("obtain-contentious-advice", "Recommended", "Recommended", "Recommended");
+            add("pre-completion-litigation-covenant", "Recommended", "Consider", "Consider");
+          }
+
+          // Merits and defence modifiers.
+          if (weak) add("litigation-warranty", "Recommended", "Recommended", "Consider");
+          if (balancedMerits) {
+            add("obtain-contentious-advice", "Recommended", "Recommended", "Recommended");
+            add("specific-litigation-indemnity", "Recommended", "Recommended", "Consider");
+          }
+          if (adverseMerits) {
+            add("obtain-contentious-advice", "Required", "Required", "Recommended");
+            add("specific-litigation-indemnity", "Required", "Recommended", "Consider");
+          }
+          if (partlyReviewed || merits === "Not yet assessed") {
+            add("conduct-dispute-diligence", "Required", "Required", "Required");
+            add("obtain-contentious-advice", "Required", merits === "Not yet assessed" ? "Required" : "Recommended", "Recommended");
+          }
+
+          // Impact modifiers.
+          if (immaterial) add("litigation-warranty", "Recommended", "Consider", "Consider");
+          if (manageable) {
+            add("litigation-warranty", "Recommended", "Recommended", "Consider");
+            add("specific-litigation-indemnity", "Recommended", "Recommended", "Consider");
+            add("litigation-closing-loss-reserve", "Consider", "Consider", "Consider");
+          }
+          if (material) {
+            if (resolutionSigned || resolutionUncertain || resolutionUnlikely) add("litigation-resolution-condition-precedent", "Recommended", "Consider", "Consider");
+            add("specific-litigation-indemnity", "Required", "Recommended", "Consider");
+            add("litigation-purchase-price-adjustment", "Recommended", "Recommended", "Consider");
+            add("litigation-closing-loss-reserve", "Recommended", "Recommended", "Consider");
+            add("specific-mae-mac-walk-right", "Recommended", "Consider", "Consider");
+          }
+          if (fundamental) {
+            add("litigation-resolution-condition-precedent", "Required", "Recommended", "Consider");
+            add("specific-litigation-indemnity", "Required", "Required", "Consider");
+            add("litigation-ring-fencing-retention", "Recommended", "Recommended", "Consider");
+            add("litigation-purchase-price-adjustment", "Required", "Recommended", "Consider");
+            add("specific-mae-mac-walk-right", "Required", "Recommended", "Consider");
+          }
+          if (impact === "Not yet quantified or assessed") {
+            add("conduct-dispute-diligence", "Required", "Required", "Required");
+            add("obtain-contentious-advice", "Required", "Required", "Recommended");
+          }
+
+          // Insurance, indemnity and other recovery modifiers.
+          if (recoveryUndecided) {
+            add("confirm-insurance-and-recovery-rights", "Required", "Required", "Recommended");
+            if (meaningfulImpact) add("litigation-ring-fencing-retention", "Consider", "Consider", "Consider");
+            add("litigation-wi-insurance", "Consider", "Consider", "Recommended");
+          }
+          if (recoveryStepsOpen) {
+            add("confirm-insurance-and-recovery-rights", "Required", "Required", "Required");
+            if (meaningfulImpact) add("litigation-ring-fencing-retention", "Recommended", "Consider", "Consider");
+            add("litigation-wi-insurance", "Recommended", "Consider", "Recommended");
+          }
+          if (noRecovery) {
+            add("specific-litigation-indemnity", "Required", "Recommended", "Consider");
+            if (meaningfulImpact) add("litigation-ring-fencing-retention", "Recommended", "Recommended", "Consider");
+            if (material || fundamental) add("litigation-purchase-price-adjustment", "Recommended", "Consider", "Consider");
+            add("litigation-wi-insurance", "Consider", "Consider", "Recommended");
+          }
+          if (transfer === "Not reviewed or unknown") {
+            add("confirm-insurance-and-recovery-rights", "Required", "Required", "Required");
+            if (meaningfulImpact) add("litigation-ring-fencing-retention", "Consider", "Consider", "Consider");
+            add("litigation-wi-insurance", "Consider", "Consider", "Recommended");
+          }
+
+          // Resolution modifiers.
+          if (resolutionSigned) {
+            add("resolve-claim-before-completion", "Required", "Required", "Required");
+            add("litigation-resolution-condition-precedent", "Recommended", "Consider", "Consider");
+            add("litigation-ring-fencing-retention", "Consider", "Consider", null);
+          }
+          if (resolutionLikely) {
+            add("resolve-claim-before-completion", "Recommended", "Recommended", "Required");
+            add("litigation-resolution-condition-precedent", "Consider", "Consider", "Consider");
+          }
+          if (resolutionUncertain) {
+            add("resolve-claim-before-completion", "Recommended", "Recommended", "Required");
+            add("litigation-resolution-condition-precedent", "Recommended", "Consider", "Consider");
+            if (meaningfulImpact) {
+              add("specific-litigation-indemnity", "Recommended", "Recommended", "Consider");
+              add("litigation-ring-fencing-retention", "Recommended", "Consider", "Consider");
+            }
+          }
+          if (resolutionUnlikely) {
+            if (meaningfulImpact) {
+              add("litigation-resolution-condition-precedent", "Required", "Recommended", "Consider");
+              add("specific-litigation-indemnity", "Required", "Recommended", "Consider");
+              add("litigation-ring-fencing-retention", "Recommended", "Recommended", "Consider");
+            }
+            if (material || fundamental) add("specific-mae-mac-walk-right", "Recommended", "Consider", "Consider");
+          }
+          if (resolution === "Not assessed") {
+            add("conduct-dispute-diligence", "Required", "Required", "Required");
+            add("obtain-contentious-advice", "Recommended", "Recommended", "Recommended");
+            add("resolve-claim-before-completion", "Consider", "Consider", "Recommended");
+          }
+
+          // Do not recommend economic or walk-away protection for an assessed immaterial claim.
+          if (immaterial) [
+            "litigation-resolution-condition-precedent",
+            "litigation-ring-fencing-retention",
+            "litigation-purchase-price-adjustment",
+            "litigation-closing-loss-reserve",
+            "specific-mae-mac-walk-right"
+          ].forEach((id) => actions.delete(id));
+          // Do not price or reserve an exposure which has not yet been quantified.
+          if (impact === "Not yet quantified or assessed") [
+            "litigation-purchase-price-adjustment",
+            "litigation-closing-loss-reserve"
+          ].forEach((id) => actions.delete(id));
+          // Confirmed recovery is complete work; it does not extinguish non-financial or uninsured protections.
+          if (confirmedRecovery) {
+            actions.delete("confirm-insurance-and-recovery-rights");
+            actions.delete("litigation-wi-insurance");
+          }
+        }
+
+        const economicPreference = fundamental
+          ? ["litigation-purchase-price-adjustment", "litigation-ring-fencing-retention", "litigation-closing-loss-reserve"]
+          : (noRecovery || recoveryStepsOpen || transfer === "Not reviewed or unknown" || resolutionUncertain || resolutionUnlikely)
+            ? ["litigation-ring-fencing-retention", "litigation-purchase-price-adjustment", "litigation-closing-loss-reserve"]
+            : ["litigation-closing-loss-reserve", "litigation-purchase-price-adjustment", "litigation-ring-fencing-retention"];
+        limitLitigationFamily(actions, ["litigation-ring-fencing-retention", "litigation-purchase-price-adjustment", "litigation-closing-loss-reserve"], 2, economicPreference);
+        const completionPreference = fundamental || resolutionUnlikely
+          ? ["litigation-resolution-condition-precedent", "specific-mae-mac-walk-right", "resolve-claim-before-completion"]
+          : ["resolve-claim-before-completion", "litigation-resolution-condition-precedent", "specific-mae-mac-walk-right"];
+        limitLitigationFamily(actions, ["resolve-claim-before-completion", "litigation-resolution-condition-precedent", "specific-mae-mac-walk-right"], 2, completionPreference);
+
+        const orderIndex = new Map(litigationActionOrder.map((id, index) => [id, index]));
+        return [...actions.entries()]
+          .map(([id, priority]) => ({ ...actionsById.get(id), priority }))
+          .filter((action) => action.id)
+          .sort((left, right) => litigationPriorityRank[right.priority] - litigationPriorityRank[left.priority]
+            || (orderIndex.get(left.id) ?? 99) - (orderIndex.get(right.id) ?? 99))
+          .slice(0, 9);
+      };
+      const litigationActionMarkup = (actions) => actions.length
+        ? actions.map((action) => {
+          const priority = action.priority || (action.relevance === "required" ? "Required" : action.relevance === "recommended" ? "Recommended" : "Consider");
+          const title = litigationActionTitles[action.id] || titleCase(action.type);
+          return `<div class="logic-action" data-action-id="${escapeLogicText(action.id)}"><span class="logic-icon">◌</span><div><span class="logic-priority" data-level="${priority.toLowerCase()}">${priority}</span><strong>${escapeLogicText(title)}</strong><span>${escapeLogicText(action.recommendation)}</span></div></div>`;
+        }).join("")
+        : `<p>There are no active transaction actions on the information recorded.</p>`;
+
+      const renderLogicBeforeThreatenedLitigation = renderLogic;
+      renderLogic = function (issue) {
+        if (!isThreatenedLitigation(issue)) return renderLogicBeforeThreatenedLitigation(issue);
+        const logicCard = document.querySelector("#logic-card");
+        const protectionsCard = document.querySelector("#recommendations-card");
+        protectionsCard?.remove();
+        logicCard.classList.add("coc-deal-logic");
+        if (!litigationAnswerComplete()) {
+          logicCard.classList.add("logic-standby");
+          logicCard.innerHTML = `<h3>Apply deal logic</h3><p>Turn the recorded facts into a clear transaction response.</p>`;
+          return;
+        }
+        logicCard.classList.remove("logic-standby");
+        const implications = litigationImplications().map((item) => `<li>${item}</li>`).join("");
+        const side = getTransactionSide();
+        const actions = litigationActions(issue, side);
+        const sidePicker = `<div class="logic-side-picker" aria-label="Transaction side selector"><button type="button" class="active" data-logic-side-toggle>${side}</button></div>`;
+        const notes = `<div class="logic-note"><strong>Limitation periods:</strong> Simple-contract claims are generally subject to a six-year limitation period, while claims under deeds are generally subject to 12 years. Due diligence should identify the relevant claim, when it accrued and any applicable exception or extension.</div><div class="logic-note"><strong>Fair disclosure:</strong> The required standard depends on the SPA and disclosure letter. Where matters must be “fairly disclosed”, the disclosure should identify the claim clearly enough for the buyer to assess it; a general data-room upload may not be sufficient.</div><div class="logic-note"><strong>Privilege protection:</strong> Sharing legal advice with a buyer may waive privilege. A clean-team protocol can protect confidentiality, but does not itself preserve privilege; disclose non-privileged facts and high-level risk conclusions instead.</div>`;
+        logicCard.innerHTML = `<h3>Apply deal logic</h3><section class="logic-section"><h4>Summary</h4><p class="logic-conclusion">${escapeLogicText(litigationSummary())}</p></section><section class="logic-section"><h4>Key deal implications</h4><ul>${implications}</ul></section><section class="logic-section"><div class="logic-section-heading"><h4>Recommended actions</h4>${actions.length ? sidePicker : ""}</div>${litigationActionMarkup(actions)}</section><section class="logic-section"><h4>Notes</h4>${notes}</section>`;
+        document.dispatchEvent(new CustomEvent("threatened-litigation-logic-rendered"));
+      };
+    </script>
+    <link rel="stylesheet" href="./action-playbooks.css" />
+    <script src="./action-playbooks.js"></script>
   </body>
 </html>

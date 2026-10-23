@@ -37,21 +37,29 @@
     if (/spa|warranty|indemnity|covenant|disclos|price/.test(text)) return "SPA Drafting";
     return "Due Diligence";
   };
-  const actionKey = (issueId, side, title, instruction) => `${issueId}|${side}|${title}|${instruction}`;
+  const actionKey = (issueId, side, title, instruction, stableActionId="") => stableActionId ? `${issueId}|action|${stableActionId}` : `${issueId}|${side}|${title}|${instruction}`;
+  const stableActionIdFor = (issueId, title, instruction, explicitId="") => window.DealLogicActionRegistry?.resolveActionId(issueId,title,instruction,explicitId) || explicitId;
+  const hasEquivalentAction = item => state.actions.some(action => {
+    if (action.issueId !== item.issueId) return false;
+    const existingId = action.stableActionId || stableActionIdFor(action.issueId,action.originalTitle||action.title,action.originalInstruction||action.instruction);
+    if (item.actionId && existingId) return item.actionId === existingId;
+    return action.sourceKey === actionKey(item.issueId,item.side,item.title,item.instruction,item.actionId);
+  });
   const available = () => {
     const issue = currentIssue();
     if (!issue) return [];
     const card = document.querySelector("#logic-card");
-    if (["customer-change-of-control", "missing-ip-assignment", "option-holders"].includes(issue.id) && card?.querySelector(".logic-section-heading")) {
+    if (["customer-change-of-control", "missing-ip-assignment", "option-holders", "threatened-litigation"].includes(issue.id) && card?.querySelector(".logic-section-heading")) {
       return [...card.querySelectorAll(".logic-action")].map(row => ({
         issueId: issue.id, side: getTransactionSide(), icon: row.querySelector(".logic-icon")?.dataset.originalIcon || row.querySelector(".logic-icon")?.textContent.trim() || "◌",
+        actionId: stableActionIdFor(issue.id,row.querySelector("strong")?.textContent.trim(),row.querySelector("span:last-child")?.textContent.trim(),row.dataset.actionId),
         priority: row.querySelector(".logic-priority")?.textContent.trim() || "Recommended",
         title: row.querySelector("strong")?.textContent.trim() || "Action",
         instruction: row.querySelector("span:last-child")?.textContent.trim() || ""
       }));
     }
     return [...document.querySelectorAll("#recommendations-card .recommendation")].map(row => ({
-      issueId: issue.id, side: getTransactionSide(), icon: "◌", priority: row.querySelector(".pill")?.textContent.trim() || "Recommended",
+      issueId: issue.id, side: getTransactionSide(), icon: "◌", actionId: stableActionIdFor(issue.id,row.querySelector("strong")?.textContent.trim(),row.querySelector("p")?.textContent.trim()), priority: row.querySelector(".pill")?.textContent.trim() || "Recommended",
       title: row.querySelector("strong")?.textContent.trim() || "Action",
       instruction: row.querySelector("p")?.textContent.trim() || ""
     }));
@@ -118,7 +126,7 @@
     (cocHeading || genericHeading).append(pin);
     pin.onclick = () => {
       if (!picking) picking = true;
-      for (const item of availableActions) picks.set(actionKey(item.issueId,item.side,item.title,item.instruction), {...item, issueSnapshot:snapshot(issue)});
+      for (const item of availableActions) picks.set(actionKey(item.issueId,item.side,item.title,item.instruction,item.actionId), {...item, issueSnapshot:snapshot(issue)});
       decorateRecommendations();
     };
     const rows = cocHeading ? [...document.querySelectorAll("#logic-card .logic-action")] : [...document.querySelectorAll("#recommendations-card .recommendation")];
@@ -126,7 +134,7 @@
       row.querySelector(".hub-pick")?.remove();
       if (!picking) return;
       const item = availableActions[index];
-      const key = actionKey(item.issueId,item.side,item.title,item.instruction);
+      const key = actionKey(item.issueId,item.side,item.title,item.instruction,item.actionId);
       const checkbox = document.createElement("input"); checkbox.type="checkbox"; checkbox.className="hub-pick"; checkbox.checked=picks.has(key); checkbox.setAttribute("aria-label",`Add ${item.title} for Deal Hub`);
       checkbox.onchange=()=>{ if (checkbox.checked) picks.set(key,{...item,issueSnapshot:snapshot(issue)}); else picks.delete(key); updatePickbar(); };
       row.append(checkbox);
@@ -159,17 +167,30 @@
     }
     let added=0;
     for (const item of selected) {
-      const key=actionKey(item.issueId,item.side,item.title,item.instruction);
-      if (state.actions.some(action=>action.sourceKey===key)) continue;
-      state.actions.push({id:uid(),sourceKey:key,issueId:item.issueId,side:item.side,icon:item.icon,priority:item.priority,
+      const key=actionKey(item.issueId,item.side,item.title,item.instruction,item.actionId);
+      if (hasEquivalentAction(item)) continue;
+      state.actions.push({id:uid(),sourceKey:key,stableActionId:item.actionId||"",issueId:item.issueId,side:item.side,icon:item.icon,priority:item.priority,
         title:item.title,instruction:item.instruction,originalTitle:item.title,originalInstruction:item.instruction,
         status:statuses[0],dealPhase:phaseFor(item.title,item.instruction),
         urgency:"Medium",notes:"",createdAt:new Date().toISOString(),manual:false});
       added++;
     }
-    save(); picking=false;picks.clear();decorateRecommendations();renderHub();
+    save(); picking=false;picks.clear();decorateRecommendations();renderHub();document.dispatchEvent(new CustomEvent("deal-hub-actions-change"));
     toast(added?`${added} action${added===1?"":"s"} added to Deal Hub`:"These actions are already in Deal Hub");
   }
+  const libraryPhase = phase => ({"Due diligence":"Due Diligence","SPA drafting":"SPA Drafting","Signing":"Post-Signing / Integration","Closing condition":"Closing Condition","Post-completion":"Post-Signing / Integration"}[phase] || "Due Diligence");
+  window.isActionInDealHub = (issueId, actionId) => hasEquivalentAction({issueId,actionId,side:getTransactionSide(),title:"",instruction:""});
+  window.addLibraryActionToDealHub = (issueId, action) => {
+    const item={issueId,actionId:action.id,side:getTransactionSide(),title:action.title,instruction:action.description};
+    if (hasEquivalentAction(item)) {toast("This action is already in Deal Hub");return false;}
+    const source=(typeof issues!=="undefined"?issues:[]).find(issue=>issue.id===issueId);
+    if(source && !issueById(issueId)){
+      const storedAnswers=parse(DealLogicStorage.getItem(`deallogic:deal-project:${activeDealProjectId()}:issue:${issueId}`),{});
+      state.issues.push({id:source.id,title:source.title,category:(typeof areas==="object"&&areas[source.category])||source.category,risk:currentIssue()?.id===issueId?riskLabel():"Not assessed",summary:source.summary||"Manually selected from the Action Library.",answers:storedAnswers,capturedAt:new Date().toISOString(),sourceDocument:"",sourceClause:"",sourceUrl:""});
+    }
+    state.actions.push({id:uid(),sourceKey:actionKey(issueId,item.side,item.title,item.instruction,action.id),stableActionId:action.id,issueId,side:item.side,icon:"◌",iconKey:action.icon,priority:"Consider",title:item.title,instruction:item.instruction,originalTitle:item.title,originalInstruction:item.instruction,status:statuses[0],dealPhase:libraryPhase(action.phase),urgency:"Medium",notes:"",createdAt:new Date().toISOString(),manual:true,selectionSource:"library"});
+    save();renderHub();renderProjectRail();document.dispatchEvent(new CustomEvent("deal-hub-actions-change"));toast("Action added to Deal Hub");return true;
+  };
   function issueMarkup(issue) {
     const actionCount=state.actions.filter(action=>action.issueId===issue.id).length;
     const answerEntries=Object.entries(issue.answers||{}).filter(([,value])=>value && value!=="Unanswered");
@@ -184,11 +205,17 @@
   function actionMarkup(action, expanded=false) {
     const issue=issueById(action.issueId);
     const actionLevel = ["Required", "Recommended", "Consider"].includes(action.priority) ? action.priority : "Consider";
-    return `<article class="hub-item" draggable="true" data-action-id="${esc(action.id)}"><div class="hub-item-top"><div><h4>${esc(action.icon||"◌")} ${esc(action.title)}</h4><div class="hub-tags"><span class="hub-tag hub-level-${actionLevel.toLowerCase()}">${esc(actionLevel)}</span><span class="hub-tag hub-stage">${esc(action.dealPhase)}</span></div></div><button class="hub-text-button" data-edit-action="${esc(action.id)}">${expanded?"Close":"Edit"}</button></div><p>${esc(action.instruction)}</p><div class="hub-meta">${esc(issue?.title||"Custom action")} · ${esc(action.status)}</div>${action.notes?`<p class="hub-meta">Note: ${esc(action.notes)}</p>`:""}${expanded?editorMarkup(action):""}</article>`;
+    const editControl = view === "board" || view === "summary"
+      ? `<button class="hub-item-edit" type="button" data-edit-action="${esc(action.id)}" aria-label="Edit ${esc(action.title)}" title="Edit action"><i data-lucide="pencil" aria-hidden="true"></i></button>`
+      : `<button class="hub-text-button" data-edit-action="${esc(action.id)}">${expanded?"Close":"Edit"}</button>`;
+    return `<article class="hub-item" draggable="true" data-action-id="${esc(action.id)}"><div class="hub-item-top"><div><h4>${esc(action.icon||"◌")} ${esc(action.title)}</h4><div class="hub-tags"><span class="hub-tag hub-level-${actionLevel.toLowerCase()}">${esc(actionLevel)}</span><span class="hub-tag hub-stage">${esc(action.dealPhase)}</span></div></div>${editControl}</div><p>${esc(action.instruction)}</p><div class="hub-meta">${esc(issue?.title||"Custom action")} · ${esc(action.status)}</div>${action.notes?`<p class="hub-meta">Note: ${esc(action.notes)}</p>`:""}${expanded?editorMarkup(action):""}</article>`;
   }
   const options=(values,currentValue)=>values.map(value=>`<option ${value===currentValue?"selected":""}>${esc(value)}</option>`).join("");
   function editorMarkup(action) {
     return `<div class="hub-editor"><label>Action title<input data-action-field="title" maxlength="120" value="${esc(action.title)}"></label><label>Recommended action<textarea data-action-field="instruction">${esc(action.instruction)}</textarea></label><label>Deal notes<textarea data-action-field="notes" placeholder="Add deal-specific context or drafting notes">${esc(action.notes||"")}</textarea></label><div class="hub-editor-grid"><label>Status<select data-action-field="status">${options(statuses,action.status)}</select></label><label>Deal phase<select data-action-field="dealPhase">${options(phases,action.dealPhase)}</select></label><label>Priority<select data-action-field="urgency">${options(priorities,action.urgency)}</select></label></div><div><button data-save-action="${esc(action.id)}">Save changes</button> <button class="hub-text-button danger" data-delete-action="${esc(action.id)}">Remove from Hub</button></div><div class="hub-meta">Original suggestion: ${esc(action.originalTitle)} — ${esc(action.originalInstruction)}</div></div>`;
+  }
+  function tableEditorMarkup(action) {
+    return `<tr class="hub-table-editor" data-table-editor-for="${esc(action.id)}"><td colspan="9">${editorMarkup(action)}</td></tr>`;
   }
   function filteredActions() {
     return state.actions.filter(action=>{
@@ -211,7 +238,7 @@
     } else if (view==="board") {
       content.innerHTML=`<div class="hub-columns">${statuses.map(status=>`<section class="hub-column" data-drop-status="${esc(status)}"><h3>${esc(status)} <small>(${items.filter(action=>action.status===status).length})</small></h3>${items.filter(action=>action.status===status).map(action=>actionMarkup(action)).join("")}</section>`).join("")}</div>`;
     } else if (view==="table") {
-      content.innerHTML=`<div class="hub-table-wrap"><table class="hub-table"><thead><tr><th>Issue</th><th>Risk</th><th>Action</th><th>Side</th><th>Phase</th><th>Priority</th><th>Status</th><th>Notes</th><th></th></tr></thead><tbody>${items.map(action=>{const issue=issueById(action.issueId);const riskLevel=String(issue?.risk||"").match(/^(\d)\/5/)?.[1]||"1";return `<tr data-action-id="${esc(action.id)}"><td>${esc(issue?.title||"Custom")}</td><td><span class="hub-risk hub-risk-${riskLevel}">${esc(issue?.risk||"")}</span></td><td><strong>${esc(action.title)}</strong><br>${esc(action.instruction)}</td><td>${esc(action.side||"Custom")}</td><td>${esc(action.dealPhase)}</td><td>${esc(action.urgency)}</td><td><select data-quick-status="${esc(action.id)}">${options(statuses,action.status)}</select></td><td>${esc(action.notes)}</td><td><button data-edit-action="${esc(action.id)}">Edit</button></td></tr>`}).join("")}</tbody></table></div>`;
+      content.innerHTML=`<div class="hub-table-wrap"><table class="hub-table"><thead><tr><th>Issue</th><th>Risk</th><th>Action</th><th>Side</th><th>Phase</th><th>Priority</th><th>Status</th><th>Notes</th><th></th></tr></thead><tbody>${items.map(action=>{const issue=issueById(action.issueId);const riskLevel=String(issue?.risk||"").match(/^(\d)\/5/)?.[1]||"1";return `<tr data-action-id="${esc(action.id)}"><td>${esc(issue?.title||"Custom")}</td><td><span class="hub-risk hub-risk-${riskLevel}">${esc(issue?.risk||"")}</span></td><td><strong>${esc(action.title)}</strong><br>${esc(action.instruction)}</td><td>${esc(action.side||"Custom")}</td><td>${esc(action.dealPhase)}</td><td>${esc(action.urgency)}</td><td><select data-quick-status="${esc(action.id)}">${options(statuses,action.status)}</select></td><td>${esc(action.notes)}</td><td><button class="hub-table-edit" type="button" data-edit-action="${esc(action.id)}" aria-label="Edit ${esc(action.title)}" title="Edit action"><i data-lucide="pencil" aria-hidden="true"></i></button></td></tr>`}).join("")}</tbody></table></div>`;
     } else {
       const active=activeDealProject();
       content.innerHTML=`<section class="hub-projects"><div class="hub-projects-intro"><div><h3>Project settings</h3><p>Update this deal’s name and transaction side. Deleting a project removes its Deal Map answers and Deal Hub actions from this browser.</p></div></div>${active.isQuick?`<div class="hub-project-empty"><p>This is the quick workspace. Create a project from the Projects rail to save this work as a separate deal.</p><button class="hub-button primary" data-new-deal-project>＋ Create project</button></div>`:`<form class="hub-project-settings" data-save-deal-project><label>Project name<input name="name" maxlength="80" required value="${esc(active.name)}"></label><label>Transaction side<select name="side">${options(sides,active.side)}</select></label><div class="hub-project-actions"><button class="hub-button primary">Save project changes</button><button type="button" class="hub-text-button danger" data-delete-deal-project="${esc(active.id)}">Delete project</button></div></form>`}</section>`;
@@ -258,9 +285,9 @@
     if(event.target.closest("[data-go-map]")){window.showDealLogicView?.("deal-map");return;}
     const open=event.target.closest("[data-open-issue]");if(open){selectedId=open.dataset.openIssue;const source=(typeof issues!=="undefined"?issues:[]).find(item=>item.id===selectedId);if(source){openArea=source.category;loadAnswers();renderMap();renderPanel();window.showDealLogicView?.("deal-map");}return;}
     const refresh=event.target.closest("[data-refresh-issue]");if(refresh){refreshIssue(refresh.dataset.refreshIssue);return;}
-    const edit=event.target.closest("[data-edit-action]");if(edit){const card=edit.closest(".hub-item");if(card){card.outerHTML=actionMarkup(actionById(edit.dataset.editAction),!card.querySelector(".hub-editor"));}else{view="summary";renderHub();hub.querySelector(`[data-action-id="${CSS.escape(edit.dataset.editAction)}"] [data-edit-action]`)?.click();}return;}
-    const saveButton=event.target.closest("[data-save-action]");if(saveButton){const action=actionById(saveButton.dataset.saveAction),card=saveButton.closest(".hub-item");if(!action||!card)return;card.querySelectorAll("[data-action-field]").forEach(field=>{action[field.dataset.actionField]=field.value;});save();renderHub();toast("Action updated");return;}
-    const remove=event.target.closest("[data-delete-action]");if(remove){if(remove.dataset.confirm!=="yes"){remove.dataset.confirm="yes";remove.textContent="Click again to remove";return;}state.actions=state.actions.filter(action=>action.id!==remove.dataset.deleteAction);save();renderHub();toast("Action removed from Deal Hub");}
+    const edit=event.target.closest("[data-edit-action]");if(edit){const card=edit.closest(".hub-item");if(card){card.outerHTML=actionMarkup(actionById(edit.dataset.editAction),!card.querySelector(".hub-editor"));}else{const row=edit.closest("tr[data-action-id]");if(row?.closest(".hub-table")){const editor=row.nextElementSibling?.matches(`[data-table-editor-for="${CSS.escape(edit.dataset.editAction)}"]`)?row.nextElementSibling:null;if(editor){editor.remove();}else{row.insertAdjacentHTML("afterend",tableEditorMarkup(actionById(edit.dataset.editAction)));}}}return;}
+    const saveButton=event.target.closest("[data-save-action]");if(saveButton){const action=actionById(saveButton.dataset.saveAction),editor=saveButton.closest(".hub-item,.hub-table-editor");if(!action||!editor)return;editor.querySelectorAll("[data-action-field]").forEach(field=>{action[field.dataset.actionField]=field.value;});save();renderHub();toast("Action updated");return;}
+    const remove=event.target.closest("[data-delete-action]");if(remove){if(remove.dataset.confirm!=="yes"){remove.dataset.confirm="yes";remove.textContent="Click again to remove";return;}state.actions=state.actions.filter(action=>action.id!==remove.dataset.deleteAction);save();renderHub();document.dispatchEvent(new CustomEvent("deal-hub-actions-change"));toast("Action removed from Deal Hub");}
     const deleteProject=event.target.closest("[data-delete-deal-project]");if(deleteProject){
       if(deleteProject.dataset.confirm!=="yes"){deleteProject.dataset.confirm="yes";deleteProject.textContent="Click again to delete";return;}
       const store=getDealProjects(),id=deleteProject.dataset.deleteDealProject;
@@ -296,6 +323,7 @@
   renderLogic=function(issue){priorRender(issue);decorateRecommendations();};
   document.addEventListener("missing-ip-logic-rendered",decorateRecommendations);
   document.addEventListener("option-holders-logic-rendered",decorateRecommendations);
+  document.addEventListener("threatened-litigation-logic-rendered",decorateRecommendations);
   renderProjectRail();
   showProjectStart();
   renderHub();

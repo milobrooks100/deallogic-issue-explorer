@@ -1660,84 +1660,126 @@
       {
         "id": "conduct-dispute-diligence",
         "type": "further-diligence",
-        "recommendation": "Review the relevant correspondence, pleadings, contracts, evidence, internal investigation materials, settlement discussions, advice status, procedural deadlines and management's assessment with appropriate privilege safeguards.",
-        "relevance": "required",
-        "rationale": "The buyer needs a reliable factual and legal understanding before deciding whether the claim is a completion or value risk.",
+        "recommendation": "Review the claim's factual basis, procedural status, merits, potential exposure and likely effect on the target and transaction.",
+        "relevance": "context-dependent",
+        "rationale": "The parties need a reliable understanding of the claim before settling the transaction terms.",
         "owner": "buyer",
         "timing": "pre-signing"
       },
       {
         "id": "obtain-contentious-advice",
-        "type": "further-diligence",
-        "recommendation": "Obtain or refresh appropriately scoped contentious legal advice on merits, defences, likely remedies, procedure, timing and settlement range, preserving privilege and avoiding unintended waiver.",
+        "type": "other",
+        "recommendation": "Obtain or update privileged contentious advice on the claim, available defences, likely remedies and reasonable settlement range.",
         "relevance": "context-dependent",
-        "rationale": "A legally informed risk assessment is particularly important for a material, advanced or complex threat.",
+        "rationale": "A legally informed assessment is important where the merits or exposure are uncertain.",
         "owner": "adviser",
         "timing": "pre-signing"
       },
       {
-        "id": "notify-insurers-and-preserve-cover",
-        "type": "rectification",
-        "recommendation": "Review relevant policies, notify insurers where required, preserve coverage and document the insurer's position before taking material steps in the dispute.",
+        "id": "specific-litigation-disclosure",
+        "type": "disclosure",
+        "recommendation": "Require detailed disclosure of the claim, material documents, procedural status, financial exposure, insurance position and developments, while protecting privilege.",
         "relevance": "context-dependent",
-        "rationale": "Late notice or unauthorised conduct can affect cover; the applicable policy terms must be checked.",
+        "rationale": "Specific disclosure establishes the known position against which transaction protections can be negotiated.",
+        "owner": "seller",
+        "timing": "signing"
+      },
+      {
+        "id": "confirm-insurance-and-recovery-rights",
+        "type": "rectification",
+        "recommendation": "Confirm available insurance, indemnities, liability limitations and contribution rights, including compliance with notice, consent and preservation requirements.",
+        "relevance": "context-dependent",
+        "rationale": "Available recoveries may materially reduce the target's net exposure if they remain enforceable and properly preserved.",
         "owner": "target",
         "timing": "pre-signing"
       },
       {
         "id": "resolve-claim-before-completion",
         "type": "rectification",
-        "recommendation": "Seek to resolve the matter before completion through a documented settlement, release, withdrawal, dismissal or other legally effective resolution where commercially appropriate.",
+        "recommendation": "Require the matter to be settled, withdrawn, dismissed or otherwise resolved before completion, supported by an effective release.",
         "relevance": "context-dependent",
-        "rationale": "May remove the uncertainty if the cost and terms are acceptable and the resolution is durable.",
+        "rationale": "A binding resolution can remove or materially reduce the identified transaction risk.",
         "owner": "seller",
         "timing": "between-signing-and-completion"
       },
       {
         "id": "litigation-resolution-condition-precedent",
         "type": "condition-precedent",
-        "recommendation": "Make completion conditional on resolution of the claim, or on another agreed risk-reduction step, where the unresolved claim is material to the transaction.",
+        "recommendation": "Make completion conditional on settlement, dismissal, release or another objectively verifiable litigation milestone.",
         "relevance": "context-dependent",
-        "rationale": "A CP may be warranted where an unresolved dispute could fundamentally alter the target's value or ability to operate.",
+        "rationale": "A completion condition may be appropriate where the buyer should not assume an unresolved material risk.",
         "owner": "joint",
-        "timing": "signing",
-        "depends_on_action_ids": [
-          "resolve-claim-before-completion"
-        ]
+        "timing": "signing"
+      },
+      {
+        "id": "pre-completion-litigation-covenant",
+        "type": "pre-completion-covenant",
+        "recommendation": "Restrict material admissions, settlements, waivers and changes in strategy between signing and completion without appropriate buyer consultation or consent.",
+        "relevance": "context-dependent",
+        "rationale": "Interim controls prevent the target's position from being materially altered before completion.",
+        "owner": "seller",
+        "timing": "between-signing-and-completion"
       },
       {
         "id": "litigation-warranty",
         "type": "warranty",
-        "recommendation": "Obtain tailored warranties on the completeness and accuracy of litigation disclosure, the absence of undisclosed claims or threats, and compliance with relevant insurance obligations.",
-        "relevance": "recommended",
-        "rationale": "Provides a remedy if the disclosed dispute picture is inaccurate, subject to negotiated limitations and disclosure.",
+        "recommendation": "Obtain warranties covering the disclosed position, the absence of related undisclosed claims and material developments.",
+        "relevance": "context-dependent",
+        "rationale": "Targeted warranties support the accuracy and completeness of the contractual risk record.",
         "owner": "seller",
         "timing": "signing"
       },
       {
         "id": "specific-litigation-indemnity",
         "type": "indemnity",
-        "recommendation": "Consider a specific indemnity for defined losses, liabilities and costs arising from the known claim, together with an agreed claims-handling and conduct regime.",
+        "recommendation": "Allocate defined litigation losses to the seller, addressing liability caps, baskets, time limits, claim conduct, mitigation, recoveries and double recovery.",
         "relevance": "context-dependent",
-        "rationale": "May be appropriate where the issue is known, material and unresolved; its scope, exclusions and control provisions require careful negotiation.",
+        "rationale": "A specific indemnity can allocate the financial consequences of a known, unresolved claim.",
         "owner": "seller",
         "timing": "signing"
       },
       {
-        "id": "specific-litigation-disclosure",
-        "type": "disclosure",
-        "recommendation": "Require specific disclosure of the claim history, material documents, factual allegations, merits assessment, financial exposure, insurance position and resolution steps.",
-        "relevance": "required",
-        "rationale": "Enables a deliberate decision on whether and how the known dispute is allocated in the transaction documents.",
-        "owner": "seller",
-        "timing": "signing"
-      },
-      {
-        "id": "litigation-escrow-or-retention",
+        "id": "litigation-ring-fencing-retention",
         "type": "escrow-or-retention",
-        "recommendation": "Consider a retention, escrow or price adjustment tied to a reasoned estimate of the unresolved exposure where completion proceeds before resolution.",
+        "recommendation": "Hold part of the purchase price in escrow or retention until final judgment, executed settlement or expiry of an agreed claims period.",
         "relevance": "context-dependent",
-        "rationale": "Provides economic protection where the parties choose not to make resolution a condition of completion.",
+        "rationale": "Ring-fenced consideration provides security for an unresolved exposure.",
+        "owner": "joint",
+        "timing": "signing"
+      },
+      {
+        "id": "litigation-purchase-price-adjustment",
+        "type": "price-adjustment",
+        "recommendation": "Reduce the purchase price where significant litigation risk affects valuation, taking account of expected loss, costs and available recoveries.",
+        "relevance": "context-dependent",
+        "rationale": "A direct price adjustment may be appropriate where the exposure affects the agreed valuation.",
+        "owner": "joint",
+        "timing": "signing"
+      },
+      {
+        "id": "litigation-closing-loss-reserve",
+        "type": "completion-mechanic",
+        "recommendation": "Require an agreed loss reserve, debt-like treatment or working-capital adjustment, with clear accounting policies and no double counting.",
+        "relevance": "context-dependent",
+        "rationale": "The completion mechanism can reflect a measurable exposure without duplicating other protections.",
+        "owner": "joint",
+        "timing": "completion"
+      },
+      {
+        "id": "litigation-wi-insurance",
+        "type": "other",
+        "recommendation": "Ask W&I underwriters whether the matter is excluded and explore specific cover or riders for related or secondary exposures.",
+        "relevance": "context-dependent",
+        "rationale": "Early engagement can clarify whether any related exposure is capable of insurance protection.",
+        "owner": "joint",
+        "timing": "pre-signing"
+      },
+      {
+        "id": "specific-mae-mac-walk-right",
+        "type": "walk-away",
+        "recommendation": "Permit termination for defined material developments, such as significant escalation, adverse judgment or injunctive relief, subject to agreed thresholds and carve-outs.",
+        "relevance": "context-dependent",
+        "rationale": "A specific walk-right can protect the buyer against serious deterioration before completion.",
         "owner": "joint",
         "timing": "signing"
       }
@@ -1777,7 +1819,7 @@
         "then": {
           "action_ids": [
             "obtain-contentious-advice",
-            "notify-insurers-and-preserve-cover",
+            "confirm-insurance-and-recovery-rights",
             "litigation-warranty"
           ],
           "explanation": "An issued or material claim warrants legal and insurance analysis before the transaction risk allocation is agreed."
@@ -1804,7 +1846,8 @@
             "resolve-claim-before-completion",
             "litigation-resolution-condition-precedent",
             "specific-litigation-indemnity",
-            "litigation-escrow-or-retention",
+            "litigation-ring-fencing-retention",
+            "litigation-purchase-price-adjustment",
             "specific-litigation-disclosure"
           ],
           "explanation": "An unresolved material claim requires a deliberate decision whether to resolve it before completion or proceed with contractual and economic protection."
@@ -1820,7 +1863,8 @@
           "obtain-contentious-advice",
           "litigation-resolution-condition-precedent",
           "specific-litigation-indemnity",
-          "litigation-escrow-or-retention"
+          "litigation-ring-fencing-retention",
+          "specific-mae-mac-walk-right"
         ]
       },
       {
