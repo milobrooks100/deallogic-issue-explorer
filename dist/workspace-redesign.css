@@ -10,3 +10,11 @@ html{scroll-behavior:auto}body{font-family:Inter,-apple-system,BlinkMacSystemFon
 /* Approved Action Library icon sizing and centred treatment. */
 .library-view .action-symbol { width: 36px; height: 36px; display: grid; place-items: center; }
 .library-view .action-symbol svg { width: 28px; height: 28px; }
+
+/* Keep long Company Radar findings inside Deal Hub task cards and editors. */
+.hub-column,.hub-column .hub-item,.hub-item-top>div,.hub-column .hub-editor,.hub-column .hub-editor label{min-width:0}
+.hub-column .hub-item{max-width:100%;overflow-wrap:anywhere}
+.hub-column .hub-editor{grid-template-columns:minmax(0,1fr);max-width:100%;overflow-wrap:anywhere}
+.hub-column .hub-editor-grid{grid-template-columns:minmax(0,1fr)}
+.hub-column .hub-editor input,.hub-column .hub-editor textarea,.hub-column .hub-editor select{width:100%;max-width:100%;min-width:0}
+.hub-column .hub-item .hub-meta,.hub-column .hub-item p,.hub-column .hub-item h4{overflow-wrap:anywhere}

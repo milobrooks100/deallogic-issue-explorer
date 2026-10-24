@@ -11,7 +11,7 @@
   const roles = ["Target", "Buyer", "Seller", "Subsidiary", "Other"];
   const cache = new Map();
   let data = null, loading = false, error = "", results = [], searchError = "", searching = false, searchTimer = 0, searchSequence = 0, searchQuery = "";
-  let activeNumber = "", requestSequence = 0, filingFilter = "All";
+  let activeNumber = "", requestSequence = 0, filingFilter = "All", roleMenuOpen = false;
   const snapshotFields = [
     ["name", "Registered name"], ["status", "Register status"], ["address", "Registered office"],
     ["accountsDue", "Accounts due date"], ["accountsOverdue", "Accounts overdue marker"],
@@ -73,6 +73,12 @@
     return `<article class="radar-flag radar-${esc(flag.level)}"><div class="radar-flag-top"><span class="radar-status"><span class="radar-dot" aria-hidden="true"></span>${esc(flag.level === "red" ? "Attention" : flag.level === "amber" ? "Review" : flag.level === "green" ? "No exception found" : "Not checked")}${reviewed ? " · Reviewed" : ""}</span><h4>${esc(flag.title)}</h4></div><p>${esc(flag.detail)}</p><div class="radar-flag-actions">${flag.source ? sourceLink(flag.source, "Source record") : ""}${actionable ? `<button type="button" data-radar-action="${esc(flag.id)}" data-company-number="${esc(number)}">Add action</button><button type="button" data-radar-review="${esc(flag.id)}">${reviewed ? "Mark unreviewed" : "Mark reviewed"}</button>` : ""}</div></article>`;
   }
   function fact(label, value) { return `<div class="radar-fact"><dt>${esc(label)}</dt><dd>${esc(value || "Not shown")}</dd></div>`; }
+  function rolePicker(number, radar) {
+    const role = radar.companies.find(item => item.number === number)?.role || "";
+    return `<div class="radar-role-picker" aria-label="Role in this deal">${roleMenuOpen
+      ? `<div class="radar-role-options" role="group" aria-label="Select role in this deal">${roles.map(option => `<button type="button" data-radar-role-option="${esc(option)}" class="${role === option ? "active" : ""}" aria-pressed="${role === option}">${esc(option)}</button>`).join("")}</div>`
+      : `<button type="button" class="radar-role-toggle ${role ? "selected" : ""}" data-radar-role-toggle aria-expanded="false">${esc(role || "Select role in this deal")}</button>`}</div>`;
+  }
   function sectionState(label, state) {
     if (state === "unavailable") return `<p class="radar-unavailable">${esc(label)} could not be checked. Try refreshing or use Companies House.</p>`;
     if (state === "partial") return `<p class="radar-unavailable">Only the first page of ${esc(label.toLowerCase())} was checked. Use Companies House for the full list.</p>`;
@@ -104,7 +110,7 @@
     const selection = searchFocused ? document.activeElement.selectionStart : null;
     const radar = radarStore();
     const number = selectedNumber();
-    root.innerHTML = `<div class="radar-page-heading"><div><h2>Company Radar</h2><p>A concise view of public register facts for the companies in this deal.</p></div></div><div class="radar-layout"><aside class="radar-sidebar"><div class="radar-side-heading"><h3>Deal companies</h3><span>${radar.companies.length}</span></div>${radar.companies.length ? `<div class="radar-company-list">${radar.companies.map(item => `<button type="button" class="${item.number === number ? "active" : ""}" data-radar-select="${esc(item.number)}"><strong>${esc(item.name)}</strong><span>${esc(item.role)} · ${esc(item.number)}</span></button>`).join("")}</div>` : '<p class="radar-side-empty">Add a company to start its register check.</p>'}<form class="radar-search" data-radar-search><label for="radar-query">Find a company</label><div><input id="radar-query" name="q" type="search" autocomplete="off" minlength="2" maxlength="100" value="${esc(searchQuery)}" placeholder="Name or company number"><button type="submit">Search</button></div></form><div class="radar-search-state" aria-live="polite">${searching ? '<p>Searching Companies House…</p>' : searchError ? `<p class="radar-error">${esc(searchError)}</p>` : results.length ? `<ul>${results.map(item => `<li><button type="button" data-radar-add="${esc(item.number)}" data-radar-name="${esc(item.name)}"><strong>${esc(item.name)}</strong><span>${esc(item.number)} · ${esc(status(item.status))}</span><small>${esc(item.address || "Address not shown")}</small></button></li>`).join("")}</ul>` : ""}</div></aside><div class="radar-main">${!number ? '<div class="radar-intro-card"><span class="radar-eyebrow">Get started</span><h3>Start with the right legal entity</h3><p>Search the Companies House register, check the company number and address, then add the entity to this deal. Company Radar will surface filing deadlines, register status and other points to review.</p></div>' : `<div class="radar-selected-controls"><label>Role in this deal <select data-radar-role>${roles.map(role => `<option value="${role}" ${radar.companies.find(item => item.number === number)?.role === role ? "selected" : ""}>${role}</option>`).join("")}</select></label><button type="button" data-radar-remove>Remove from deal</button></div>${loading ? '<div class="radar-intro-card" role="status">Checking the Companies House register…</div>' : error ? `<div class="radar-intro-card" role="alert"><h3>Company record unavailable</h3><p>${esc(error)}</p><button type="button" data-radar-refresh>Try again</button> <a href="https://find-and-update.company-information.service.gov.uk/company/${encodeURIComponent(number)}" target="_blank" rel="noopener noreferrer">View on Companies House ↗</a></div>` : data?.number === number ? renderDashboard(data) : '<div class="radar-intro-card" role="status">Preparing the company dashboard…</div>'}`}</div></div>`;
+    root.innerHTML = `<div class="radar-page-heading"><div><h2>Company Radar</h2><p>A concise view of public register facts for the companies in this deal.</p></div></div><div class="radar-layout"><aside class="radar-sidebar"><div class="radar-side-heading"><h3>Deal companies</h3><span>${radar.companies.length}</span></div>${radar.companies.length ? `<div class="radar-company-list">${radar.companies.map(item => `<button type="button" class="${item.number === number ? "active" : ""}" data-radar-select="${esc(item.number)}"><strong>${esc(item.name)}</strong><span>${esc(item.role || "Role not set")} · ${esc(item.number)}</span></button>`).join("")}</div>` : '<p class="radar-side-empty">Add a company to start its register check.</p>'}<form class="radar-search" data-radar-search><label for="radar-query">Find a company</label><div><input id="radar-query" name="q" type="search" autocomplete="off" minlength="2" maxlength="100" value="${esc(searchQuery)}" placeholder="Name or company number"><button type="submit">Search</button></div></form><div class="radar-search-state" aria-live="polite">${searching ? '<p>Searching Companies House…</p>' : searchError ? `<p class="radar-error">${esc(searchError)}</p>` : results.length ? `<ul>${results.map(item => `<li><button type="button" data-radar-add="${esc(item.number)}" data-radar-name="${esc(item.name)}"><strong>${esc(item.name)}</strong><span>${esc(item.number)} · ${esc(status(item.status))}</span><small>${esc(item.address || "Address not shown")}</small></button></li>`).join("")}</ul>` : ""}</div></aside><div class="radar-main">${!number ? '<div class="radar-intro-card"><span class="radar-eyebrow">Get started</span><h3>Start with the right legal entity</h3><p>Search the Companies House register, check the company number and address, then add the entity to this deal. Company Radar will surface filing deadlines, register status and other points to review.</p></div>' : `<div class="radar-selected-controls">${rolePicker(number, radar)}<button type="button" data-radar-remove>Remove from deal</button></div>${loading ? '<div class="radar-intro-card" role="status">Checking the Companies House register…</div>' : error ? `<div class="radar-intro-card" role="alert"><h3>Company record unavailable</h3><p>${esc(error)}</p><button type="button" data-radar-refresh>Try again</button> <a href="https://find-and-update.company-information.service.gov.uk/company/${encodeURIComponent(number)}" target="_blank" rel="noopener noreferrer">View on Companies House ↗</a></div>` : data?.number === number ? renderDashboard(data) : '<div class="radar-intro-card" role="status">Preparing the company dashboard…</div>'}`}</div></div>`;
     if (searchFocused) { const input = root.querySelector("#radar-query"); input?.focus(); if (selection !== null) input?.setSelectionRange(selection, selection); }
     window.lucide?.createIcons({ attrs: { "stroke-width": 1.75 } });
   }
@@ -143,7 +149,7 @@
   }
   function addCompany(number, name) {
     const radar = radarStore();
-    if (!radar.companies.some(item => item.number === number)) radar.companies.push({ number, name, role: "Target" });
+    if (!radar.companies.some(item => item.number === number)) radar.companies.push({ number, name, role: "" });
     radar.selectedNumber = number;
     saveRadar(radar); results = []; searchError = ""; searchQuery = ""; render(); fetchDashboard(number);
   }
@@ -177,17 +183,17 @@
   });
   root.addEventListener("change", event => {
     if (event.target.matches("[data-radar-filing-filter]")) { filingFilter = event.target.value; render(); return; }
-    if (!event.target.matches("[data-radar-role]")) return;
-    const radar = radarStore(); const entry = radar.companies.find(item => item.number === selectedNumber());
-    if (entry) { entry.role = event.target.value; saveRadar(radar); render(); }
   });
   root.addEventListener("click", event => {
+    if (event.target.closest("[data-radar-role-toggle]")) { roleMenuOpen = true; render(); root.querySelector("[data-radar-role-option].active, [data-radar-role-option]")?.focus(); return; }
+    const roleOption = event.target.closest("[data-radar-role-option]");
+    if (roleOption) { const radar = radarStore(), entry = radar.companies.find(item => item.number === selectedNumber()); if (entry) { entry.role = roleOption.dataset.radarRoleOption; saveRadar(radar); roleMenuOpen = false; render(); root.querySelector("[data-radar-role-toggle]")?.focus(); } return; }
     const add = event.target.closest("[data-radar-add]");
     if (add) { addCompany(add.dataset.radarAdd, add.dataset.radarName); return; }
     const select = event.target.closest("[data-radar-select]");
-    if (select) { const radar = radarStore(); radar.selectedNumber = select.dataset.radarSelect; saveRadar(radar); data = null; render(); fetchDashboard(radar.selectedNumber); return; }
+    if (select) { const radar = radarStore(); radar.selectedNumber = select.dataset.radarSelect; saveRadar(radar); roleMenuOpen = false; data = null; render(); fetchDashboard(radar.selectedNumber); return; }
     if (event.target.closest("[data-radar-refresh]")) { fetchDashboard(selectedNumber(), true); return; }
-    if (event.target.closest("[data-radar-remove]")) { const radar = radarStore(), number = selectedNumber(); radar.companies = radar.companies.filter(item => item.number !== number); radar.selectedNumber = radar.companies[0]?.number || ""; saveRadar(radar); data = null; render(); if (radar.selectedNumber) fetchDashboard(radar.selectedNumber); return; }
+    if (event.target.closest("[data-radar-remove]")) { const radar = radarStore(), number = selectedNumber(); radar.companies = radar.companies.filter(item => item.number !== number); radar.selectedNumber = radar.companies[0]?.number || ""; saveRadar(radar); roleMenuOpen = false; data = null; render(); if (radar.selectedNumber) fetchDashboard(radar.selectedNumber); return; }
     if (event.target.closest("[data-radar-clear-changes]")) { const radar = radarStore(), entry = radar.companies.find(item => item.number === selectedNumber()); if (entry) { delete entry.changes; saveRadar(radar); render(); } return; }
     const review = event.target.closest("[data-radar-review]");
     if (review && data) { const flag = data.flags?.find(item => item.id === review.dataset.radarReview); const radar = radarStore(), entry = radar.companies.find(item => item.number === data.number); if (flag && entry) { entry.reviewedFlags ||= {}; const mark = `${flag.title}|${flag.detail}`; if (entry.reviewedFlags[flag.id] === mark) delete entry.reviewedFlags[flag.id]; else entry.reviewedFlags[flag.id] = mark; saveRadar(radar); render(); } return; }
@@ -196,7 +202,9 @@
     const documentButton = event.target.closest("[data-radar-download]");
     if (documentButton) download(documentButton.dataset.companyNumber, documentButton.dataset.radarDownload, documentButton);
   });
-  document.addEventListener("deal-project-change", () => { data = null; results = []; error = ""; searchError = ""; requestSequence++; render(); if (!root.classList.contains("screen-hidden")) fetchDashboard(selectedNumber()); });
+  root.addEventListener("keydown", event => { if (event.key === "Escape" && roleMenuOpen) { roleMenuOpen = false; render(); root.querySelector("[data-radar-role-toggle]")?.focus(); } });
+  document.addEventListener("click", event => { if (roleMenuOpen && !event.target.closest(".radar-role-picker")) { roleMenuOpen = false; render(); } });
+  document.addEventListener("deal-project-change", () => { roleMenuOpen = false; data = null; results = []; error = ""; searchError = ""; requestSequence++; render(); if (!root.classList.contains("screen-hidden")) fetchDashboard(selectedNumber()); });
   const previousShow = window.showDealLogicView;
   window.showDealLogicView = view => { previousShow?.(view); if (view === "company-radar") { render(); fetchDashboard(selectedNumber()); } };
   render();
