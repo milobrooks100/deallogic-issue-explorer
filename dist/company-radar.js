@@ -11,7 +11,7 @@
   const roles = ["Target", "Buyer", "Seller", "Subsidiary", "Other"];
   const cache = new Map();
   let data = null, loading = false, error = "", results = [], searchError = "", searching = false, searchTimer = 0, searchSequence = 0, searchQuery = "";
-  let activeNumber = "", requestSequence = 0, filingFilter = "All", roleMenuOpen = false;
+  let activeNumber = "", requestSequence = 0, filingFilter = "All", filingPage = 1, filingSequence = 0, filingState = { number: "", filings: [], loading: false, complete: false, error: "" }, roleMenuOpen = false;
   const snapshotFields = [
     ["name", "Registered name"], ["status", "Register status"], ["address", "Registered office"],
     ["accountsDue", "Accounts due date"], ["accountsOverdue", "Accounts overdue marker"],
@@ -93,7 +93,13 @@
     const pscLink = `${item.url}/persons-with-significant-control`;
     const chargesLink = `${item.url}/charges`;
     const filingCategory = row => row.category === "mortgage" ? "Charges" : row.category === "resolution" ? "Resolutions" : row.category === "accounts" ? "Accounts" : row.category === "officers" ? "Officers" : "Other";
-    const filings = (item.filings || []).filter(row => ["accounts", "officers", "mortgage", "liquidation", "resolution", "capital", "change-of-name", "address", "incorporation"].includes(row.category)).filter(row => filingFilter === "All" || filingCategory(row) === filingFilter).slice(0, 8);
+    const allFilings = filingState.number === item.number ? filingState.filings : [];
+    const filteredFilings = allFilings.filter(row => filingFilter === "All" || filingCategory(row) === filingFilter);
+    const pageCount = Math.max(1, Math.ceil(filteredFilings.length / 15));
+    filingPage = Math.min(filingPage, pageCount);
+    const filings = filteredFilings.slice((filingPage - 1) * 15, filingPage * 15);
+    const pages = Array.from({ length: pageCount }, (_, index) => index + 1);
+    const pagination = pageCount > 1 ? `<nav class="radar-pagination" aria-label="Filing pages">${pages.map(page => `<button type="button" data-radar-filing-page="${page}" ${page === filingPage ? 'aria-current="page"' : ""}>${page}</button>`).join("")}</nav>` : "";
     return `<div class="radar-company-header"><div><div class="radar-eyebrow">${esc(saved?.role || "Company")} · Companies House record</div><h3>${esc(item.name)}</h3><p>Company number ${esc(item.number)} · ${esc(status(item.status))} · ${esc(status(item.type))}</p></div><div class="radar-company-tools"><button type="button" data-radar-refresh>Refresh record</button>${sourceLink(item.url)}</div></div>
       <p class="radar-timestamp">Retrieved ${esc(new Date(item.fetchedAt).toLocaleString("en-GB"))}. Register facts are shown as filed and should be checked against deal documents.${unavailable.length ? ` ${unavailable.length} section${unavailable.length === 1 ? "" : "s"} could not be checked.` : ""}</p>
       ${saved?.changes?.items?.length ? `<section class="radar-changes" aria-label="Changes since last check"><div><span class="radar-eyebrow">Since last check</span><h3>Register details changed</h3><p>${esc(saved.changes.items.join(", "))}</p><small>Detected ${esc(date(saved.changes.at))}. Open the source records to verify what changed.</small></div><button type="button" data-radar-clear-changes>Dismiss</button></section>` : ""}
@@ -103,7 +109,7 @@
       <section class="radar-panel"><div class="radar-panel-heading"><div><span class="radar-eyebrow">Compliance</span><h3>Filings and deadlines</h3></div>${sourceLink(filingLink, "Filing history")}</div><dl class="radar-facts">${fact("Latest accounts period", date(item.accounts?.last_accounts?.period_end_on))}${fact("Latest accounts type", status(item.accounts?.last_accounts?.type))}${fact("Next accounts due", date(item.accounts?.next_accounts?.due_on))}${fact("Latest confirmation statement", date(item.confirmationStatement?.last_made_up_to))}${fact("Next confirmation statement due", date(item.confirmationStatement?.next_due))}</dl></section></div>
       <div class="radar-two-column"><section class="radar-panel"><div class="radar-panel-heading"><div><span class="radar-eyebrow">People</span><h3>Officers and control</h3></div>${sourceLink(peopleLink, "All officers")}</div>${sectionState("Officers", item.sections?.officers)}<h4>Current officers</h4>${item.officers?.length ? `<ul class="radar-list">${item.officers.slice(0, 8).map(officer => `<li><strong>${esc(officer.name)}</strong><span>${esc(status(officer.role))} · appointed ${esc(date(officer.appointedOn))}</span></li>`).join("")}</ul>${item.officers.length > 8 ? `<p class="radar-meta">Showing 8 of ${item.officers.length} loaded officers. ${sourceLink(peopleLink, "See all")}</p>` : ""}` : '<p class="radar-empty-line">No current officers returned in the checked records.</p>'}<div class="radar-divider"></div><div class="radar-subhead"><h4>Persons with significant control</h4>${sourceLink(pscLink, "PSC register")}</div>${sectionState("PSC records", item.sections?.psc)}${item.psc?.length ? `<ul class="radar-list">${item.psc.slice(0, 8).map(person => `<li><strong>${esc(person.name)}</strong><span>${esc(person.control?.map(status).join(", ") || "Control details not shown")}</span></li>`).join("")}</ul>` : `<p class="radar-empty-line">${item.pscStatements?.length ? "A PSC statement is recorded; check the register for its meaning." : "No current PSC entries returned. This does not establish that no one controls the company."}</p>`}</section>
       <section class="radar-panel"><div class="radar-panel-heading"><div><span class="radar-eyebrow">Security and solvency</span><h3>Charges and insolvency</h3></div>${sourceLink(chargesLink, "All charges")}</div>${sectionState("Charges", item.sections?.charges)}<h4>Outstanding or part-satisfied charges</h4>${item.charges?.length ? `<ul class="radar-list">${item.charges.slice(0, 6).map(charge => `<li><strong>${esc(status(charge.status))}</strong><span>Created ${esc(date(charge.createdOn))}${charge.entitled?.length ? ` · ${esc(charge.entitled.join(", "))}` : ""}</span></li>`).join("")}</ul>` : '<p class="radar-empty-line">None returned in the checked records.</p>'}<div class="radar-divider"></div><h4>Insolvency</h4>${sectionState("Insolvency", item.sections?.insolvency)}<p class="radar-empty-line">${item.insolvency ? esc(`Status: ${status(item.insolvency.status)}. ${item.insolvency.cases?.length || 0} case(s) returned.`) : "No insolvency record returned in the checked records."}</p></section></div>
-      <section class="radar-panel"><div class="radar-panel-heading"><div><span class="radar-eyebrow">Source documents</span><h3>Recent relevant filings</h3><p>Selected filings from the latest records, with access to the originals.</p></div><div class="radar-filing-tools"><label>Filter <select data-radar-filing-filter>${["All", "Accounts", "Officers", "Charges", "Resolutions", "Other"].map(category => `<option value="${category}" ${filingFilter === category ? "selected" : ""}>${category}</option>`).join("")}</select></label>${sourceLink(filingLink, "Full history")}</div></div>${sectionState("Filing history", item.sections?.filings)}${filings.length ? `<div class="radar-filings">${filings.map(filing => `<div class="radar-filing"><div><strong>${esc(status(filing.type || filing.category))}</strong><span>${esc(date(filing.date))} · ${esc(status(filing.category))}${filing.pages ? ` · ${esc(filing.pages)} pages` : ""}</span></div><div class="radar-filing-actions">${filing.documentId ? sourceLink(`/api/company-document?number=${encodeURIComponent(item.number)}&id=${encodeURIComponent(filing.documentId)}&view=1`, "View PDF") : sourceLink(filingLink, "View filing history")}${filing.documentId ? `<button type="button" data-radar-download="${esc(filing.documentId)}" data-company-number="${esc(item.number)}">Download original</button>` : ""}</div></div>`).join("")}</div>` : '<p class="radar-empty-line">No filings in this filter were returned among the latest records.</p>'}<p class="radar-meta">Downloads are requested only when clicked. If a PDF is unavailable or too large, use the Companies House filing history.</p></section>`;
+      <section class="radar-panel"><div class="radar-panel-heading"><div><span class="radar-eyebrow">Source documents</span><h3>Filings</h3><p>Companies House filing history, with access to the originals.</p></div><div class="radar-filing-tools"><label>Filter <select data-radar-filing-filter>${["All", "Accounts", "Officers", "Charges", "Resolutions", "Other"].map(category => `<option value="${category}" ${filingFilter === category ? "selected" : ""}>${category}</option>`).join("")}</select></label>${sourceLink(filingLink, "Full history")}</div></div>${filingState.error ? `<p class="radar-unavailable" role="alert">${esc(filingState.error)} ${sourceLink(filingLink, "View on Companies House")}</p>` : ""}${filingState.loading ? '<p class="radar-meta" role="status">Loading filing history…</p>' : ""}${filings.length ? `<div class="radar-filings">${filings.map(filing => `<div class="radar-filing"><div><strong>${esc(status(filing.type || filing.category))}</strong><span>${esc(date(filing.date))} · ${esc(status(filing.category))}${filing.pages ? ` · ${esc(filing.pages)} pages` : ""}</span></div><div class="radar-filing-actions">${filing.documentId ? `<a href="/api/company-document?number=${encodeURIComponent(item.number)}&id=${encodeURIComponent(filing.documentId)}&view=1" target="_blank" rel="noopener noreferrer">View PDF</a>` : sourceLink(filingLink, "View filing history")}${filing.documentId ? `<button type="button" data-radar-download="${esc(filing.documentId)}" data-company-number="${esc(item.number)}">Download original</button>` : ""}</div></div>`).join("")}</div>` : filingState.complete ? '<p class="radar-empty-line">No filings in this filter.</p>' : ""}${pagination}<p class="radar-meta">Downloads are requested only when clicked. If a PDF is unavailable or too large, use the Companies House filing history.</p></section>`;
   }
   function render() {
     const searchFocused = document.activeElement?.id === "radar-query";
@@ -118,7 +124,7 @@
     if (!number) return;
     activeNumber = number;
     const cached = cache.get(number);
-    if (!force && cached && Date.now() - cached.storedAt < 120000) { data = cached.data; loading = false; error = ""; render(); return; }
+    if (!force && cached && Date.now() - cached.storedAt < 120000) { data = cached.data; loading = false; error = ""; render(); if (filingState.number !== number) fetchFilings(number); return; }
     const sequence = ++requestSequence;
     loading = true; error = ""; data = null; render();
     try {
@@ -128,8 +134,34 @@
       if (sequence !== requestSequence || number !== selectedNumber()) return;
       saveSnapshot(body);
       data = body; cache.set(number, { data: body, storedAt: Date.now() });
+      fetchFilings(number, force);
     } catch (cause) { if (sequence === requestSequence) error = cause.message; }
     if (sequence === requestSequence) { loading = false; render(); }
+  }
+  async function fetchFilings(number, force = false) {
+    if (!force && filingState.number === number && (filingState.loading || filingState.complete)) return;
+    const sequence = ++filingSequence;
+    filingPage = 1;
+    filingState = { number, filings: [], loading: true, complete: false, error: "" };
+    render();
+    try {
+      let start = 0;
+      while (true) {
+        const response = await fetch(`/api/company-filings?number=${encodeURIComponent(number)}&start_index=${start}`, { headers: { Accept: "application/json" } });
+        const body = await response.json();
+        if (!response.ok) throw new Error(body.error || "Could not retrieve filing history.");
+        if (sequence !== filingSequence || number !== selectedNumber()) return;
+        const batch = Array.isArray(body.filings) ? body.filings : [];
+        filingState.filings.push(...batch);
+        start += batch.length;
+        if (!batch.length || start >= body.total) break;
+      }
+      filingState.complete = true;
+    } catch (cause) {
+      if (sequence !== filingSequence) return;
+      filingState.error = cause.message;
+    }
+    if (sequence === filingSequence) { filingState.loading = false; render(); }
   }
   async function search(query) {
     const q = String(query || "").trim();
@@ -182,9 +214,11 @@
     searchTimer = setTimeout(() => search(value), 400);
   });
   root.addEventListener("change", event => {
-    if (event.target.matches("[data-radar-filing-filter]")) { filingFilter = event.target.value; render(); return; }
+    if (event.target.matches("[data-radar-filing-filter]")) { filingFilter = event.target.value; filingPage = 1; render(); return; }
   });
   root.addEventListener("click", event => {
+    const pageButton = event.target.closest("[data-radar-filing-page]");
+    if (pageButton) { filingPage = Number(pageButton.dataset.radarFilingPage); render(); return; }
     if (event.target.closest("[data-radar-role-toggle]")) { roleMenuOpen = true; render(); root.querySelector("[data-radar-role-option].active, [data-radar-role-option]")?.focus(); return; }
     const roleOption = event.target.closest("[data-radar-role-option]");
     if (roleOption) { const radar = radarStore(), entry = radar.companies.find(item => item.number === selectedNumber()); if (entry) { entry.role = roleOption.dataset.radarRoleOption; saveRadar(radar); roleMenuOpen = false; render(); root.querySelector("[data-radar-role-toggle]")?.focus(); } return; }

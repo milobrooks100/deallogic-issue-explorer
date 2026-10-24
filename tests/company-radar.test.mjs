@@ -1,6 +1,23 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { buildFlags, companyNumber, loadCompany, loadDocument, searchCompanies } from "../lib/company-radar.js";
+import { buildFlags, companyNumber, loadCompany, loadDocument, loadFilings, searchCompanies } from "../lib/company-radar.js";
+
+test("filing history requests later Companies House pages", async t => {
+  const oldFetch = globalThis.fetch;
+  const oldKey = process.env.COMPANIES_HOUSE_API_KEY;
+  process.env.COMPANIES_HOUSE_API_KEY = "test-key";
+  let requested;
+  globalThis.fetch = async url => {
+    requested = new URL(url);
+    return new Response(JSON.stringify({ total_count: 125, items: [{ transaction_id: "last-filing", category: "confirmation-statement" }] }), { status: 200 });
+  };
+  t.after(() => { globalThis.fetch = oldFetch; if (oldKey === undefined) delete process.env.COMPANIES_HOUSE_API_KEY; else process.env.COMPANIES_HOUSE_API_KEY = oldKey; });
+  const result = await loadFilings("12345678", 100);
+  assert.equal(requested.searchParams.get("start_index"), "100");
+  assert.equal(requested.searchParams.get("items_per_page"), "100");
+  assert.equal(result.total, 125);
+  assert.equal(result.filings[0].category, "confirmation-statement");
+});
 
 test("company numbers are constrained to register-style identifiers", () => {
   assert.equal(companyNumber(" sc123456 "), "SC123456");
