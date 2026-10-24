@@ -224,7 +224,7 @@
     if (pageButton) { filingPage = Number(pageButton.dataset.radarFilingPage); render(); return; }
     if (event.target.closest("[data-radar-role-toggle]")) { roleMenuOpen = true; render(); root.querySelector("[data-radar-role-option].active, [data-radar-role-option]")?.focus(); return; }
     const roleOption = event.target.closest("[data-radar-role-option]");
-    if (roleOption) { const radar = radarStore(), entry = radar.companies.find(item => item.number === selectedNumber()); if (entry) { entry.role = roleOption.dataset.radarRoleOption; saveRadar(radar); roleMenuOpen = false; render(); root.querySelector("[data-radar-role-toggle]")?.focus(); } return; }
+    if (roleOption) { const radar = radarStore(), entry = radar.companies.find(item => item.number === selectedNumber()); if (entry) { entry.role = roleOption.dataset.radarRoleOption; saveRadar(radar); roleMenuOpen = false; render(); if (event.detail === 0) root.querySelector("[data-radar-role-toggle]")?.focus(); } return; }
     const add = event.target.closest("[data-radar-add]");
     if (add) { addCompany(add.dataset.radarAdd, add.dataset.radarName); return; }
     const select = event.target.closest("[data-radar-select]");
