@@ -29,7 +29,7 @@ Browser persistence is accessed through `dist/app-storage.js`. That small adapte
 
 ## Company Radar
 
-Company Radar is a project-specific dashboard of public Companies House register data. Users can add several entities to a deal, review rule-based attention flags, open the original register pages, download available PDFs on demand, and add a finding to Deal Hub. Company selections are stored in this browser with the rest of the project. Register data is fetched when the section is opened or refreshed.
+Company Radar is a project-specific dashboard of public Companies House register data. Users can add several entities to a deal, review rule-based attention flags, open the original register pages, filter recent filings, download available PDFs on demand, and add a finding to Deal Hub. Individual attention flags can be marked reviewed; the app clears that mark if the flag's underlying detail changes. After a fresh check, it highlights changed register fields compared with the prior successful check. Company selections, review marks, and comparison snapshots are stored in this browser with the rest of the project. Register data is fetched when the section is opened or refreshed.
 
 The Vercel `api/` functions provide same-origin search, company summary and document-download routes. Register for a live Companies House API key and set `COMPANIES_HOUSE_API_KEY` in the Vercel project's environment variables for Preview and Production, then redeploy. Never add the key to `dist/` or commit a filled-in `.env` file. Local development can use `vercel dev` with the same environment variable; a plain static file server cannot run these functions.
 
