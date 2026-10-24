@@ -28,11 +28,11 @@
     ellipsisCircle: '<circle cx="12" cy="12" r="9"/><path d="M8 12h.01M12 12h.01M16 12h.01"/>'
   };
   const lucideNames = {
-    grid:'layout-grid', map:'map', book:'book-open', settings:'settings', check:'check', document:'file-text', shield:'shield-check', arrow:'arrow-right', search:'search', folder:'folder', clock:'clock', scale:'scale', wrench:'wrench', handshake:'handshake', circleCheck:'circle-check', filePenLine:'file-pen-line', shieldCheck:'shield-check', banknote:'banknote', fileSearch:'file-search', lockKeyhole:'lock-keyhole', arrowDownUp:'arrow-down-up', calendarCheck:'calendar-check', arrowCircle:'circle-arrow-right', arrowLeftRight:'arrow-left-right', ellipsisCircle:'ellipsis'
+    grid:'layout-grid', map:'map', book:'book-open', radar:'radar', settings:'settings', check:'check', document:'file-text', shield:'shield-check', arrow:'arrow-right', search:'search', folder:'folder', clock:'clock', scale:'scale', wrench:'wrench', handshake:'handshake', circleCheck:'circle-check', filePenLine:'file-pen-line', shieldCheck:'shield-check', banknote:'banknote', fileSearch:'file-search', lockKeyhole:'lock-keyhole', arrowDownUp:'arrow-down-up', calendarCheck:'calendar-check', arrowCircle:'circle-arrow-right', arrowLeftRight:'arrow-left-right', ellipsisCircle:'ellipsis'
   };
   const icon = name => `<i data-lucide="${lucideNames[name] || lucideNames.document}" aria-hidden="true"></i>`;
   const renderLucideIcons = () => window.lucide?.createIcons({ attrs: { 'stroke-width': 1.75 } });
-  const destinations = [['deal-map','Deal Map','map'],['deal-hub','Deal Hub','grid'],['action-library','Action Library','book'],['settings','Settings','settings']];
+  const destinations = [['deal-map','Deal Map','map'],['deal-hub','Deal Hub','grid'],['action-library','Action Library','book'],['company-radar','Company Radar','radar'],['settings','Settings','settings']];
   let currentView = 'deal-map';
   const main = document.querySelector('main');
   const top = document.createElement('div');

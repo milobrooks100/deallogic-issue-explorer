@@ -205,15 +205,19 @@
         settingsView.className = "settings-view";
         settingsView.innerHTML = '<div class="view-header"><h2>Settings</h2></div><div class="settings-card"><p>Settings will be added as DealLogic gains more features.</p></div>';
         libraryView.insertAdjacentElement("afterend", settingsView);
+        const radarView = document.createElement("section");
+        radarView.className = "company-radar-view screen-hidden";
+        settingsView.insertAdjacentElement("beforebegin", radarView);
         const menu = document.createElement("div");
         menu.className = "app-menu-wrap";
-        menu.innerHTML = '<button class="app-menu" type="button" aria-label="Open navigation menu">☰</button><div class="app-menu-list"><button data-view="deal-map">Deal Map</button><button data-view="deal-hub">Deal Hub</button><button data-view="action-library">Action Library</button><button data-view="settings">Settings</button></div>';
+        menu.innerHTML = '<button class="app-menu" type="button" aria-label="Open navigation menu">☰</button><div class="app-menu-list"><button data-view="deal-map">Deal Map</button><button data-view="deal-hub">Deal Hub</button><button data-view="action-library">Action Library</button><button data-view="company-radar">Company Radar</button><button data-view="settings">Settings</button></div>';
         appHeader.append(menu);
         const showView = (view) => {
           document.querySelector(".intro")?.classList.toggle("screen-hidden", view !== "deal-map");
           workspace.classList.toggle("screen-hidden", view !== "deal-map");
           document.querySelector(".deal-hub-view")?.classList.toggle("screen-hidden", view !== "deal-hub");
           libraryView.classList.toggle("screen-hidden", view !== "action-library");
+          radarView.classList.toggle("screen-hidden", view !== "company-radar");
           settingsView.style.display = view === "settings" ? "block" : "none";
           menu.querySelector(".app-menu-list").classList.remove("open");
           window.scrollTo({ top: 0, behavior: "smooth" });
@@ -498,7 +502,9 @@
     <link rel="stylesheet" href="./nusa-palette.css" />
     <link rel="stylesheet" href="./workflow-colours.css" />
     <link rel="stylesheet" href="./view-alignment.css?v=2" />
+    <link rel="stylesheet" href="./company-radar.css" />
     <script src="./workspace-redesign.js?v=1"></script>
+    <script src="./company-radar.js"></script>
     <script>
       const isMissingIpAssignment = (issue) => issue?.id === "missing-ip-assignment";
       const defaultRiskScore = riskScore;

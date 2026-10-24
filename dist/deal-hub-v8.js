@@ -18,6 +18,9 @@
     if(!Array.isArray(project.hub.issues))project.hub.issues=[];
     if(!Array.isArray(project.hub.actions))project.hub.actions=[];
     if(!Array.isArray(project.hub.groups))project.hub.groups=[];
+    const issuesBeforePruning=project.hub.issues.length;
+    project.hub.issues=project.hub.issues.filter(issue=>!String(issue.id).startsWith("company-radar:")||project.hub.actions.some(action=>action.issueId===issue.id));
+    if(project.hub.issues.length!==issuesBeforePruning)saveDealProjects(store);
     return project.hub;
   }
   let state=activeHub();
@@ -191,6 +194,14 @@
     state.actions.push({id:uid(),sourceKey:actionKey(issueId,item.side,item.title,item.instruction,action.id),stableActionId:action.id,issueId,side:item.side,icon:"◌",iconKey:action.icon,priority:"Consider",title:item.title,instruction:item.instruction,originalTitle:item.title,originalInstruction:item.instruction,status:statuses[0],dealPhase:libraryPhase(action.phase),urgency:"Medium",notes:"",createdAt:new Date().toISOString(),manual:true,selectionSource:"library"});
     save();renderHub();renderProjectRail();document.dispatchEvent(new CustomEvent("deal-hub-actions-change"));toast("Action added to Deal Hub");return true;
   };
+  window.addCompanyRadarAction = (company, flag) => {
+    const issueId = `company-radar:${company.number}`;
+    const sourceKey = `${issueId}:${flag.id}`;
+    if (state.actions.some(action => action.sourceKey === sourceKey)) { toast("This Company Radar action is already in Deal Hub"); return false; }
+    if (!issueById(issueId)) state.issues.push({ id: issueId, title: company.name, category: "Company Radar", risk: "Not assessed", summary: "Public register findings for this company.", answers: {}, capturedAt: new Date().toISOString(), sourceDocument: "Companies House", sourceClause: company.number, sourceUrl: company.url });
+    state.actions.push({ id: uid(), sourceKey, issueId, side: "Custom", iconKey: "file-search", priority: flag.level === "red" ? "High" : "Medium", title: `Review ${flag.title.toLowerCase()} for ${company.name}`, instruction: `${flag.detail} Source: ${flag.source || company.url}`, originalTitle: `Review ${flag.title.toLowerCase()} for ${company.name}`, originalInstruction: `${flag.detail} Source: ${flag.source || company.url}`, status: statuses[0], dealPhase: "Due Diligence", urgency: flag.level === "red" ? "High" : "Medium", notes: "", createdAt: new Date().toISOString(), manual: true, selectionSource: "company-radar" });
+    save(); renderHub(); renderProjectRail(); document.dispatchEvent(new CustomEvent("deal-hub-actions-change")); toast("Company Radar action added to Deal Hub"); return true;
+  };
   function issueMarkup(issue) {
     const actionCount=state.actions.filter(action=>action.issueId===issue.id).length;
     const answerEntries=Object.entries(issue.answers||{}).filter(([,value])=>value && value!=="Unanswered");
@@ -283,11 +294,11 @@
     if(event.target.closest("[data-export-csv]")){exportCsv();return;}
     if(event.target.closest("[data-export-doc]")){exportDoc();return;}
     if(event.target.closest("[data-go-map]")){window.showDealLogicView?.("deal-map");return;}
-    const open=event.target.closest("[data-open-issue]");if(open){selectedId=open.dataset.openIssue;const source=(typeof issues!=="undefined"?issues:[]).find(item=>item.id===selectedId);if(source){openArea=source.category;loadAnswers();renderMap();renderPanel();window.showDealLogicView?.("deal-map");}return;}
+    const open=event.target.closest("[data-open-issue]");if(open){if(open.dataset.openIssue.startsWith("company-radar:")){window.showDealLogicView?.("company-radar");return;}selectedId=open.dataset.openIssue;const source=(typeof issues!=="undefined"?issues:[]).find(item=>item.id===selectedId);if(source){openArea=source.category;loadAnswers();renderMap();renderPanel();window.showDealLogicView?.("deal-map");}return;}
     const refresh=event.target.closest("[data-refresh-issue]");if(refresh){refreshIssue(refresh.dataset.refreshIssue);return;}
     const edit=event.target.closest("[data-edit-action]");if(edit){const card=edit.closest(".hub-item");if(card){card.outerHTML=actionMarkup(actionById(edit.dataset.editAction),!card.querySelector(".hub-editor"));}else{const row=edit.closest("tr[data-action-id]");if(row?.closest(".hub-table")){const editor=row.nextElementSibling?.matches(`[data-table-editor-for="${CSS.escape(edit.dataset.editAction)}"]`)?row.nextElementSibling:null;if(editor){editor.remove();}else{row.insertAdjacentHTML("afterend",tableEditorMarkup(actionById(edit.dataset.editAction)));}}}return;}
     const saveButton=event.target.closest("[data-save-action]");if(saveButton){const action=actionById(saveButton.dataset.saveAction),editor=saveButton.closest(".hub-item,.hub-table-editor");if(!action||!editor)return;editor.querySelectorAll("[data-action-field]").forEach(field=>{action[field.dataset.actionField]=field.value;});save();renderHub();toast("Action updated");return;}
-    const remove=event.target.closest("[data-delete-action]");if(remove){if(remove.dataset.confirm!=="yes"){remove.dataset.confirm="yes";remove.textContent="Click again to remove";return;}state.actions=state.actions.filter(action=>action.id!==remove.dataset.deleteAction);save();renderHub();document.dispatchEvent(new CustomEvent("deal-hub-actions-change"));toast("Action removed from Deal Hub");}
+    const remove=event.target.closest("[data-delete-action]");if(remove){if(remove.dataset.confirm!=="yes"){remove.dataset.confirm="yes";remove.textContent="Click again to remove";return;}state.actions=state.actions.filter(action=>action.id!==remove.dataset.deleteAction);state.issues=state.issues.filter(issue=>!String(issue.id).startsWith("company-radar:")||state.actions.some(action=>action.issueId===issue.id));save();renderHub();document.dispatchEvent(new CustomEvent("deal-hub-actions-change"));toast("Action removed from Deal Hub");}
     const deleteProject=event.target.closest("[data-delete-deal-project]");if(deleteProject){
       if(deleteProject.dataset.confirm!=="yes"){deleteProject.dataset.confirm="yes";deleteProject.textContent="Click again to delete";return;}
       const store=getDealProjects(),id=deleteProject.dataset.deleteDealProject;

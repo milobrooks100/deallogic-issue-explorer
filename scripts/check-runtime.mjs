@@ -11,6 +11,7 @@ const activeScripts = [
   "action-registry.js",
   "deal-hub-v8.js",
   "workspace-redesign.js",
+  "company-radar.js",
   "deal-logic-templates.js",
   "action-playbooks.js"
 ];
