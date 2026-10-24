@@ -106,10 +106,10 @@
       if(heading.dataset.vector)return;
       const actionId=heading.closest('[data-action-id]')?.dataset.actionId;
       const savedAction=activeDealProject().hub.actions.find(action=>action.id===actionId);
-      if(savedAction?.manual && savedAction.selectionSource!=="library")return;
+      if(savedAction?.manual && !["library", "company-radar"].includes(savedAction.selectionSource))return;
       const title=heading.textContent.replace(/^\S+\s/,'');
       const iconKeyMap={'file-text':'document','circle-arrow-right':'arrowCircle','file-pen-line':'filePenLine','shield-check':'shieldCheck','circle-check':'circleCheck','file-search':'fileSearch','arrow-down-up':'arrowDownUp','calendar-check':'calendarCheck','arrow-left-right':'arrowLeftRight','ellipsis':'ellipsisCircle'};
-      const symbol=iconKeyMap[savedAction?.iconKey] || savedAction?.iconKey || actionLibraryIcons[title] || (/warranty|indemnity|consent/i.test(title)?'shieldCheck':/completion|condition/i.test(title)?'circleCheck':'document');
+      const symbol=savedAction?.selectionSource === 'company-radar' ? 'ellipsisCircle' : iconKeyMap[savedAction?.iconKey] || savedAction?.iconKey || actionLibraryIcons[title] || (/warranty|indemnity|consent/i.test(title)?'shieldCheck':/completion|condition/i.test(title)?'circleCheck':'document');
       heading.closest('.hub-item')?.setAttribute('data-action-icon', symbol);
       const label=document.createElement('span');label.textContent=title;
       heading.replaceChildren();heading.insertAdjacentHTML('afterbegin',icon(symbol));heading.append(label);heading.dataset.vector='true';
