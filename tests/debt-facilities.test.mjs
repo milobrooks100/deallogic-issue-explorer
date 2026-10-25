@@ -9,11 +9,16 @@ const issue = issues.find(item => item.id === "debt-facilities-repayment");
 let markup = "";
 const card = { querySelector: () => ({}), replaceChildren: () => {}, insertAdjacentHTML: (_where, html) => { markup = html; }, querySelectorAll: () => [] };
 const summaryNode = { textContent: "" };
-const context = vm.createContext({ answers: {}, current: () => issue, riskScore: () => 99, renderPanel: () => {}, renderLogic: () => {}, document: { querySelector: selector => selector === ".content-grid > .card" ? card : summaryNode } });
-vm.runInContext(source.replace(/\}\)\(\);\s*$/, "globalThis.__debtTest = { options, debtSummary }; })();"), context);
+const implicationsNode = { children: [], replaceChildren(...children) { this.children = children; } };
+const context = vm.createContext({ answers: {}, current: () => issue, riskScore: () => 99, renderPanel: () => {}, renderLogic: () => {}, document: {
+  querySelector: selector => selector === ".content-grid > .card" ? card : selector === "#logic-card .logic-conclusion" ? summaryNode : selector === "#logic-card .logic-section:nth-of-type(2) ul" ? implicationsNode : null,
+  createElement: tag => ({ tag, textContent: "" })
+} });
+vm.runInContext(source.replace(/\}\)\(\);\s*$/, "globalThis.__debtTest = { options, debtSummary, debtImplications }; })();"), context);
 const score = answers => { context.answers = answers; return context.riskScore(); };
 const questions = answers => { context.answers = answers; context.renderPanel(); return markup; };
 const summary = answers => { context.answers = answers; context.renderLogic(issue); return summaryNode.textContent; };
+const implications = answers => { context.answers = answers; context.renderLogic(issue); return implicationsNode.children.map(item => item.textContent); };
 
 test("debt questions have distinct answer keys", () => {
   assert.equal(issue.key_questions.length, 7);
@@ -78,6 +83,40 @@ test("every valid answer combination produces readable summary sentences", () =>
       assert.ok(text.length > 20);
       assert.match(text, /\.$/);
       assert.doesNotMatch(text, /\b(?:undefined|null|Unanswered)\b/);
+      count += 1;
+      return;
+    }
+    const [id, choices] = entries[index];
+    for (const choice of choices) { selected[id] = choice; visit(index + 1); }
+  };
+  visit(0);
+  assert.equal(count, 112500);
+});
+
+test("debt implications change with the transaction route and open completion risks", () => {
+  const base = { "debt-obligations": "Yes — finance obligations or security exist" };
+  assert.deepEqual(implications({ "debt-obligations": "No — confirmed from finance documents and charge records" }), ["No debt-specific completion step is currently indicated."]);
+  assert.match(implications({ ...base, "debt-transaction-effect": "Repayment or cancellation required", "debt-funding": "No — shortfall or timing gap" }).join(" "), /funding shortfall/);
+  assert.match(implications({ ...base, "debt-transaction-effect": "Lender consent or waiver required to continue", "debt-consent": "Not yet sought" }).join(" "), /must be sought/);
+  const both = implications({ ...base, "debt-transaction-effect": "Both repayment and lender consent or waiver required", "debt-consent": "No — lender has declined or required terms are unmet", "debt-funding": "No — shortfall or timing gap", "debt-releases": "No — required releases are unresolved" });
+  assert.equal(both.length, 3);
+  assert.match(both[0], /lender's refusal/);
+  assert.match(both[1], /funding shortfall/);
+  assert.match(both[2], /release package/);
+});
+
+test("all answer combinations produce one to three complete implications", () => {
+  const entries = Object.entries(context.__debtTest.options);
+  const selected = {};
+  let count = 0;
+  const visit = index => {
+    if (index === entries.length) {
+      const lines = implications(selected);
+      assert.ok(lines.length >= 1 && lines.length <= 3);
+      for (const line of lines) {
+        assert.match(line, /^[A-Z].*\.$/);
+        assert.doesNotMatch(line, /\b(?:undefined|null|Unanswered)\b/);
+      }
       count += 1;
       return;
     }
