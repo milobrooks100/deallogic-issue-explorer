@@ -37,6 +37,7 @@
     visible.push(ids[6]);
     return visible;
   };
+  const debtAnswersComplete = () => visibleIds().every(id => isKnown(answer(id)));
 
   const debtRiskScore = () => {
     const existence = answer(ids[0]);
@@ -219,12 +220,11 @@
     D11: ["Debt and price mechanism", "Define how principal, interest, fees, break costs and hedging amounts affect consideration without counting the payoff twice."],
     D12: ["Finance warranties and disclosure", "Cover facilities, security, amounts outstanding, defaults and required lender consents, with specific disclosure of exceptions."],
     D13: ["Charge-register update", "After actual repayment or release, arrange any appropriate Companies House record update."],
-    D14: ["APA excluded liabilities", "Specify which finance liabilities the buyer assumes, exclude the others, and obtain any necessary creditor consent or novation."]
+    D14: ["APA excluded liabilities", "In cases of asset sales, specify which finance liabilities the buyer assumes, exclude the others, and obtain any necessary creditor consent or novation."]
   };
   const priorityRank = { Required: 3, Recommended: 2, Consider: 1 };
   const actionOrder = ["D06", "D04", "D07", "D08", "D09", "D02", "D03", "D10", "D11", "D14", "D01", "D12", "D05", "D13"];
-  const debtStructure = () => answer("debt-structure") === "APA" ? "APA" : "SPA";
-  const debtActions = (side = getTransactionSide(), structure = debtStructure()) => {
+  const debtActions = (side = getTransactionSide()) => {
     const selected = new Map();
     const add = (id, buyer, seller, balanced) => {
       const priority = { Buyer: buyer, Seller: seller, Balanced: balanced }[side] || balanced;
@@ -243,7 +243,7 @@
         add("D11", "Recommended", "Recommended", "Recommended");
         add("D12", "Recommended", "Required", "Recommended");
       }
-      if (structure === "APA") add("D14", confirmed ? "Required" : "Recommended", confirmed ? "Recommended" : "Consider", confirmed ? "Required" : "Recommended");
+      add("D14", "Recommended", "Consider", "Recommended");
       if (!effectUnknown && effect !== options[ids[1]][1]) {
         const repay = repaymentRequired(effect);
         const consent = consentRequired(effect);
@@ -286,14 +286,6 @@
       .slice(0, 10);
   };
 
-  document.addEventListener("click", event => {
-    const choice = event.target.closest("[data-debt-structure]");
-    if (!choice || !isDebt()) return;
-    answers["debt-structure"] = choice.dataset.debtStructure;
-    DealLogicStorage.setItem(storedKey(), JSON.stringify(answers));
-    renderLogic(current());
-  });
-
   const previousRenderPanel = renderPanel;
   renderPanel = function () {
     previousRenderPanel();
@@ -321,6 +313,13 @@
   renderLogic = function (issue) {
     previousRenderLogic(issue);
     if (issue?.id !== issueId) return;
+    const logicCard = document.querySelector("#logic-card");
+    if (!debtAnswersComplete()) {
+      logicCard.classList.add("logic-standby");
+      logicCard.innerHTML = `<h3>Apply deal logic</h3><p>Turn the recorded facts into a clear transaction response.</p>`;
+      return;
+    }
+    logicCard.classList.remove("logic-standby");
     const summary = document.querySelector("#logic-card .logic-conclusion");
     if (summary) summary.textContent = debtSummary();
     const implications = document.querySelector("#logic-card .logic-section:nth-of-type(2) ul");
@@ -332,12 +331,10 @@
     const actionSection = document.querySelector("#logic-card .logic-section:nth-of-type(3)");
     if (actionSection) {
       const side = getTransactionSide();
-      const structure = debtStructure();
-      const actions = debtActions(side, structure);
-      const structurePicker = `<div class="logic-side-picker" aria-label="Transaction structure" style="justify-content:flex-start;margin:0 0 12px"><button type="button" data-debt-structure="SPA" class="${structure === "SPA" ? "active" : ""}">Share sale</button><button type="button" data-debt-structure="APA" class="${structure === "APA" ? "active" : ""}">Asset sale</button></div>`;
+      const actions = debtActions(side);
       const sidePicker = `<div class="logic-side-picker" aria-label="Transaction side selector"><button type="button" class="active" data-logic-side-toggle>${side}</button></div>`;
       const actionMarkup = actions.length ? actions.map(({ id, priority, title, description }) => `<div class="logic-action" data-action-id="${id}"><span class="logic-icon">◌</span><div><span class="logic-priority" data-level="${priority.toLowerCase()}">${priority}</span><strong>${title}</strong><span>${description}</span></div></div>`).join("") : `<p>There are no active transaction actions on the information recorded.</p>`;
-      actionSection.innerHTML = `<div class="logic-section-heading"><h4>Recommended actions</h4>${sidePicker}</div>${structurePicker}${actionMarkup}`;
+      actionSection.innerHTML = `<div class="logic-section-heading"><h4>Recommended actions</h4>${sidePicker}</div>${actionMarkup}`;
     }
   };
 })();
