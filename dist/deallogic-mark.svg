@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" role="img" aria-label="Deal Logic layered mark">
+  <defs>
+    <linearGradient id="peach" x1="0" x2="1" y1="0" y2="1"><stop stop-color="#ff8b70"/><stop offset="1" stop-color="#ffb46e"/></linearGradient>
+    <linearGradient id="purple" x1="0" x2="1" y1="0" y2="1"><stop stop-color="#bf5cff"/><stop offset="1" stop-color="#9348ed"/></linearGradient>
+    <linearGradient id="blue" x1="0" x2="1" y1="0" y2="1"><stop stop-color="#32a8ff"/><stop offset="1" stop-color="#2478f4"/></linearGradient>
+  </defs>
+  <path d="M12 82 58 59a13 13 0 0 1 12 0l46 23a7 7 0 0 1 0 12l-46 25a13 13 0 0 1-12 0L12 94a7 7 0 0 1 0-12Z" fill="url(#peach)"/>
+  <path d="M12 58 58 35a13 13 0 0 1 12 0l46 23a7 7 0 0 1 0 12L70 95a13 13 0 0 1-12 0L12 70a7 7 0 0 1 0-12Z" fill="url(#purple)" stroke="#fff" stroke-opacity=".35" stroke-width="1.5"/>
+  <path d="M12 34 58 11a13 13 0 0 1 12 0l46 23a7 7 0 0 1 0 12L70 71a13 13 0 0 1-12 0L12 46a7 7 0 0 1 0-12Z" fill="url(#blue)" stroke="#fff" stroke-opacity=".45" stroke-width="1.5"/>
+</svg>
