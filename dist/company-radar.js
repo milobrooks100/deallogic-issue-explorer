@@ -14,10 +14,10 @@
   let data = null, loading = false, error = "", results = [], searchError = "", searchMoreError = "", searching = false, searchingMore = false, searchHasMore = false, searchOffset = 0, searchTerm = "", searchTimer = 0, searchSequence = 0, searchQuery = "";
   let activeNumber = "", requestSequence = 0, filingFilter = "All", filingPage = 1, filingSequence = 0, filingState = { number: "", filings: [], loading: false, complete: false, error: "" }, roleMenuOpen = false;
   const snapshotFields = [
-    ["name", "Registered name"], ["status", "Register status"], ["address", "Registered office"],
+    ["name", "Registered name"], ["status", "Register status"], ["statusDetail", "Register status detail"], ["address", "Registered office"], ["type", "Company type"], ["sicCodes", "SIC codes"],
     ["accountsDue", "Accounts due date"], ["accountsOverdue", "Accounts overdue marker"],
     ["confirmationDue", "Confirmation statement due date"], ["confirmationOverdue", "Confirmation statement overdue marker"],
-    ["officers", "Current officers"], ["psc", "Current PSC entries"], ["charges", "Open charges"], ["latestFiling", "Latest filing"]
+    ["officers", "Current officers"], ["psc", "Current PSC entries"], ["pscStatements", "PSC statements"], ["charges", "Open charges"], ["latestFiling", "Latest filing"]
   ];
 
   function radarStore() {
@@ -34,12 +34,13 @@
   }
   function snapshot(item) {
     return {
-      name: item.name, status: item.status, address: item.address,
+      name: item.name, status: item.status, statusDetail: item.statusDetail, address: item.address, type: item.type, sicCodes: [...(item.sicCodes || [])].sort().join(", "),
       accountsDue: item.accounts?.next_accounts?.due_on || "", accountsOverdue: item.accounts?.next_accounts?.overdue === true,
       confirmationDue: item.confirmationStatement?.next_due || "", confirmationOverdue: item.confirmationStatement?.overdue === true,
-      officers: (item.officers || []).map(person => person.name).sort().join("; "),
-      psc: (item.psc || []).map(person => person.name).sort().join("; "),
-      charges: (item.charges || []).length,
+      officers: (item.officers || []).map(person => [person.name, person.role, person.appointedOn].join(" | ")).sort().join("; "),
+      psc: (item.psc || []).map(person => [person.name, ...(person.control || [])].join(" | ")).sort().join("; "),
+      pscStatements: (item.pscStatements || []).map(person => person.statement).sort().join("; "),
+      charges: (item.charges || []).map(charge => [charge.id, charge.status].join(" | ")).sort().join("; "),
       latestFiling: item.filings?.[0]?.id || ""
     };
   }
@@ -48,14 +49,14 @@
     const entry = radar.companies.find(company => company.number === item.number);
     if (!entry) return;
     const next = snapshot(item);
-    const sectionKeys = { officers: ["officers"], psc: ["psc"], charges: ["charges"], filings: ["latestFiling"] };
+    const sectionKeys = { officers: ["officers"], psc: ["psc"], pscStatements: ["pscStatements"], charges: ["charges"], filings: ["latestFiling"] };
     for (const [section, keys] of Object.entries(sectionKeys)) {
       if (item.sections?.[section] === "ok" || item.sections?.[section] === "not-listed") continue;
       for (const key of keys) next[key] = entry.snapshot?.[key] ?? next[key];
     }
     if (entry.snapshot) {
-      const changes = snapshotFields.filter(([key]) => JSON.stringify(entry.snapshot[key]) !== JSON.stringify(next[key])).map(([, label]) => label);
-      if (changes.length) entry.changes = { at: item.fetchedAt, items: changes };
+      const details = snapshotFields.filter(([key]) => Object.hasOwn(entry.snapshot, key) && JSON.stringify(entry.snapshot[key]) !== JSON.stringify(next[key])).map(([key, label]) => ({ key, label, before: String(entry.snapshot[key] ?? "Not shown"), after: String(next[key] ?? "Not shown") }));
+      if (details.length) entry.changes = { at: item.fetchedAt, items: details.map(change => change.label), details };
     }
     entry.snapshot = next;
     entry.lastCheckedAt = item.fetchedAt;
@@ -73,8 +74,9 @@
     return `<article class="radar-flag radar-${esc(flag.level)}"><div class="radar-flag-top"><span class="radar-status"><span class="radar-dot" aria-hidden="true"></span>${esc(flag.level === "red" ? "Attention" : flag.level === "amber" ? "Review" : flag.level === "green" ? "No exception found" : "Not checked")}${reviewed ? " · Reviewed" : ""}</span><h4>${esc(flag.title)}</h4></div><p>${esc(flag.detail)}</p><div class="radar-flag-actions">${flag.source ? sourceLink(flag.source, "Source record") : ""}<button type="button" data-radar-action="${esc(flag.id)}" data-company-number="${esc(number)}">Add action</button><button type="button" data-radar-review="${esc(flag.id)}">${reviewed ? "Mark unreviewed" : "Mark reviewed"}</button></div></article>`;
   }
   function flagsFor(item) {
-    const unavailable = Object.entries(item.sections || {}).filter(([, state]) => state === "unavailable").map(([name]) => name);
-    return [...(item.flags || []), ...(unavailable.length ? [{ id: "unavailable", level: "grey", title: "Some records were not checked", detail: `Unavailable: ${unavailable.join(", ")}.`, source: item.url }] : [])];
+    const saved = radarStore().companies.find(company => company.number === item.number);
+    const changes = saved?.changes?.at === item.fetchedAt ? saved.changes.details || [] : [];
+    return [...(item.flags || []), ...changes.filter(change => ["name", "status", "statusDetail", "address", "type", "sicCodes", "officers", "psc", "pscStatements", "charges"].includes(change.key)).map(change => ({ id: `change-${change.key}`, level: "amber", title: `${change.label} changed`, detail: `Previous: ${change.before || "Not shown"}. Current: ${change.after || "Not shown"}. Verify the change against the source record.`, source: item.url }))];
   }
   function fact(label, value) { return `<div class="radar-fact"><dt>${esc(label)}</dt><dd>${esc(value || "Not shown")}</dd></div>`; }
   function rolePicker(number, radar) {

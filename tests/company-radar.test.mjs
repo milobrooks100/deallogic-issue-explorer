@@ -30,10 +30,25 @@ test("flags distinguish recorded exceptions from review points", () => {
   const sections = { charges: { data: { items: [{ status: "outstanding" }, { status: "fully-satisfied" }] } }, insolvency: { data: null } };
   const flags = buildFlags(profile, sections, new Date("2026-10-24T00:00:00Z"));
   assert.equal(flags.find(flag => flag.id === "accounts").level, "red");
-  assert.equal(flags.find(flag => flag.id === "charges").level, "amber");
+  assert.equal(flags.find(flag => flag.id.startsWith("charge-")).level, "amber");
   assert.equal(flags.find(flag => flag.id === "confirmation").level, "amber");
   assert.equal(flags.find(flag => flag.id === "status").level, "green");
   assert.equal(flags.some(flag => flag.id === "insolvency"), false);
+});
+
+test("granular checks identify register events, people, filings and incomplete coverage", () => {
+  const profile = { company_number: "12345678", company_status: "active", registered_office_is_in_dispute: true, undeliverable_registered_office_address: true, accounts: { next_accounts: { due_on: "2026-10-01", overdue: false }, last_accounts: { period_end_on: "2024-01-01", type: "total-exemption-full" } }, confirmation_statement: { next_due: "2026-10-30", last_made_up_to: "2025-10-30" } };
+  const sections = {
+    charges: { status: "partial", data: { items: [{ id: "abc", status: "part-satisfied", created_on: "2025-01-01", persons_entitled: [{ name: "Bank" }] }] } },
+    officers: { status: "partial", data: { items: [{ name: "A Director", appointed_on: "2026-10-10" }, { name: "Former Director", resigned_on: "2026-09-01" }] } },
+    psc: { status: "ok", data: { items: [{ name: "Controller", natures_of_control: [] }] } },
+    pscStatements: { status: "ok", data: { items: [{ statement: "no-individual-or-entity-with-signficant-control" }] } },
+    filings: { status: "ok", data: { items: [{ transaction_id: "x", date: "2026-10-20", category: "resolution", description: "special-resolution" }] } }
+  };
+  const flags = buildFlags(profile, sections, new Date("2026-10-25T00:00:00Z"));
+  for (const id of ["office-dispute", "office-undeliverable", "accounts-date", "accounts-old", "confirmation", "charge-abc", "charges-partial", "officers-partial", "psc-control-0", "psc-statement-0", "filing-x"]) assert.ok(flags.some(flag => flag.id === id), id);
+  assert.equal(flags.filter(flag => flag.title.startsWith("Recent officer")).length, 2);
+  assert.match(flags.find(flag => flag.id === "charge-abc").detail, /Bank/);
 });
 
 test("company lookup keeps partial data visible when a secondary resource fails", async t => {
