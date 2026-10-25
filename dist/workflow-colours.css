@@ -1,6 +1,7 @@
 /* Colour is reserved for workflow context; the shell remains neutral. */
+:root { --workflow-summary-gradient: linear-gradient(110deg, #e8f0f7 0%, #f0ecf6 48%, #f8eee5 100%); }
 .workspace-metrics {
-  background: linear-gradient(110deg, #e8f0f7 0%, #f0ecf6 48%, #f8eee5 100%);
+  background: var(--workflow-summary-gradient);
 }
 
 .metric:nth-child(1) .metric-icon { background: #e6f0f7; color: #587b91; }
