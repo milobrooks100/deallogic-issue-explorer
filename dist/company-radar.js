@@ -9,6 +9,7 @@
   };
   const status = value => { const label = String(value || "Not shown").replaceAll("-", " "); return label[0].toUpperCase() + label.slice(1); };
   const roles = ["Target", "Buyer", "Seller", "Subsidiary", "Other"];
+  const expandedFlags = new Set();
   let sidebarCollapsed = DealLogicStorage.getItem("deallogic:radar-sidebar-collapsed") === "true";
   const cache = new Map();
   let data = null, loading = false, error = "", results = [], searchError = "", searchMoreError = "", searching = false, searchingMore = false, searchHasMore = false, searchOffset = 0, searchTerm = "", searchTimer = 0, searchSequence = 0, searchQuery = "";
@@ -70,8 +71,9 @@
     return `<a href="${esc(url)}" target="_blank" rel="noopener noreferrer">${esc(label)} <span aria-hidden="true">↗</span></a>`;
   }
   function flagMarkup(flag, number, reviews = {}) {
-    const reviewed = reviews[flag.id] === `${flag.title}|${flag.detail}`;
-    return `<article class="radar-flag radar-${esc(flag.level)}"><div class="radar-flag-top"><span class="radar-status"><span class="radar-dot" aria-hidden="true"></span>${esc(flag.level === "red" ? "Attention" : flag.level === "amber" ? "Review" : flag.level === "green" ? "No exception found" : "Not checked")}${reviewed ? " · Reviewed" : ""}</span><h4>${esc(flag.title)}</h4></div><p>${esc(flag.detail)}</p><div class="radar-flag-actions">${flag.source ? sourceLink(flag.source, "Source record") : ""}<button type="button" data-radar-action="${esc(flag.id)}" data-company-number="${esc(number)}">Add action</button><button type="button" data-radar-review="${esc(flag.id)}">${reviewed ? "Mark unreviewed" : "Mark reviewed"}</button></div></article>`;
+    const reviewed = reviews[flag.id] === (flag.reviewKey || `${flag.title}|${flag.detail}`);
+    const items = flag.items?.length ? `<details class="radar-flag-details" data-radar-details="${esc(flag.id)}" ${expandedFlags.has(`${number}:${flag.id}`) ? "open" : ""}><summary>View ${flag.items.length} record${flag.items.length === 1 ? "" : "s"}</summary><ul>${flag.items.map(item => `<li><span>${esc(item.date || "Date not shown")}</span><strong>${esc(item.label)}</strong></li>`).join("")}</ul></details>` : "";
+    return `<article class="radar-flag radar-${esc(flag.level)}"><div class="radar-flag-top"><span class="radar-status"><span class="radar-dot" aria-hidden="true"></span>${esc(flag.level === "red" ? "Attention" : flag.level === "amber" ? "Review" : flag.level === "green" ? "No exception found" : "Not checked")}${reviewed ? " · Reviewed" : ""}</span><h4>${esc(flag.title)}</h4></div><p>${esc(flag.detail)}</p>${items}<div class="radar-flag-actions">${flag.source ? sourceLink(flag.source, "Source record") : ""}<button type="button" data-radar-action="${esc(flag.id)}" data-company-number="${esc(number)}">Add action</button><button type="button" data-radar-review="${esc(flag.id)}">${reviewed ? "Mark unreviewed" : "Mark reviewed"}</button></div></article>`;
   }
   function flagsFor(item) {
     const saved = radarStore().companies.find(company => company.number === item.number);
@@ -290,12 +292,13 @@
     if (event.target.closest("[data-radar-remove]")) { const radar = radarStore(), number = selectedNumber(); radar.companies = radar.companies.filter(item => item.number !== number); radar.selectedNumber = radar.companies[0]?.number || ""; saveRadar(radar); roleMenuOpen = false; data = null; render(); if (radar.selectedNumber) fetchDashboard(radar.selectedNumber); return; }
     if (event.target.closest("[data-radar-clear-changes]")) { const radar = radarStore(), entry = radar.companies.find(item => item.number === selectedNumber()); if (entry) { delete entry.changes; saveRadar(radar); render(); } return; }
     const review = event.target.closest("[data-radar-review]");
-    if (review && data) { const flag = flagsFor(data).find(item => item.id === review.dataset.radarReview); const radar = radarStore(), entry = radar.companies.find(item => item.number === data.number); if (flag && entry) { entry.reviewedFlags ||= {}; const mark = `${flag.title}|${flag.detail}`; if (entry.reviewedFlags[flag.id] === mark) delete entry.reviewedFlags[flag.id]; else entry.reviewedFlags[flag.id] = mark; saveRadar(radar); render(); } return; }
+    if (review && data) { const flag = flagsFor(data).find(item => item.id === review.dataset.radarReview); const radar = radarStore(), entry = radar.companies.find(item => item.number === data.number); if (flag && entry) { entry.reviewedFlags ||= {}; const mark = flag.reviewKey || `${flag.title}|${flag.detail}`; if (entry.reviewedFlags[flag.id] === mark) delete entry.reviewedFlags[flag.id]; else entry.reviewedFlags[flag.id] = mark; saveRadar(radar); render(); } return; }
     const action = event.target.closest("[data-radar-action]");
     if (action && data) { const flag = flagsFor(data).find(item => item.id === action.dataset.radarAction); if (flag) window.addCompanyRadarAction?.(data, flag); return; }
     const documentButton = event.target.closest("[data-radar-download]");
     if (documentButton) download(documentButton.dataset.companyNumber, documentButton.dataset.radarDownload, documentButton);
   });
+  root.addEventListener("toggle", event => { const details = event.target.closest?.("[data-radar-details]"); if (!details) return; const key = `${selectedNumber()}:${details.dataset.radarDetails}`; if (details.open) expandedFlags.add(key); else expandedFlags.delete(key); }, true);
   root.addEventListener("scroll", event => {
     const list = event.target;
     if (list.matches?.(".radar-search-state ul") && list.scrollTop + list.clientHeight >= list.scrollHeight - 40) loadMoreSearch();

@@ -46,9 +46,25 @@ test("granular checks identify register events, people, filings and incomplete c
     filings: { status: "ok", data: { items: [{ transaction_id: "x", date: "2026-10-20", category: "resolution", description: "special-resolution" }] } }
   };
   const flags = buildFlags(profile, sections, new Date("2026-10-25T00:00:00Z"));
-  for (const id of ["office-dispute", "office-undeliverable", "accounts-date", "accounts-old", "confirmation", "charge-abc", "charges-partial", "officers-partial", "psc-control-0", "psc-statement-0", "filing-x"]) assert.ok(flags.some(flag => flag.id === id), id);
-  assert.equal(flags.filter(flag => flag.title.startsWith("Recent officer")).length, 2);
+  for (const id of ["office-dispute", "office-undeliverable", "accounts-date", "accounts-old", "confirmation", "charge-abc", "charges-partial", "officers-partial", "psc-control-0", "psc-statement-0", "recent-filings", "recent-officers"]) assert.ok(flags.some(flag => flag.id === id), id);
+  assert.equal(flags.find(flag => flag.id === "recent-officers").items.length, 2);
+  assert.match(flags.find(flag => flag.id === "recent-officers").detail, /1 appointment and 1 resignation/);
+  assert.equal(flags.find(flag => flag.id === "recent-filings").items.length, 1);
   assert.match(flags.find(flag => flag.id === "charge-abc").detail, /Bank/);
+});
+
+test("many recent records create one tile per category and review identity changes with its contents", () => {
+  const profile = { company_number: "12345678", company_status: "active" };
+  const filings = Array.from({ length: 40 }, (_, index) => ({ transaction_id: `f${index}`, date: "2026-10-01", category: "capital", description: `filing-${index}` }));
+  const officers = Array.from({ length: 15 }, (_, index) => ({ name: `Officer ${index}`, appointed_on: "2026-10-01" }));
+  const sections = { filings: { status: "ok", data: { items: filings } }, officers: { status: "ok", data: { items: officers } } };
+  const first = buildFlags(profile, sections, new Date("2026-10-25T00:00:00Z"));
+  assert.equal(first.filter(flag => flag.id === "recent-filings").length, 1);
+  assert.equal(first.find(flag => flag.id === "recent-filings").items.length, 40);
+  assert.equal(first.find(flag => flag.id === "recent-officers").items.length, 15);
+  filings[0].description = "amended filing";
+  const second = buildFlags(profile, sections, new Date("2026-10-25T00:00:00Z"));
+  assert.notEqual(first.find(flag => flag.id === "recent-filings").reviewKey, second.find(flag => flag.id === "recent-filings").reviewKey);
 });
 
 test("company lookup keeps partial data visible when a secondary resource fails", async t => {
