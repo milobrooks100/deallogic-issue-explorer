@@ -5,7 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="theme-color" content="#f2f2f0" />
     <meta name="description" content="A prototype for structured M&A issue analysis." />
-    <title>DealLogic — Issue Explorer</title>
+    <link rel="icon" type="image/svg+xml" href="./deallogic-mark.svg" />
+    <title>Deal Logic — Issue Explorer</title>
     <script type="module" src="https://cdn.jsdelivr.net/npm/emoji-picker-element@1/index.js"></script>
     <script src="https://unpkg.com/lucide@0.468.0/dist/umd/lucide.min.js"></script>
     <script src="./app-storage.js?v=1"></script>
@@ -28,7 +29,7 @@
     </style>
   </head>
   <body>
-    <header><div class="brand"><div><h1>DealLogic</h1><p>Structured M&A issue analysis</p></div><span class="badge">Prototype · v0.2 data model</span></div></header>
+    <header><div class="brand"><div><h1><img src="./deallogic-mark.svg" alt="" width="40" height="40" /><span><strong>Deal</strong> Logic</span></h1><p>Structured M&A issue analysis</p></div><span class="badge">Prototype · v0.2 data model</span></div></header>
     <main><section class="intro"><h2>Deal Map</h2><p>Start with a deal area, open an issue, then record what the diligence tells you. The risk score and protections respond as the picture becomes clearer.</p></section><section class="workspace"><aside class="map"><h3><span class="map-title-wrap">Deal Map</span></h3><div class="map-branches" id="mind-map"></div></aside><section class="panel" id="panel"><div class="empty-state">Select a deal area to begin.</div></section></section></main>
     <footer>Prototype content only — it is not legal advice and must be reviewed and tailored for each transaction and jurisdiction.</footer>
     <script>
@@ -503,6 +504,7 @@
     <link rel="stylesheet" href="./company-radar.css" />
     <link rel="stylesheet" href="./sidebar-collapse.css" />
     <link rel="stylesheet" href="./app-theme.css" />
+    <link rel="stylesheet" href="./brand-identity.css" />
     <script src="./workspace-redesign.js?v=1"></script>
     <script src="./company-radar.js"></script>
     <script>
