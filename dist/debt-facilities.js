@@ -1,4 +1,4 @@
-/* Debt facilities: diligence questions, risk and a rules-based summary. */
+/* Debt facilities: diligence, risk and answer-driven deal logic. */
 (() => {
   const issueId = "debt-facilities-repayment";
   const ids = ["debt-obligations", "debt-transaction-effect", "debt-payoff", "debt-consent", "debt-funding", "debt-releases", "debt-completion-sequence"];
@@ -205,6 +205,95 @@
     return implications.slice(0, 3);
   };
 
+  const actionCatalog = {
+    D01: ["Finance schedule and trigger review", "Require a complete schedule of borrowing, guarantees and security, and identify the repayment or consent terms triggered by the transaction."],
+    D02: ["Repayment covenant", "Require the seller to procure repayment or cancellation of specified facilities on or before completion."],
+    D03: ["Payoff deliverable", "Require a current written lender statement covering all amounts due, payment details and release conditions."],
+    D04: ["Lender consent or waiver", "Obtain effective written consent or a waiver covering the transaction where a facility will continue."],
+    D05: ["Pre-completion covenant", "Govern lender engagement, changes to borrowing or security, and acceptance of lender conditions before completion."],
+    D06: ["Alternative lender route", "If the proposed route fails, agree amended terms, refinancing, a different repayment route or a revised timetable."],
+    D07: ["Funding and shortfall allocation", "Confirm committed repayment funds and specify who bears any payoff shortfall."],
+    D08: ["Security and guarantee releases", "Require agreed releases, or a binding lender undertaking to deliver them against repayment, at completion."],
+    D09: ["Completion funds flow", "Link lender payment, consent effectiveness and release delivery in a simultaneous completion process."],
+    D10: ["Completion condition and longstop", "Make material lender steps conditions or completion deliverables, with an objective deadline and termination route where appropriate."],
+    D11: ["Debt and price mechanism", "Define how principal, interest, fees, break costs and hedging amounts affect consideration without counting the payoff twice."],
+    D12: ["Finance warranties and disclosure", "Cover facilities, security, amounts outstanding, defaults and required lender consents, with specific disclosure of exceptions."],
+    D13: ["Charge-register update", "After actual repayment or release, arrange any appropriate Companies House record update."],
+    D14: ["APA excluded liabilities", "Specify which finance liabilities the buyer assumes, exclude the others, and obtain any necessary creditor consent or novation."]
+  };
+  const priorityRank = { Required: 3, Recommended: 2, Consider: 1 };
+  const actionOrder = ["D06", "D04", "D07", "D08", "D09", "D02", "D03", "D10", "D11", "D14", "D01", "D12", "D05", "D13"];
+  const debtStructure = () => answer("debt-structure") === "APA" ? "APA" : "SPA";
+  const debtActions = (side = getTransactionSide(), structure = debtStructure()) => {
+    const selected = new Map();
+    const add = (id, buyer, seller, balanced) => {
+      const priority = { Buyer: buyer, Seller: seller, Balanced: balanced }[side] || balanced;
+      if (priority && (!selected.has(id) || priorityRank[priority] > priorityRank[selected.get(id)])) selected.set(id, priority);
+    };
+    const existence = answer(ids[0]);
+    if (existence === options[ids[0]][1]) return [];
+    if (existence === "Unanswered" || existence === options[ids[0]][4]) {
+      add("D01", "Required", "Required", "Required");
+    } else {
+      const confirmed = existence === options[ids[0]][2];
+      const effect = answer(ids[1]);
+      const effectUnknown = effect === "Unanswered" || effect === options[ids[1]][5];
+      add("D01", !confirmed || effectUnknown ? "Required" : "Recommended", !confirmed || effectUnknown ? "Required" : "Recommended", !confirmed || effectUnknown ? "Required" : "Recommended");
+      if (confirmed) {
+        add("D11", "Recommended", "Recommended", "Recommended");
+        add("D12", "Recommended", "Required", "Recommended");
+      }
+      if (structure === "APA") add("D14", confirmed ? "Required" : "Recommended", confirmed ? "Recommended" : "Consider", confirmed ? "Required" : "Recommended");
+      if (!effectUnknown && effect !== options[ids[1]][1]) {
+        const repay = repaymentRequired(effect);
+        const consent = consentRequired(effect);
+        const payoff = answer(ids[2]);
+        const funding = answer(ids[4]);
+        const releases = answer(ids[5]);
+        const sequence = answer(ids[6]);
+        const consentStatus = answer(ids[3]);
+        const consentOpen = consent && consentStatus !== options[ids[3]][1];
+        const payoffOpen = repay && payoff !== options[ids[2]][1];
+        const fundingOpen = repay && funding !== options[ids[4]][1];
+        const releaseNeeded = repay && releases !== options[ids[5]][1];
+        const releaseOpen = releaseNeeded && releases !== options[ids[5]][2];
+        const sequenceOpen = sequence !== options[ids[6]][1];
+        const hardBlock = (consent && consentStatus === options[ids[3]][3])
+          || (repay && funding === options[ids[4]][3])
+          || sequence === options[ids[6]][3];
+
+        if (repay) {
+          add("D02", "Required", "Required", "Required");
+          add("D03", payoffOpen ? "Required" : "Recommended", payoffOpen ? "Required" : "Recommended", payoffOpen ? "Required" : "Recommended");
+          if (fundingOpen) add("D07", "Required", funding === options[ids[4]][3] ? "Required" : "Recommended", funding === options[ids[4]][3] ? "Required" : "Recommended");
+          if (releaseNeeded) add("D08", releaseOpen ? "Required" : "Recommended", releaseOpen ? "Required" : "Recommended", releaseOpen ? "Required" : "Recommended");
+          add("D09", sequenceOpen ? "Required" : "Recommended", sequence === options[ids[6]][3] ? "Required" : "Recommended", sequence === options[ids[6]][3] ? "Required" : "Recommended");
+          add("D13", "Consider", "Consider", "Consider");
+          if (confirmed) add("D11", "Required", "Required", "Required");
+        }
+        if (consentOpen) add("D04", "Required", "Required", "Required");
+        if (hardBlock) add("D06", "Required", "Required", "Required");
+        if (consentOpen || payoffOpen || fundingOpen || releaseOpen || sequenceOpen) {
+          add("D05", "Recommended", "Consider", "Recommended");
+          add("D10", "Required", "Consider", "Recommended");
+        }
+      }
+    }
+    return [...selected.entries()]
+      .map(([id, priority]) => ({ id, priority, title: actionCatalog[id][0], description: actionCatalog[id][1] }))
+      .sort((left, right) => priorityRank[right.priority] - priorityRank[left.priority]
+        || actionOrder.indexOf(left.id) - actionOrder.indexOf(right.id))
+      .slice(0, 10);
+  };
+
+  document.addEventListener("click", event => {
+    const choice = event.target.closest("[data-debt-structure]");
+    if (!choice || !isDebt()) return;
+    answers["debt-structure"] = choice.dataset.debtStructure;
+    DealLogicStorage.setItem(storedKey(), JSON.stringify(answers));
+    renderLogic(current());
+  });
+
   const previousRenderPanel = renderPanel;
   renderPanel = function () {
     previousRenderPanel();
@@ -240,5 +329,15 @@
       li.textContent = item;
       return li;
     }));
+    const actionSection = document.querySelector("#logic-card .logic-section:nth-of-type(3)");
+    if (actionSection) {
+      const side = getTransactionSide();
+      const structure = debtStructure();
+      const actions = debtActions(side, structure);
+      const structurePicker = `<div class="logic-side-picker" aria-label="Transaction structure" style="justify-content:flex-start;margin:0 0 12px"><button type="button" data-debt-structure="SPA" class="${structure === "SPA" ? "active" : ""}">Share sale</button><button type="button" data-debt-structure="APA" class="${structure === "APA" ? "active" : ""}">Asset sale</button></div>`;
+      const sidePicker = `<div class="logic-side-picker" aria-label="Transaction side selector"><button type="button" class="active" data-logic-side-toggle>${side}</button></div>`;
+      const actionMarkup = actions.length ? actions.map(({ id, priority, title, description }) => `<div class="logic-action" data-action-id="${id}"><span class="logic-icon">◌</span><div><span class="logic-priority" data-level="${priority.toLowerCase()}">${priority}</span><strong>${title}</strong><span>${description}</span></div></div>`).join("") : `<p>There are no active transaction actions on the information recorded.</p>`;
+      actionSection.innerHTML = `<div class="logic-section-heading"><h4>Recommended actions</h4>${sidePicker}</div>${structurePicker}${actionMarkup}`;
+    }
   };
 })();
