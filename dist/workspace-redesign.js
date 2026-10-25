@@ -33,8 +33,12 @@
   const icon = name => `<i data-lucide="${lucideNames[name] || lucideNames.document}" aria-hidden="true"></i>`;
   const renderLucideIcons = () => window.lucide?.createIcons({ attrs: { 'stroke-width': 1.75 } });
   const destinations = [['deal-map','Deal Map','map'],['deal-hub','Deal Hub','grid'],['action-library','Action Library','book'],['company-radar','Company Radar','radar'],['settings','Settings','settings']];
+  const sidebarPreference = (key) => DealLogicStorage.getItem(`deallogic:${key}-sidebar-collapsed`) === 'true';
+  const setSidebarPreference = (key, collapsed) => DealLogicStorage.setItem(`deallogic:${key}-sidebar-collapsed`, String(collapsed));
   let currentView = 'deal-map';
   const main = document.querySelector('main');
+  main.classList.toggle('workspace-rail-collapsed', sidebarPreference('workspace'));
+  document.querySelector('.workspace')?.classList.toggle('map-sidebar-collapsed', sidebarPreference('map'));
   const top = document.createElement('div');
   top.className = 'workspace-context';
   top.innerHTML = '<span class="context-project"></span><span class="context-divider">/</span><span class="context-view">Deal Map</span><span class="context-status"><i></i> Saved in this browser</span>';
@@ -61,12 +65,52 @@
     const rail = document.querySelector('.project-rail');
     if (!rail || rail.querySelector('.workspace-navigation')) return;
     const nav = document.createElement('div'); nav.className = 'workspace-navigation';
-    nav.innerHTML = `<a class="workspace-brand" href="#deal-map" aria-label="DealLogic home"><span class="brand-mark">${icon('scale')}</span><span>DealLogic<small>Transaction workspace</small></span></a><div class="nav-caption">WORKSPACE</div><nav aria-label="Main navigation">${destinations.map(([id,label,symbol])=>`<button type="button" data-workspace-view="${id}">${icon(symbol)}<span>${label}</span></button>`).join('')}</nav>`;
+    nav.innerHTML = `<a class="workspace-brand" href="#deal-map" aria-label="DealLogic home"><span class="brand-mark">${icon('scale')}</span><span class="workspace-brand-name">DealLogic<small>Transaction workspace</small></span></a><div class="nav-caption"><span class="nav-caption-label">WORKSPACE</span><button type="button" class="sidebar-collapse-toggle" data-collapse-workspace aria-label="${main.classList.contains('workspace-rail-collapsed') ? 'Expand workspace sidebar' : 'Collapse workspace sidebar'}" aria-expanded="${!main.classList.contains('workspace-rail-collapsed')}" aria-controls="workspace-navigation-links" title="${main.classList.contains('workspace-rail-collapsed') ? 'Expand workspace sidebar' : 'Collapse workspace sidebar'}"><i data-lucide="panel-left-close" aria-hidden="true"></i></button></div><nav id="workspace-navigation-links" aria-label="Main navigation">${destinations.map(([id,label,symbol])=>`<button type="button" data-workspace-view="${id}" aria-label="${label}" title="${label}">${icon(symbol)}<span>${label}</span></button>`).join('')}</nav>`;
     rail.prepend(nav);
     main.prepend(rail);
     nav.querySelector('.workspace-brand').onclick = event => {event.preventDefault();window.showDealLogicView('deal-map');};
     nav.querySelectorAll('button').forEach(button=>button.onclick=()=>window.showDealLogicView(button.dataset.workspaceView));
+    nav.querySelector('[data-collapse-workspace]').onclick = () => {
+      const collapsed = main.classList.toggle('workspace-rail-collapsed');
+      setSidebarPreference('workspace', collapsed);
+      const button = nav.querySelector('[data-collapse-workspace]');
+      const label = `${collapsed ? 'Expand' : 'Collapse'} workspace sidebar`;
+      button.setAttribute('aria-label', label); button.title = label; button.setAttribute('aria-expanded', String(!collapsed));
+    };
     updateContext();
+  }
+  function decorateMapSidebar() {
+    const map = document.querySelector('.map');
+    if (!map) return;
+    const heading = map.querySelector('h3');
+    if (heading && !heading.querySelector('[data-collapse-map]')) {
+      const button = document.createElement('button');
+      button.type = 'button'; button.className = 'sidebar-collapse-toggle'; button.dataset.collapseMap = '';
+      button.setAttribute('aria-controls', 'mind-map');
+      button.innerHTML = '<i data-lucide="panel-left-close" aria-hidden="true"></i>';
+      button.onclick = () => {
+        const collapsed = map.closest('.workspace').classList.toggle('map-sidebar-collapsed');
+        setSidebarPreference('map', collapsed);
+        updateMapToggle();
+      };
+      heading.append(button);
+    }
+    const updateMapToggle = () => {
+      const button = heading.querySelector('[data-collapse-map]');
+      if (!button) return;
+      const collapsed = map.closest('.workspace').classList.contains('map-sidebar-collapsed');
+      const label = `${collapsed ? 'Expand' : 'Collapse'} Deal Map sidebar`;
+      button.setAttribute('aria-label', label); button.title = label; button.setAttribute('aria-expanded', String(!collapsed));
+    };
+    updateMapToggle();
+    const categoryIcons = {'commercial-contracts':'file-text','intellectual-property':'lightbulb','corporate-and-shares':'chart-pie','litigation-and-disputes':'scale','finance-and-banking':'landmark'};
+    map.querySelectorAll('.area:not(:has(.area-label))').forEach(button => {
+      const label = button.firstChild?.textContent.trim() || '';
+      button.firstChild?.remove();
+      button.setAttribute('aria-label', label);
+      button.title = label;
+      button.insertAdjacentHTML('afterbegin', `<i class="area-symbol" data-lucide="${categoryIcons[button.dataset.area] || 'file-text'}" aria-hidden="true"></i><span class="area-label">${label}</span>`);
+    });
   }
   const originalShow = window.showDealLogicView;
   window.showDealLogicView = view => {
@@ -77,6 +121,7 @@
   };
   function polish() {
     decorateRail(); updateContext();
+    decorateMapSidebar();
     const actionLibraryIcons = {
       'Further diligence':'search',
       'Rectification':'wrench',

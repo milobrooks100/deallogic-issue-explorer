@@ -9,6 +9,7 @@
   };
   const status = value => { const label = String(value || "Not shown").replaceAll("-", " "); return label[0].toUpperCase() + label.slice(1); };
   const roles = ["Target", "Buyer", "Seller", "Subsidiary", "Other"];
+  let sidebarCollapsed = DealLogicStorage.getItem("deallogic:radar-sidebar-collapsed") === "true";
   const cache = new Map();
   let data = null, loading = false, error = "", results = [], searchError = "", searchMoreError = "", searching = false, searchingMore = false, searchHasMore = false, searchOffset = 0, searchTerm = "", searchTimer = 0, searchSequence = 0, searchQuery = "";
   let activeNumber = "", requestSequence = 0, filingFilter = "All", filingPage = 1, filingSequence = 0, filingState = { number: "", filings: [], loading: false, complete: false, error: "" }, roleMenuOpen = false;
@@ -121,6 +122,24 @@
     const radar = radarStore();
     const number = selectedNumber();
     root.innerHTML = `<div class="radar-page-heading"><div><h2>Company Radar</h2><p>A concise view of public register facts for the companies in this deal.</p></div></div><div class="radar-layout"><aside class="radar-sidebar ${radar.companies.length ? "" : "radar-sidebar-empty"}"><div class="radar-side-heading"><h3>Deal companies</h3><span>${radar.companies.length}</span></div>${radar.companies.length ? `<div class="radar-company-list">${radar.companies.map(item => `<button type="button" class="${item.number === number ? "active" : ""}" data-radar-select="${esc(item.number)}"><strong>${esc(item.name)}</strong><span>${esc(item.role || "Role not set")} · ${esc(item.number)}</span></button>`).join("")}</div>` : ""}<form class="radar-search" data-radar-search><label for="radar-query">Find a company</label><div><input id="radar-query" name="q" type="search" autocomplete="off" minlength="2" maxlength="100" value="${esc(searchQuery)}" placeholder="Name or number"><button type="submit">Search</button></div></form><div class="radar-search-state" aria-live="polite">${searching ? '<p>Searching Companies House…</p>' : searchError ? `<p class="radar-error">${esc(searchError)}</p>` : results.length ? `<ul>${results.map(item => `<li><button type="button" data-radar-add="${esc(item.number)}" data-radar-name="${esc(item.name)}"><strong>${esc(item.name)}</strong><span>${esc(item.number)} · ${esc(status(item.status))}</span><small>${esc(item.address || "Address not shown")}</small></button></li>`).join("")}${searchMoreError ? `<li class="radar-search-more-error" role="alert">${esc(searchMoreError)}</li>` : ""}${searchHasMore ? `<li class="radar-search-more"><button type="button" data-radar-load-more ${searchingMore ? "disabled" : ""}>${searchingMore ? "Loading more…" : "Load more results"}</button></li>` : ""}</ul>` : ""}</div></aside><div class="radar-main">${!number ? '<div class="radar-intro-card"><span class="radar-eyebrow">Get started</span><h3>Start with the right legal entity</h3><p>Search the Companies House register, check the company number and address, then add the entity to this deal. Company Radar will surface filing deadlines, register status and other points to review.</p></div>' : loading ? '<div class="radar-intro-card" role="status">Checking the Companies House register…</div>' : error ? `<div class="radar-intro-card" role="alert"><h3>Company record unavailable</h3><p>${esc(error)}</p><button type="button" data-radar-refresh>Try again</button> <a href="https://find-and-update.company-information.service.gov.uk/company/${encodeURIComponent(number)}" target="_blank" rel="noopener noreferrer">View on Companies House ↗</a></div>` : data?.number === number ? renderDashboard(data) : '<div class="radar-intro-card" role="status">Preparing the company dashboard…</div>'}</div></div>`;
+    const layout = root.querySelector(".radar-layout");
+    layout.classList.toggle("radar-sidebar-collapsed", sidebarCollapsed);
+    const sidebar = layout.querySelector(".radar-sidebar");
+    sidebar.id = "radar-sidebar-content";
+    const heading = sidebar.querySelector(".radar-side-heading");
+    const collapse = document.createElement("button");
+    collapse.type = "button"; collapse.className = "sidebar-collapse-toggle"; collapse.dataset.collapseRadar = "";
+    collapse.setAttribute("aria-controls", "radar-sidebar-content");
+    const collapseLabel = `${sidebarCollapsed ? "Expand" : "Collapse"} Deal companies sidebar`;
+    collapse.setAttribute("aria-label", collapseLabel); collapse.title = collapseLabel;
+    collapse.setAttribute("aria-expanded", String(!sidebarCollapsed));
+    collapse.innerHTML = '<i data-lucide="panel-left-close" aria-hidden="true"></i>';
+    heading.insertBefore(collapse, heading.lastElementChild);
+    sidebar.querySelectorAll("[data-radar-select]").forEach(button => {
+      const name = button.querySelector("strong")?.textContent || "Company";
+      button.setAttribute("aria-label", `${name}, ${button.dataset.radarSelect}`); button.title = name;
+      button.insertAdjacentHTML("afterbegin", '<i class="radar-company-symbol" data-lucide="building-2" aria-hidden="true"></i>');
+    });
     if (searchFocused) { const input = root.querySelector("#radar-query"); input?.focus(); if (selection !== null) input?.setSelectionRange(selection, selection); }
     const resultsList = root.querySelector(".radar-search-state ul");
     if (resultsList) resultsList.scrollTop = resultsScroll;
@@ -245,6 +264,16 @@
     if (event.target.matches("[data-radar-filing-filter]")) { filingFilter = event.target.value; filingPage = 1; render(); return; }
   });
   root.addEventListener("click", event => {
+    if (event.target.closest("[data-collapse-radar]")) {
+      sidebarCollapsed = !sidebarCollapsed;
+      DealLogicStorage.setItem("deallogic:radar-sidebar-collapsed", String(sidebarCollapsed));
+      root.querySelector(".radar-layout")?.classList.toggle("radar-sidebar-collapsed", sidebarCollapsed);
+      const button = root.querySelector("[data-collapse-radar]");
+      const label = `${sidebarCollapsed ? "Expand" : "Collapse"} Deal companies sidebar`;
+      button.setAttribute("aria-label", label); button.title = label;
+      button.setAttribute("aria-expanded", String(!sidebarCollapsed));
+      return;
+    }
     const pageButton = event.target.closest("[data-radar-filing-page]");
     if (pageButton) { filingPage = Number(pageButton.dataset.radarFilingPage); render(); return; }
     if (event.target.closest("[data-radar-load-more]")) { loadMoreSearch(); return; }

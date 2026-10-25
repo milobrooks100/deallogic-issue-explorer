@@ -1,0 +1,106 @@
+/* The three content rails share one small, keyboard-accessible collapse control. */
+.sidebar-collapse-toggle {
+  display: none;
+  flex: 0 0 44px;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  padding: 0;
+  border: 0;
+  border-radius: 10px;
+  background: transparent;
+  color: #68766e;
+  cursor: pointer;
+}
+.sidebar-collapse-toggle svg { width: 17px; height: 17px; }
+.sidebar-collapse-toggle:hover { background: #e8ebea; color: var(--ink); }
+.workspace-rail-collapsed [data-collapse-workspace] svg,
+.map-sidebar-collapsed [data-collapse-map] svg,
+.radar-sidebar-collapsed [data-collapse-radar] svg { transform: rotate(180deg); }
+.area-symbol,
+.radar-company-symbol { display: none; }
+
+@media (min-width: 981px) {
+  .sidebar-collapse-toggle { display: inline-flex; }
+  main:has(.project-rail),
+  .workspace,
+  .radar-layout {
+    transition: grid-template-columns 260ms cubic-bezier(.77, 0, .175, 1);
+  }
+
+  .nav-caption { display: flex; align-items: center; justify-content: space-between; gap: 4px; padding-right: 4px; }
+  .nav-caption .sidebar-collapse-toggle { margin: -9px -4px -3px 0; }
+  .map h3 { display: flex; align-items: center; justify-content: space-between; gap: 4px; min-height: 36px; }
+  .map h3 .sidebar-collapse-toggle { margin: -8px -8px -8px 0; }
+  .radar-side-heading { gap: 6px; }
+  .radar-side-heading .sidebar-collapse-toggle { order: 2; margin: -13px -4px -13px auto; }
+  .radar-side-heading > span { order: 3; }
+
+  main.workspace-rail-collapsed:has(.project-rail) { grid-template-columns: 72px minmax(0, 1fr); }
+  main.workspace-rail-collapsed .project-rail { padding: 20px 8px; overflow-x: hidden; }
+  main.workspace-rail-collapsed .project-rail > :not(.workspace-navigation) { display: none; }
+  main.workspace-rail-collapsed .workspace-brand { justify-content: center; padding: 2px 0 28px; }
+  main.workspace-rail-collapsed .workspace-brand-name,
+  main.workspace-rail-collapsed .nav-caption-label,
+  main.workspace-rail-collapsed .workspace-navigation nav button span { display: none; }
+  main.workspace-rail-collapsed .nav-caption { justify-content: center; padding: 0 0 10px; }
+  main.workspace-rail-collapsed .nav-caption .sidebar-collapse-toggle { margin: -9px 0 -3px; }
+  main.workspace-rail-collapsed .workspace-navigation nav { margin-bottom: 0; }
+  main.workspace-rail-collapsed .workspace-navigation nav button {
+    width: 44px;
+    height: 44px;
+    min-height: 44px;
+    justify-content: center;
+    padding: 0;
+    margin: 0 auto;
+  }
+
+  .workspace.map-sidebar-collapsed { grid-template-columns: 68px minmax(0, 1fr); }
+  .workspace.map-sidebar-collapsed .map { min-width: 0; padding: 18px 8px; overflow: hidden; }
+  .workspace.map-sidebar-collapsed .map h3 { justify-content: center; padding: 0; }
+  .workspace.map-sidebar-collapsed .map h3 .sidebar-collapse-toggle { margin: -8px 0; }
+  .workspace.map-sidebar-collapsed .map-title-wrap,
+  .workspace.map-sidebar-collapsed .area-label,
+  .workspace.map-sidebar-collapsed .chevron,
+  .workspace.map-sidebar-collapsed .issue-nodes { display: none; }
+  .workspace.map-sidebar-collapsed .map-branches { display: grid; grid-template-columns: 1fr; gap: 5px; margin-top: 22px; }
+  .workspace.map-sidebar-collapsed .branch { margin: 0; padding: 0; }
+  .workspace.map-sidebar-collapsed .area {
+    justify-content: center;
+    width: 44px;
+    height: 44px;
+    min-height: 44px;
+    margin: 0 auto;
+    padding: 0;
+  }
+  .workspace.map-sidebar-collapsed .area-symbol { display: block; width: 18px; height: 18px; }
+
+  .radar-layout.radar-sidebar-collapsed { grid-template-columns: 68px minmax(0, 1fr); }
+  .radar-sidebar-collapsed .radar-sidebar { min-width: 0; padding: 17px 8px; overflow: hidden; }
+  .radar-sidebar-collapsed .radar-side-heading { justify-content: center; padding: 0; }
+  .radar-sidebar-collapsed .radar-side-heading h3,
+  .radar-sidebar-collapsed .radar-side-heading > span,
+  .radar-sidebar-collapsed .radar-search,
+  .radar-sidebar-collapsed .radar-search-state,
+  .radar-sidebar-collapsed .radar-company-list strong,
+  .radar-sidebar-collapsed .radar-company-list span { display: none; }
+  .radar-sidebar-collapsed .radar-side-heading .sidebar-collapse-toggle { margin: -13px 0; }
+  .radar-sidebar-collapsed .radar-company-list { display: grid; grid-template-columns: 1fr; gap: 5px; margin: 20px 0 0; overflow: visible; }
+  .radar-sidebar-collapsed .radar-company-list button {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 44px;
+    min-width: 44px;
+    height: 44px;
+    min-height: 44px;
+    margin: 0 auto;
+    padding: 0;
+  }
+  .radar-sidebar-collapsed .radar-company-symbol { display: block; width: 18px; height: 18px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  main:has(.project-rail), .workspace, .radar-layout { transition: none; }
+}
