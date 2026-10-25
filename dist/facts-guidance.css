@@ -41,7 +41,7 @@
   opacity: 1;
   visibility: visible;
   transform: translate(0, -50%);
-  transition: opacity .14s 1s, transform .14s 1s, visibility 0s linear 1s;
+  transition: opacity .14s .5s, transform .14s .5s, visibility 0s linear .5s;
 }
 
 .map h3:has(.map-title:focus-visible) .map-guidance,
