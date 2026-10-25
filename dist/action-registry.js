@@ -70,6 +70,27 @@
         ["litigation-wi-insurance", "Warranty and indemnity insurance", "Ask W&I underwriters whether the matter is excluded and explore cover or riders for related or secondary exposures.", "shield-check", "Due diligence"],
         ["specific-mae-mac-walk-right", "Specific MAE/MAC walk-right", "Permit termination for defined material developments, subject to agreed thresholds and carve-outs.", "file-text", "Signing"]
       ]
+    },
+    {
+      id: "debt-facilities-repayment",
+      label: "Debt Facilities Requiring Repayment",
+      shortLabel: "Debt Facilities",
+      actions: [
+        ["D01", "Finance schedule and trigger review", "Require a complete schedule of borrowing, guarantees and security, and identify the repayment or consent terms triggered by the transaction.", "search", "Due diligence"],
+        ["D02", "Repayment covenant", "Require the seller to procure repayment or cancellation of specified facilities on or before completion.", "file-pen-line", "SPA drafting"],
+        ["D03", "Payoff deliverable", "Require a current written lender statement covering all amounts due, payment details and release conditions.", "file-text", "Closing condition"],
+        ["D04", "Lender consent or waiver", "Obtain effective written consent or a waiver covering the transaction where a facility will continue.", "circle-check", "Closing condition"],
+        ["D05", "Pre-completion covenant", "Govern lender engagement, changes to borrowing or security, and acceptance of lender conditions before completion.", "file-pen-line", "SPA drafting"],
+        ["D06", "Alternative lender route", "If the proposed route fails, agree amended terms, refinancing, a different repayment route or a revised timetable.", "arrow-left-right", "Signing"],
+        ["D07", "Funding and shortfall allocation", "Confirm committed repayment funds and specify who bears any payoff shortfall.", "banknote", "SPA drafting"],
+        ["D08", "Security and guarantee releases", "Require agreed releases, or a binding lender undertaking to deliver them against repayment, at completion.", "shield-check", "Closing condition"],
+        ["D09", "Completion funds flow", "Link lender payment, consent effectiveness and release delivery in a simultaneous completion process.", "arrow-left-right", "Closing condition"],
+        ["D10", "Completion condition and longstop", "Make material lender steps conditions or completion deliverables, with an objective deadline and termination route where appropriate.", "calendar-check", "Closing condition"],
+        ["D11", "Debt and price mechanism", "Define how principal, interest, fees, break costs and hedging amounts affect consideration without counting the payoff twice.", "banknote", "SPA drafting"],
+        ["D12", "Finance warranties and disclosure", "Cover facilities, security, amounts outstanding, defaults and required lender consents, with specific disclosure of exceptions.", "shield-check", "SPA drafting"],
+        ["D13", "Charge-register update", "After actual repayment or release, arrange any appropriate Companies House record update.", "file-check", "Post-completion"],
+        ["D14", "APA excluded liabilities", "In cases of asset sales, specify which finance liabilities the buyer assumes, exclude the others, and obtain any necessary creditor consent or novation.", "file-pen-line", "SPA drafting"]
+      ]
     }
   ];
 
