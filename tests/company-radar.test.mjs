@@ -85,3 +85,21 @@ test("search requires a key but never exposes it in returned results", async t =
   assert.equal(result.results[0].number, "12345678");
   assert.equal(JSON.stringify(result).includes("test-key"), false);
 });
+
+test("company search can request results beyond the first page", async t => {
+  const oldFetch = globalThis.fetch;
+  const oldKey = process.env.COMPANIES_HOUSE_API_KEY;
+  process.env.COMPANIES_HOUSE_API_KEY = "test-key";
+  let requested;
+  globalThis.fetch = async url => {
+    requested = new URL(url);
+    return new Response(JSON.stringify({ total_results: 45, items: [{ title: "Later Limited", company_number: "12345678" }] }), { status: 200 });
+  };
+  t.after(() => { globalThis.fetch = oldFetch; if (oldKey === undefined) delete process.env.COMPANIES_HOUSE_API_KEY; else process.env.COMPANIES_HOUSE_API_KEY = oldKey; });
+  const result = await searchCompanies("Later", 20);
+  assert.equal(requested.searchParams.get("start_index"), "20");
+  assert.equal(requested.searchParams.get("items_per_page"), "20");
+  assert.equal(result.total, 45);
+  assert.equal(result.results[0].name, "Later Limited");
+  await assert.rejects(() => searchCompanies("Later", -1), { status: 400 });
+});
