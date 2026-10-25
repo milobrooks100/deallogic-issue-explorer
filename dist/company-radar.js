@@ -92,6 +92,14 @@
     if (state === "partial") return `<p class="radar-unavailable">Only the first page of ${esc(label.toLowerCase())} was checked. Use Companies House for the full list.</p>`;
     return "";
   }
+  function updatePaginationArrows() {
+    const pages = root.querySelector(".radar-pagination-pages");
+    if (!pages) return;
+    const previous = root.querySelector('[data-radar-page-scroll="-1"]');
+    const next = root.querySelector('[data-radar-page-scroll="1"]');
+    if (previous) previous.disabled = pages.scrollLeft <= 1;
+    if (next) next.disabled = pages.scrollLeft + pages.clientWidth >= pages.scrollWidth - 1;
+  }
   function renderDashboard(item) {
     const saved = radarStore().companies.find(company => company.number === item.number);
     const flags = flagsFor(item);
@@ -107,7 +115,7 @@
     filingPage = Math.min(filingPage, pageCount);
     const filings = filteredFilings.slice((filingPage - 1) * 15, filingPage * 15);
     const pages = Array.from({ length: pageCount }, (_, index) => index + 1);
-    const pagination = pageCount > 1 ? `<nav class="radar-pagination" aria-label="Filing pages">${pages.map(page => `<button type="button" data-radar-filing-page="${page}" ${page === filingPage ? 'aria-current="page"' : ""}>${page}</button>`).join("")}</nav>` : "";
+    const pagination = pageCount > 1 ? `<nav class="radar-pagination" aria-label="Filing pages"><span class="radar-pagination-count">Page ${filingPage} of ${pageCount}</span><div class="radar-pagination-controls"><button type="button" class="radar-pagination-arrow" data-radar-page-scroll="-1" aria-label="Scroll to earlier filing pages">‹</button><div class="radar-pagination-pages" role="group" aria-label="Choose a filing page">${pages.map(page => `<button type="button" data-radar-filing-page="${page}" aria-label="Page ${page}" ${page === filingPage ? 'aria-current="page"' : ""}>${page}</button>`).join("")}</div><button type="button" class="radar-pagination-arrow" data-radar-page-scroll="1" aria-label="Scroll to later filing pages">›</button></div></nav>` : "";
     return `<div class="radar-company-header"><div><div class="radar-eyebrow">${esc(saved?.role || "Company")} · Companies House record</div><h3>${esc(item.name)}</h3><p>Company number ${esc(item.number)} · ${esc(status(item.status))} · ${esc(status(item.type))}</p></div><div class="radar-company-tools"><button type="button" class="radar-refresh-icon" data-radar-refresh aria-label="Refresh company record" title="Refresh company record"><i data-lucide="refresh-cw" aria-hidden="true"></i></button><button type="button" class="radar-remove-icon" data-radar-remove aria-label="Remove ${esc(item.name)} from deal" title="Remove from deal"><i data-lucide="trash-2" aria-hidden="true"></i></button>${rolePicker(item.number, radarStore())}${sourceLink(item.url)}</div></div>
       <p class="radar-timestamp">Retrieved ${esc(new Date(item.fetchedAt).toLocaleString("en-GB"))}. Register facts are shown as filed and should be checked against deal documents.${unavailable.length ? ` ${unavailable.length} section${unavailable.length === 1 ? "" : "s"} could not be checked.` : ""}</p>
       ${saved?.changes?.items?.length ? `<section class="radar-changes" aria-label="Changes since last check"><div><span class="radar-eyebrow">Since last check</span><h3>Register details changed</h3><p>${esc(saved.changes.items.join(", "))}</p><small>Detected ${esc(date(saved.changes.at))}. Open the source records to verify what changed.</small></div><button type="button" data-radar-clear-changes>Dismiss</button></section>` : ""}
@@ -123,6 +131,7 @@
     const searchFocused = document.activeElement?.id === "radar-query";
     const selection = searchFocused ? document.activeElement.selectionStart : null;
     const resultsScroll = root.querySelector(".radar-search-state ul")?.scrollTop || 0;
+    const paginationScroll = root.querySelector(".radar-pagination-pages")?.scrollLeft || 0;
     const radar = radarStore();
     const number = selectedNumber();
     root.innerHTML = `<div class="radar-page-heading"><div><h2>Company Radar</h2><p>A concise view of public register facts for the companies in this deal.</p></div></div><div class="radar-layout"><aside class="radar-sidebar ${radar.companies.length ? "" : "radar-sidebar-empty"}"><div class="radar-side-heading"><h3>Deal companies</h3><span>${radar.companies.length}</span></div>${radar.companies.length ? `<div class="radar-company-list">${radar.companies.map(item => `<button type="button" class="${item.number === number ? "active" : ""}" data-radar-select="${esc(item.number)}"><strong>${esc(item.name)}</strong><span>${esc(item.role || "Role not set")} · ${esc(item.number)}</span></button>`).join("")}</div>` : ""}<form class="radar-search" data-radar-search><label for="radar-query">Find a company</label><div><input id="radar-query" name="q" type="search" autocomplete="off" minlength="2" maxlength="100" value="${esc(searchQuery)}" placeholder="Name or number"><button type="submit">Search</button></div></form><div class="radar-search-state" aria-live="polite">${searching ? '<p>Searching Companies House…</p>' : searchError ? `<p class="radar-error">${esc(searchError)}</p>` : results.length ? `<ul>${results.map(item => `<li><button type="button" data-radar-add="${esc(item.number)}" data-radar-name="${esc(item.name)}"><strong>${esc(item.name)}</strong><span>${esc(item.number)} · ${esc(status(item.status))}</span><small>${esc(item.address || "Address not shown")}</small></button></li>`).join("")}${searchMoreError ? `<li class="radar-search-more-error" role="alert">${esc(searchMoreError)}</li>` : ""}${searchHasMore ? `<li class="radar-search-more"><button type="button" data-radar-load-more ${searchingMore ? "disabled" : ""}>${searchingMore ? "Loading more…" : "Load more results"}</button></li>` : ""}</ul>` : ""}</div></aside><div class="radar-main">${!number ? '<div class="radar-intro-card"><span class="radar-eyebrow">Get started</span><h3>Start with the right legal entity</h3><p>Search the Companies House register, check the company number and address, then add the entity to this deal. Company Radar will surface filing deadlines, register status and other points to review.</p></div>' : loading ? '<div class="radar-intro-card" role="status">Checking the Companies House register…</div>' : error ? `<div class="radar-intro-card" role="alert"><h3>Company record unavailable</h3><p>${esc(error)}</p><button type="button" data-radar-refresh>Try again</button> <a href="https://find-and-update.company-information.service.gov.uk/company/${encodeURIComponent(number)}" target="_blank" rel="noopener noreferrer">View on Companies House ↗</a></div>` : data?.number === number ? renderDashboard(data) : '<div class="radar-intro-card" role="status">Preparing the company dashboard…</div>'}</div></div>`;
@@ -147,6 +156,9 @@
     if (searchFocused) { const input = root.querySelector("#radar-query"); input?.focus(); if (selection !== null) input?.setSelectionRange(selection, selection); }
     const resultsList = root.querySelector(".radar-search-state ul");
     if (resultsList) resultsList.scrollTop = resultsScroll;
+    const paginationPages = root.querySelector(".radar-pagination-pages");
+    if (paginationPages) paginationPages.scrollLeft = paginationScroll;
+    updatePaginationArrows();
     window.lucide?.createIcons({ attrs: { "stroke-width": 1.75 } });
   }
   async function fetchDashboard(number, force = false) {
@@ -265,7 +277,7 @@
     searchTimer = setTimeout(() => search(value), 400);
   });
   root.addEventListener("change", event => {
-    if (event.target.matches("[data-radar-filing-filter]")) { filingFilter = event.target.value; filingPage = 1; render(); return; }
+    if (event.target.matches("[data-radar-filing-filter]")) { filingFilter = event.target.value; filingPage = 1; render(); const pages = root.querySelector(".radar-pagination-pages"); if (pages) pages.scrollLeft = 0; updatePaginationArrows(); return; }
   });
   root.addEventListener("click", event => {
     if (event.target.closest("[data-collapse-radar]")) {
@@ -279,7 +291,9 @@
       return;
     }
     const pageButton = event.target.closest("[data-radar-filing-page]");
-    if (pageButton) { filingPage = Number(pageButton.dataset.radarFilingPage); render(); return; }
+    if (pageButton) { filingPage = Number(pageButton.dataset.radarFilingPage); render(); const pages = root.querySelector(".radar-pagination-pages"), current = pages?.querySelector('[aria-current="page"]'); if (pages && current) { const left = current.offsetLeft - pages.offsetLeft; if (left < pages.scrollLeft || left + current.offsetWidth > pages.scrollLeft + pages.clientWidth) pages.scrollLeft = left - (pages.clientWidth - current.offsetWidth) / 2; } updatePaginationArrows(); return; }
+    const pageScroll = event.target.closest("[data-radar-page-scroll]");
+    if (pageScroll) { const pages = root.querySelector(".radar-pagination-pages"); pages?.scrollBy({ left: Number(pageScroll.dataset.radarPageScroll) * pages.clientWidth, behavior: window.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches ? "auto" : "smooth" }); return; }
     if (event.target.closest("[data-radar-load-more]")) { loadMoreSearch(); return; }
     if (event.target.closest("[data-radar-role-toggle]")) { roleMenuOpen = true; render(); root.querySelector("[data-radar-role-option].active, [data-radar-role-option]")?.focus(); return; }
     const roleOption = event.target.closest("[data-radar-role-option]");
@@ -302,6 +316,7 @@
   root.addEventListener("scroll", event => {
     const list = event.target;
     if (list.matches?.(".radar-search-state ul") && list.scrollTop + list.clientHeight >= list.scrollHeight - 40) loadMoreSearch();
+    if (list.matches?.(".radar-pagination-pages")) updatePaginationArrows();
   }, true);
   root.addEventListener("keydown", event => { if (event.key === "Escape" && roleMenuOpen) { roleMenuOpen = false; render(); root.querySelector("[data-radar-role-toggle]")?.focus(); } });
   document.addEventListener("click", event => { if (roleMenuOpen && !event.target.closest(".radar-role-picker")) { roleMenuOpen = false; render(); } });
