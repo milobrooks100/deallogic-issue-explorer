@@ -30,7 +30,7 @@
   </head>
   <body>
     <header><div class="brand"><div><h1><img src="./deallogic-mark.svg" alt="" width="40" height="40" /><span><strong>Deal</strong> Logic</span></h1><p>Structured M&A issue analysis</p></div><span class="badge">Prototype · v0.2 data model</span></div></header>
-    <main><section class="intro"><h2>Deal Map</h2><p>Start with a deal area, open an issue, then record what the diligence tells you. The risk score and protections respond as the picture becomes clearer.</p></section><section class="workspace"><aside class="map"><h3><span class="map-title-wrap">Deal Map</span></h3><div class="map-branches" id="mind-map"></div></aside><section class="panel" id="panel"><div class="empty-state">Select a deal area to begin.</div></section></section></main>
+    <main><section class="intro"><h2>Deal Map</h2><p>Start with a deal area, open an issue, then record what the diligence tells you. The risk score and protections respond as the picture becomes clearer.</p></section><section class="workspace"><aside class="map"><h3><span class="map-title-wrap"><span class="map-title" tabindex="0" aria-describedby="deal-map-guidance">Deal Map</span><span class="map-guidance" id="deal-map-guidance" role="tooltip">Open an area, then select the issue to explore.</span></span></h3><div class="map-branches" id="mind-map"></div></aside><section class="panel" id="panel"><div class="empty-state">Select a deal area to begin.</div></section></section></main>
     <footer>Prototype content only — it is not legal advice and must be reviewed and tailored for each transaction and jurisdiction.</footer>
     <script>
       const areas={"commercial-contracts":"Material Contracts","intellectual-property":"Intellectual Property","corporate-and-shares":"Shares","litigation-and-disputes":"Disputes","finance-and-banking":"Finance"},order=Object.keys(areas).sort((a,b)=>areas[a].localeCompare(areas[b])),answerOptions=["Unanswered","Risk confirmed","Risk not present","Partly / unclear"];
@@ -196,6 +196,10 @@
       const library = document.querySelector(".action-library");
       if (appHeader && workspace && library && !document.querySelector(".app-menu-wrap")) {
         workspace.classList.remove("left-rail");
+        const mapHeading = dealMap.querySelector("h3");
+        if (mapHeading && !mapHeading.querySelector(".map-title")) {
+          mapHeading.innerHTML = '<span class="map-title-wrap"><span class="map-title" tabindex="0" aria-describedby="deal-map-guidance">Deal Map</span><span class="map-guidance" id="deal-map-guidance" role="tooltip">Open an area, then select the issue to explore.</span></span>';
+        }
         const libraryView = document.createElement("section");
         libraryView.className = "library-view screen-hidden";
         libraryView.innerHTML = '<div class="view-header"><h2>Action Library</h2><p>Explore common transaction tools and issue-specific action playbooks.</p></div>';
