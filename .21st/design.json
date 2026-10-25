@@ -30,7 +30,7 @@
     "must": ["Preserve legal copy, issue rules and project storage", "Support keyboard focus and reduced motion", "Keep mobile layouts usable"],
     "avoid": ["Decorative animations on frequent interactions", "Unnecessary framework migration", "Invented legal content"]
   },
-  "decisions": ["Translate Nusa Bay dashboard structure into a restrained legal workspace", "Use Nusa Bay's neutral grey-and-white dashboard palette, reserving dark charcoal for active and primary controls", "Use restrained pastel blue, lilac, peach and sage accents for Deal Hub workflow stages, metrics and supporting icons", "Use a consistent open-page header baseline across Deal Map, Deal Hub, Action Library and Settings", "Use 21st sidebar and card-tabs patterns as inspiration, without importing React dependencies", "Company Radar role selection follows the Deal Map pill selector: an initial prompt expands to role options, then collapses to the chosen role"],
+  "decisions": ["Translate Nusa Bay dashboard structure into a restrained legal workspace", "Keep the original neutral grey-and-white palette as the default theme", "Offer navy blue and dark green as complete light workspace palettes through shared semantic tokens and persistent native radio controls", "Retain red, amber and green legal-review signals across app themes", "Use a consistent open-page header baseline across Deal Map, Deal Hub, Action Library and Settings", "Use 21st sidebar, card-tabs and theme-switch patterns as inspiration, without importing React dependencies", "Company Radar role selection follows the Deal Map pill selector: an initial prompt expands to role options, then collapses to the chosen role"],
   "evidence": [],
   "generatedAt": "2026-10-19T22:09:27.299Z"
 }

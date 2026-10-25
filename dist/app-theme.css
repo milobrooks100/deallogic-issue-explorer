@@ -1,0 +1,170 @@
+/* The original grey palette remains the default. Theme tokens keep the other
+   palettes coherent across navigation, content, workflow and Company Radar. */
+:root[data-app-theme="navy"] {
+  --ink: #19354e;
+  --muted: #61758a;
+  --paper: #f1f5f9;
+  --line: #d9e3ed;
+  --moss: #285e83;
+  --lime: #e1edf6;
+  --surface: #ffffff;
+  --soft: #eaf1f8;
+  --shadow: 0 2px 6px #18354e0a, 0 16px 38px #18354e0b;
+  --theme-accent: #2b638c;
+  --theme-hover: #e8f1f8;
+  --theme-selected: #dcebf6;
+  --theme-ring: #6f9bbb;
+  --theme-stage-1: #dfeaf5;
+  --theme-stage-2: #e8e8f3;
+  --theme-stage-3: #e6edf2;
+  --theme-stage-4: #deeee9;
+  --theme-icon-1: #456e93;
+  --theme-icon-2: #666c9d;
+  --theme-icon-3: #527b8b;
+  --theme-icon-4: #4b776e;
+  --workflow-summary-gradient: linear-gradient(110deg, #dceaf5 0%, #e8e9f4 49%, #e0eef0 100%);
+  --theme-start-gradient: linear-gradient(118deg, #e4eef7, #edf0f9 58%, #e7f3f0);
+}
+
+:root[data-app-theme="forest"] {
+  --ink: #1d3a2e;
+  --muted: #62786a;
+  --paper: #f1f5ef;
+  --line: #d9e4da;
+  --moss: #2b6449;
+  --lime: #e2efdf;
+  --surface: #ffffff;
+  --soft: #eaf2e8;
+  --shadow: 0 2px 6px #1d3a2e0a, 0 16px 38px #1d3a2e0a;
+  --theme-accent: #2d684e;
+  --theme-hover: #eaf4e9;
+  --theme-selected: #dcebdc;
+  --theme-ring: #6f9e82;
+  --theme-stage-1: #e1eee3;
+  --theme-stage-2: #e9efe0;
+  --theme-stage-3: #f1ecdf;
+  --theme-stage-4: #dcece3;
+  --theme-icon-1: #4a7861;
+  --theme-icon-2: #677c55;
+  --theme-icon-3: #897c57;
+  --theme-icon-4: #427966;
+  --workflow-summary-gradient: linear-gradient(110deg, #dfede3 0%, #eaf0df 49%, #f1eadf 100%);
+  --theme-start-gradient: linear-gradient(118deg, #e5f0e6, #f0f3e6 58%, #f4eee3);
+}
+
+:root[data-app-theme="navy"], :root[data-app-theme="forest"] {
+  accent-color: var(--theme-accent);
+}
+
+:root[data-app-theme="navy"] body, :root[data-app-theme="forest"] body { background: var(--paper); color: var(--ink); }
+:root[data-app-theme="navy"] :is(button, a, input, select, textarea, summary):focus-visible,
+:root[data-app-theme="forest"] :is(button, a, input, select, textarea, summary):focus-visible { outline-color: var(--theme-ring); }
+
+/* Shared shell and deal navigation. */
+:root[data-app-theme="navy"] :is(.project-rail, .settings-card, .issue-header, .card, .hub-summary-tile, .hub-projects, .action-library, .radar-panel, .radar-company-header, .radar-intro-card),
+:root[data-app-theme="forest"] :is(.project-rail, .settings-card, .issue-header, .card, .hub-summary-tile, .hub-projects, .action-library, .radar-panel, .radar-company-header, .radar-intro-card) { background: var(--surface); border-color: var(--line); box-shadow: var(--shadow); }
+:root[data-app-theme="navy"] :is(.workspace-navigation nav button:not(.active), .project-rail-item small, .radar-company-list span, .hub-filter-row label),
+:root[data-app-theme="forest"] :is(.workspace-navigation nav button:not(.active), .project-rail-item small, .radar-company-list span, .hub-filter-row label) { color: var(--muted); }
+:root[data-app-theme="navy"] :is(.project-rail-item.active, .radar-company-list button.active, .area.open, .issue-node.active, .hub-pin.active),
+:root[data-app-theme="forest"] :is(.project-rail-item.active, .radar-company-list button.active, .area.open, .issue-node.active, .hub-pin.active) { background: var(--theme-selected); color: var(--ink); }
+:root[data-app-theme="navy"] .project-rail-item.active .project-dot,
+:root[data-app-theme="forest"] .project-rail-item.active .project-dot { background: var(--theme-accent); box-shadow: 0 0 0 3px var(--theme-selected); }
+:root[data-app-theme="navy"] :is(.project-rail-note, .radar-search, .hub-tabs, .radar-fact, .radar-divider),
+:root[data-app-theme="forest"] :is(.project-rail-note, .radar-search, .hub-tabs, .radar-fact, .radar-divider) { border-color: var(--line); }
+:root[data-app-theme="navy"] :is(.map, .radar-sidebar),
+:root[data-app-theme="forest"] :is(.map, .radar-sidebar) { background: var(--soft); }
+:root[data-app-theme="navy"] :is(.eyebrow, .radar-eyebrow, .logic-section h4, .hub-text-button, .radar-flag-actions a, .radar-panel-heading a, .radar-subhead a, .radar-filing-tools a),
+:root[data-app-theme="forest"] :is(.eyebrow, .radar-eyebrow, .logic-section h4, .hub-text-button, .radar-flag-actions a, .radar-panel-heading a, .radar-subhead a, .radar-filing-tools a) { color: var(--theme-accent); }
+:root[data-app-theme="navy"] :is(.workspace-navigation nav button.active, .hub-button.primary, .hub-toolbar button.primary, .transaction-side-options button.active, .brand-mark, .radar-search button, .radar-pagination button[aria-current="page"]),
+:root[data-app-theme="forest"] :is(.workspace-navigation nav button.active, .hub-button.primary, .hub-toolbar button.primary, .transaction-side-options button.active, .brand-mark, .radar-search button, .radar-pagination button[aria-current="page"]) { background: var(--ink); border-color: var(--ink); color: #fff; }
+:root[data-app-theme="navy"] .radar-company-tools > a,
+:root[data-app-theme="forest"] .radar-company-tools > a { background: var(--ink); border-color: var(--ink); color: #fff; }
+:root[data-app-theme="navy"] :is(.project-new, .radar-company-tools button, .radar-role-toggle, .radar-pagination button, .hub-filter-row input, .hub-filter-row select, .radar-search input, .radar-filing-tools select),
+:root[data-app-theme="forest"] :is(.project-new, .radar-company-tools button, .radar-role-toggle, .radar-pagination button, .hub-filter-row input, .hub-filter-row select, .radar-search input, .radar-filing-tools select) { border-color: var(--line); color: var(--ink); }
+@media (hover: hover) {
+  :root[data-app-theme="navy"] :is(.workspace-navigation nav button:not(.active), .project-rail-item, .radar-company-list button, .explore-categories button):hover,
+  :root[data-app-theme="forest"] :is(.workspace-navigation nav button:not(.active), .project-rail-item, .radar-company-list button, .explore-categories button):hover { background: var(--theme-hover); }
+}
+
+/* Analysis, actions, and workflow use coordinated tonal steps. Risk colours
+   and Company Radar attention colours stay semantic across every palette. */
+:root[data-app-theme="navy"] :is(.logic, .logic.coc-deal-logic, .hub-new-action, .hub-editor, .custom-action, .hub-summary-tile .hub-issue),
+:root[data-app-theme="forest"] :is(.logic, .logic.coc-deal-logic, .hub-new-action, .hub-editor, .custom-action, .hub-summary-tile .hub-issue) { background: var(--theme-hover); border-color: var(--line); }
+:root[data-app-theme="navy"] :is(.hub-tabs button.active, .hub-table th, .hub-table tbody tr:hover, .risk-score),
+:root[data-app-theme="forest"] :is(.hub-tabs button.active, .hub-table th, .hub-table tbody tr:hover, .risk-score) { background: var(--theme-hover); color: var(--ink); }
+:root[data-app-theme="navy"] :is(.project-start, .workspace-metrics, .radar-overview),
+:root[data-app-theme="forest"] :is(.project-start, .workspace-metrics, .radar-overview) { background: var(--workflow-summary-gradient); }
+:root[data-app-theme="navy"] .project-start,
+:root[data-app-theme="forest"] .project-start { background: var(--theme-start-gradient); }
+:root[data-app-theme="navy"] :is(.metric, .radar-overview > div),
+:root[data-app-theme="forest"] :is(.metric, .radar-overview > div) { background: #ffffffdc; border-color: #fff; }
+:root[data-app-theme="navy"] .metric-label,
+:root[data-app-theme="forest"] .metric-label { color: var(--muted); }
+:root[data-app-theme="navy"] :is(.hub-column, .metric:nth-child(1) .metric-icon),
+:root[data-app-theme="forest"] :is(.hub-column, .metric:nth-child(1) .metric-icon) { background: var(--theme-stage-1); }
+:root[data-app-theme="navy"] :is(.hub-column:nth-child(2), .metric:nth-child(2) .metric-icon),
+:root[data-app-theme="forest"] :is(.hub-column:nth-child(2), .metric:nth-child(2) .metric-icon) { background: var(--theme-stage-2); }
+:root[data-app-theme="navy"] :is(.hub-column:nth-child(3), .metric:nth-child(3) .metric-icon),
+:root[data-app-theme="forest"] :is(.hub-column:nth-child(3), .metric:nth-child(3) .metric-icon) { background: var(--theme-stage-3); }
+:root[data-app-theme="navy"] :is(.hub-column:nth-child(4), .metric:nth-child(4) .metric-icon),
+:root[data-app-theme="forest"] :is(.hub-column:nth-child(4), .metric:nth-child(4) .metric-icon) { background: var(--theme-stage-4); }
+:root[data-app-theme="navy"] .metric:nth-child(1) .metric-icon,
+:root[data-app-theme="forest"] .metric:nth-child(1) .metric-icon { color: var(--theme-icon-1); }
+:root[data-app-theme="navy"] .metric:nth-child(2) .metric-icon,
+:root[data-app-theme="forest"] .metric:nth-child(2) .metric-icon { color: var(--theme-icon-2); }
+:root[data-app-theme="navy"] .metric:nth-child(3) .metric-icon,
+:root[data-app-theme="forest"] .metric:nth-child(3) .metric-icon { color: var(--theme-icon-3); }
+:root[data-app-theme="navy"] .metric:nth-child(4) .metric-icon,
+:root[data-app-theme="forest"] .metric:nth-child(4) .metric-icon { color: var(--theme-icon-4); }
+:root[data-app-theme="navy"] :is(.hub-column[data-drop-status="To Review"] h3, .library-view .action-item:nth-child(4n + 1) .action-symbol),
+:root[data-app-theme="forest"] :is(.hub-column[data-drop-status="To Review"] h3, .library-view .action-item:nth-child(4n + 1) .action-symbol) { color: var(--theme-icon-1); }
+:root[data-app-theme="navy"] :is(.hub-column[data-drop-status="In Negotiation"] h3, .library-view .action-item:nth-child(4n + 2) .action-symbol),
+:root[data-app-theme="forest"] :is(.hub-column[data-drop-status="In Negotiation"] h3, .library-view .action-item:nth-child(4n + 2) .action-symbol) { color: var(--theme-icon-2); }
+:root[data-app-theme="navy"] :is(.hub-column[data-drop-status="Drafted in SPA"] h3, .library-view .action-item:nth-child(4n + 3) .action-symbol),
+:root[data-app-theme="forest"] :is(.hub-column[data-drop-status="Drafted in SPA"] h3, .library-view .action-item:nth-child(4n + 3) .action-symbol) { color: var(--theme-icon-3); }
+:root[data-app-theme="navy"] :is(.hub-column[data-drop-status="Satisfied/Closed"] h3, .library-view .action-item:nth-child(4n) .action-symbol),
+:root[data-app-theme="forest"] :is(.hub-column[data-drop-status="Satisfied/Closed"] h3, .library-view .action-item:nth-child(4n) .action-symbol) { color: var(--theme-icon-4); }
+:root[data-app-theme="navy"] .library-view .action-item:nth-child(4n + 1) .action-symbol,
+:root[data-app-theme="forest"] .library-view .action-item:nth-child(4n + 1) .action-symbol { background: var(--theme-stage-1); }
+:root[data-app-theme="navy"] .library-view .action-item:nth-child(4n + 2) .action-symbol,
+:root[data-app-theme="forest"] .library-view .action-item:nth-child(4n + 2) .action-symbol { background: var(--theme-stage-2); }
+:root[data-app-theme="navy"] .library-view .action-item:nth-child(4n + 3) .action-symbol,
+:root[data-app-theme="forest"] .library-view .action-item:nth-child(4n + 3) .action-symbol { background: var(--theme-stage-3); }
+:root[data-app-theme="navy"] .library-view .action-item:nth-child(4n) .action-symbol,
+:root[data-app-theme="forest"] .library-view .action-item:nth-child(4n) .action-symbol { background: var(--theme-stage-4); }
+:root[data-app-theme="navy"] :is(.category-symbol, .logic-action .logic-icon, .info, .hub-count),
+:root[data-app-theme="forest"] :is(.category-symbol, .logic-action .logic-icon, .info, .hub-count) { background: var(--theme-selected); color: var(--theme-accent); }
+:root:is([data-app-theme="navy"], [data-app-theme="forest"]) :is(.logic-action[data-action-icon="search"], .logic-action[data-action-icon="filePenLine"], .logic-action[data-action-icon="arrowCircle"]) .logic-icon,
+:root:is([data-app-theme="navy"], [data-app-theme="forest"]) .explore-categories button:nth-child(4n + 1) .category-symbol { background: var(--theme-stage-1); color: var(--theme-icon-1); }
+:root:is([data-app-theme="navy"], [data-app-theme="forest"]) :is(.logic-action[data-action-icon="wrench"], .logic-action[data-action-icon="shieldCheck"], .logic-action[data-action-icon="lockKeyhole"]) .logic-icon,
+:root:is([data-app-theme="navy"], [data-app-theme="forest"]) .explore-categories button:nth-child(4n + 2) .category-symbol { background: var(--theme-stage-2); color: var(--theme-icon-2); }
+:root:is([data-app-theme="navy"], [data-app-theme="forest"]) :is(.logic-action[data-action-icon="handshake"], .logic-action[data-action-icon="banknote"], .logic-action[data-action-icon="arrowDownUp"], .logic-action[data-action-icon="arrowLeftRight"]) .logic-icon,
+:root:is([data-app-theme="navy"], [data-app-theme="forest"]) .explore-categories button:nth-child(4n + 3) .category-symbol { background: var(--theme-stage-3); color: var(--theme-icon-3); }
+:root:is([data-app-theme="navy"], [data-app-theme="forest"]) :is(.logic-action[data-action-icon="circleCheck"], .logic-action[data-action-icon="fileSearch"], .logic-action[data-action-icon="calendarCheck"], .logic-action[data-action-icon="ellipsisCircle"]) .logic-icon,
+:root:is([data-app-theme="navy"], [data-app-theme="forest"]) .explore-categories button:nth-child(4n) .category-symbol { background: var(--theme-stage-4); color: var(--theme-icon-4); }
+:root[data-app-theme="navy"] :is(.hub-stage, .hub-tag),
+:root[data-app-theme="forest"] :is(.hub-stage, .hub-tag) { border-color: var(--line); }
+
+/* Company Radar's neutral controls follow the palette; red/amber/green flags
+   continue to describe source facts rather than the selected app colour. */
+:root[data-app-theme="navy"] :is(.radar-filing, .radar-list li, .radar-flag-details li),
+:root[data-app-theme="forest"] :is(.radar-filing, .radar-list li, .radar-flag-details li) { border-color: var(--line); }
+:root[data-app-theme="navy"] :is(.radar-pagination button:hover, .radar-role-toggle:hover, .radar-role-options button:hover),
+:root[data-app-theme="forest"] :is(.radar-pagination button:hover, .radar-role-toggle:hover, .radar-role-options button:hover) { background: var(--theme-hover); }
+:root[data-app-theme="navy"] .radar-pagination button[aria-current="page"]:hover,
+:root[data-app-theme="forest"] .radar-pagination button[aria-current="page"]:hover { background: var(--ink); }
+
+/* Settings colour picker: native radio controls retain keyboard behaviour. */
+.theme-settings{max-width:760px}.theme-settings-heading h3{font-size:22px;font-weight:550;letter-spacing:-.5px;margin:3px 0 8px}.theme-settings-heading p{max-width:52ch;line-height:1.6}.theme-options{display:flex;flex-wrap:wrap;gap:12px;margin:24px 0 0;padding:0;border:0}.theme-options legend.sr-only{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap}.theme-option{display:flex;align-items:center;gap:12px;min-width:165px;min-height:58px;padding:8px 14px;border:1px solid var(--line);border-radius:14px;background:var(--surface);color:var(--ink);font-size:13px;font-weight:550;cursor:pointer;transition:border-color 150ms ease,background-color 150ms ease}.theme-option:has(input:checked){border-color:var(--theme-ring,#87928e);background:var(--theme-hover,#f1f2f1)}.theme-option input{appearance:none;flex:none;width:34px;height:34px;margin:0;border:3px solid #fff;border-radius:50%;box-shadow:0 0 0 1px #a8b1ae;cursor:pointer}.theme-option input[value="grey"]{background:#737b7c}.theme-option input[value="navy"]{background:#254e74}.theme-option input[value="forest"]{background:#286247}.theme-option input:checked{box-shadow:0 0 0 2px var(--theme-accent,#4d5855),0 0 0 5px var(--theme-selected,#e9ecea)}.theme-option input:focus-visible{outline:3px solid var(--theme-ring,#8aa9a0);outline-offset:5px}.theme-status{min-height:20px;font-size:11px;color:var(--muted);margin-top:14px!important}@media(max-width:600px){.theme-options{gap:9px}.theme-option{min-width:0;width:100%}}
+
+/* The selected deal is identified by its dot; the row highlight is for hover. */
+.project-rail-item.active,
+:root[data-app-theme="navy"] .project-rail-item.active,
+:root[data-app-theme="forest"] .project-rail-item.active { background: transparent; box-shadow: none; }
+.project-rail-item.active strong { color: var(--ink); }
+@media (hover: hover) {
+  .project-rail-item:hover,
+  .project-rail-item.active:hover { background: #f1f2f1; }
+  :root[data-app-theme="navy"] .project-rail-item:hover,
+  :root[data-app-theme="forest"] .project-rail-item:hover { background: var(--theme-hover); }
+}

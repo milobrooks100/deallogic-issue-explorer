@@ -8,6 +8,7 @@ const indexPath = path.join(distRoot, "index.html");
 const indexSource = await readFile(indexPath, "utf8");
 const activeScripts = [
   "app-storage.js",
+  "app-theme.js",
   "action-registry.js",
   "deal-hub-v8.js",
   "workspace-redesign.js",
@@ -27,11 +28,12 @@ for (const filename of activeScripts) {
 }
 
 const storageIndex = indexSource.indexOf("./app-storage.js");
+const themeIndex = indexSource.indexOf("./app-theme.js");
 const actionRegistryIndex = indexSource.indexOf("./action-registry.js");
 const hubIndex = indexSource.indexOf("./deal-hub-v8.js");
 const templatesIndex = indexSource.indexOf("./deal-logic-templates.js");
 const playbooksIndex = indexSource.indexOf("./action-playbooks.js");
-if (!(storageIndex >= 0 && storageIndex < actionRegistryIndex && actionRegistryIndex < hubIndex && hubIndex < templatesIndex && templatesIndex < playbooksIndex)) {
+if (!(storageIndex >= 0 && storageIndex < themeIndex && themeIndex < actionRegistryIndex && actionRegistryIndex < hubIndex && hubIndex < templatesIndex && templatesIndex < playbooksIndex)) {
   throw new Error("Runtime scripts are not loaded in their required order.");
 }
 
@@ -48,6 +50,7 @@ if (playbookTopics.flatMap(topic => topic.actions).length !== 43) throw new Erro
 
 const storageConsumers = [
   indexPath,
+  path.join(distRoot, "app-theme.js"),
   path.join(distRoot, "deal-hub-v8.js"),
   path.join(distRoot, "workspace-redesign.js"),
   path.join(distRoot, "deal-logic-templates.js"),
