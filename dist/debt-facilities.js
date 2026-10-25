@@ -1,4 +1,4 @@
-/* Debt facilities: diligence questions and risk only. Deal logic remains a draft template. */
+/* Debt facilities: diligence questions, risk and a rules-based summary. */
 (() => {
   const issueId = "debt-facilities-repayment";
   const ids = ["debt-obligations", "debt-transaction-effect", "debt-payoff", "debt-consent", "debt-funding", "debt-releases", "debt-completion-sequence"];
@@ -25,6 +25,18 @@
   const isDebt = () => current()?.id === issueId;
   const answer = id => answers[id] || "Unanswered";
   const isKnown = value => value !== "Unanswered";
+  const visibleIds = () => {
+    const existence = answer(ids[0]);
+    const effect = answer(ids[1]);
+    if (![options[ids[0]][2], options[ids[0]][3]].includes(existence)) return [ids[0]];
+    const visible = [ids[0], ids[1]];
+    if (!isKnown(effect) || [options[ids[1]][1], options[ids[1]][5]].includes(effect)) return visible;
+    if (repaymentRequired(effect)) visible.push(ids[2]);
+    if (consentRequired(effect)) visible.push(ids[3]);
+    if (repaymentRequired(effect)) visible.push(ids[4], ids[5]);
+    visible.push(ids[6]);
+    return visible;
+  };
 
   const debtRiskScore = () => {
     const existence = answer(ids[0]);
@@ -76,20 +88,69 @@
     if (!detail) return "";
     return `<div class="question"><div class="question-top"><label for="${id}">${detail.question}</label><button class="info" type="button" aria-label="Guidance for this question">i<span class="tooltip">${guidance[id]}</span></button></div><select id="${id}">${options[id].map(value => `<option ${answer(id) === value ? "selected" : ""}>${value}</option>`).join("")}</select></div>`;
   };
-  const debtQuestions = issue => {
-    const existence = answer(ids[0]);
-    const effect = answer(ids[1]);
-    const showEffect = existence === options[ids[0]][2] || existence === options[ids[0]][3];
-    const showFollowUp = showEffect && isKnown(effect) && effect !== options[ids[1]][1] && effect !== options[ids[1]][5];
-    return [
-      question(issue, ids[0]),
-      showEffect ? question(issue, ids[1]) : "",
-      showFollowUp && repaymentRequired(effect) ? question(issue, ids[2]) : "",
-      showFollowUp && consentRequired(effect) ? question(issue, ids[3]) : "",
-      showFollowUp && repaymentRequired(effect) ? question(issue, ids[4]) : "",
-      showFollowUp && repaymentRequired(effect) ? question(issue, ids[5]) : "",
-      showFollowUp ? question(issue, ids[6]) : ""
-    ].join("");
+  const debtQuestions = issue => visibleIds().map(id => question(issue, id)).join("");
+
+  // Each answer has one complete sentence; combinations are assembled from the visible questions.
+  const summaryCopy = {
+    "debt-obligations": [null,
+      "No relevant target-group borrowing, guarantee or security has been identified after reviewing the finance documents and charge records.",
+      "The target group has outstanding finance obligations or security.",
+      "The target group may have finance obligations or security, but the records are incomplete.",
+      "The target group's finance obligations and security have not yet been checked."],
+    "debt-transaction-effect": [null,
+      "The finance documents do not require repayment, lender consent or a waiver for this transaction.",
+      "The transaction requires repayment or cancellation of a facility.",
+      "The transaction requires lender consent or a waiver for the facility to continue.",
+      "The transaction requires both repayment and lender consent or a waiver.",
+      "The required lender steps remain unclear because the documents or transaction analysis are incomplete."],
+    "debt-payoff": [null,
+      "The lender has provided a current written payoff covering all amounts and release conditions.",
+      "The written payoff is incomplete; figures or release conditions remain open.",
+      "No written payoff has been obtained from the lender.",
+      "A written payoff has not yet been requested from the lender."],
+    "debt-consent": [null,
+      "The required written lender consent or waiver is effective.",
+      "The lender has agreed in principle, but its consent or waiver has not been signed.",
+      "The lender has declined consent, or its required terms remain unmet.",
+      "The required lender consent or waiver has not yet been sought."],
+    "debt-funding": [null,
+      "Sufficient committed funds and an agreed completion funds flow are in place.",
+      "Funding is expected, but the commitment or funds flow is not final.",
+      "There is a funding shortfall or timing gap for repayment.",
+      "Funding for repayment has not yet been assessed."],
+    "debt-releases": [null,
+      "The documents confirm that no target-group security or guarantees need release.",
+      "All required target-group releases are agreed for completion.",
+      "Some target-group releases remain outstanding.",
+      "The required target-group releases remain unresolved.",
+      "The target-group security and guarantee perimeter has not yet been mapped."],
+    "debt-completion-sequence": [null,
+      "All required lender steps are coordinated for completion.",
+      "The completion steps are agreed in principle but are not final.",
+      "A lender-related completion dependency remains unresolved.",
+      "The required lender steps have not yet been agreed for completion."]
+  };
+  const missingLabels = {
+    "debt-obligations": "target group's finance position",
+    "debt-transaction-effect": "transaction's effect under the finance documents",
+    "debt-payoff": "written payoff",
+    "debt-consent": "required lender consent or waiver",
+    "debt-funding": "repayment funding",
+    "debt-releases": "release package",
+    "debt-completion-sequence": "completion sequence"
+  };
+  const joinList = items => items.length < 3 ? items.join(" and ") : `${items.slice(0, -1).join(", ")} and ${items.at(-1)}`;
+  const debtSummary = () => {
+    const sentences = [];
+    const missing = [];
+    for (const id of visibleIds()) {
+      const selected = answer(id);
+      if (selected === "Unanswered") { missing.push(missingLabels[id]); continue; }
+      const index = options[id].indexOf(selected);
+      sentences.push(summaryCopy[id][index] || `The recorded answer about the ${missingLabels[id]} needs review.`);
+    }
+    if (missing.length) sentences.push(`The ${joinList(missing)} ${missing.length === 1 ? "remains" : "remain"} unconfirmed.`);
+    return sentences.join(" ");
   };
 
   const previousRenderPanel = renderPanel;
@@ -113,5 +174,13 @@
         renderPanel();
       };
     });
+  };
+
+  const previousRenderLogic = renderLogic;
+  renderLogic = function (issue) {
+    previousRenderLogic(issue);
+    if (issue?.id !== issueId) return;
+    const summary = document.querySelector("#logic-card .logic-conclusion");
+    if (summary) summary.textContent = debtSummary();
   };
 })();
