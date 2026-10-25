@@ -1,0 +1,4 @@
+.facts-title { position: relative; display: inline-block; cursor: help; outline: none; }
+.facts-title:focus-visible { outline: 2px solid var(--moss); outline-offset: 3px; border-radius: 2px; }
+.facts-guidance { position: absolute; z-index: 20; left: 0; top: calc(100% + 9px); width: min(260px, 70vw); padding: 9px 10px; border-radius: 7px; background: var(--ink); color: #fff; font: 12px/1.4 Inter, sans-serif; box-shadow: 0 8px 20px rgba(7, 27, 15, .2); opacity: 0; visibility: hidden; transform: translateY(-3px); transition: opacity .14s, transform .14s; pointer-events: none; }
+.facts-title:is(:hover, :focus-visible) .facts-guidance { opacity: 1; visibility: visible; transform: translateY(0); }
