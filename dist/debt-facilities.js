@@ -13,7 +13,7 @@
   };
   const guidance = {
     "debt-obligations": "Check facility and security documents, guarantees, hedging documents and Companies House charge records for each target-group company.",
-    "debt-transaction-effect": "Read the change-of-control, mandatory prepayment, cancellation, default and consent terms against the proposed share sale.",
+    "debt-transaction-effect": "Read the change-of-control, mandatory prepayment, cancellation, default and consent terms against the proposed transaction.",
     "debt-payoff": "Obtain the lender's current written figure, including principal, interest, fees, break costs and any hedging close-out, plus the release conditions.",
     "debt-consent": "Confirm that a signed lender consent or waiver covers the transaction and is effective before the relevant deadline.",
     "debt-funding": "Check that committed completion funds cover the full payoff and can reach the lender when required.",
