@@ -10,15 +10,24 @@ let markup = "";
 const card = { querySelector: () => ({}), replaceChildren: () => {}, insertAdjacentHTML: (_where, html) => { markup = html; }, querySelectorAll: () => [] };
 const summaryNode = { textContent: "" };
 const implicationsNode = { children: [], replaceChildren(...children) { this.children = children; } };
-const context = vm.createContext({ answers: {}, current: () => issue, riskScore: () => 99, renderPanel: () => {}, renderLogic: () => {}, document: {
-  querySelector: selector => selector === ".content-grid > .card" ? card : selector === "#logic-card .logic-conclusion" ? summaryNode : selector === "#logic-card .logic-section:nth-of-type(2) ul" ? implicationsNode : null,
-  createElement: tag => ({ tag, textContent: "" })
+const actionSection = { innerHTML: "" };
+let side = "Balanced";
+let clickHandler;
+const context = vm.createContext({ answers: {}, current: () => issue, riskScore: () => 99, renderPanel: () => {}, renderLogic: () => {}, getTransactionSide: () => side, storedKey: () => "test-debt", DealLogicStorage: { setItem: () => {} }, document: {
+  querySelector: selector => selector === ".content-grid > .card" ? card : selector === "#logic-card .logic-conclusion" ? summaryNode : selector === "#logic-card .logic-section:nth-of-type(2) ul" ? implicationsNode : selector === "#logic-card .logic-section:nth-of-type(3)" ? actionSection : null,
+  createElement: tag => ({ tag, textContent: "" }),
+  addEventListener: (type, handler) => { if (type === "click") clickHandler = handler; }
 } });
-vm.runInContext(source.replace(/\}\)\(\);\s*$/, "globalThis.__debtTest = { options, debtSummary, debtImplications }; })();"), context);
+vm.runInContext(source.replace(/\}\)\(\);\s*$/, "globalThis.__debtTest = { options, debtSummary, debtImplications, debtActions, actionCatalog }; })();"), context);
 const score = answers => { context.answers = answers; return context.riskScore(); };
 const questions = answers => { context.answers = answers; context.renderPanel(); return markup; };
 const summary = answers => { context.answers = answers; context.renderLogic(issue); return summaryNode.textContent; };
 const implications = answers => { context.answers = answers; context.renderLogic(issue); return implicationsNode.children.map(item => item.textContent); };
+const actions = (answers, selectedSide = "Balanced", structure = "SPA") => {
+  context.answers = { ...answers, "debt-structure": structure };
+  side = selectedSide;
+  return Array.from(context.__debtTest.debtActions(selectedSide, structure));
+};
 
 test("debt questions have distinct answer keys", () => {
   assert.equal(issue.key_questions.length, 7);
@@ -125,4 +134,61 @@ test("all answer combinations produce one to three complete implications", () =>
   };
   visit(0);
   assert.equal(count, 112500);
+});
+
+test("only the approved fourteen action descriptions are used", () => {
+  assert.equal(Object.keys(context.__debtTest.actionCatalog).length, 14);
+  assert.deepEqual(actions({ "debt-obligations": "No — confirmed from finance documents and charge records" }), []);
+  assert.deepEqual(actions({ "debt-obligations": "Not yet checked" }).map(action => action.id), ["D01"]);
+});
+
+test("repayment and consent routes select different transaction protections", () => {
+  const base = { "debt-obligations": "Yes — finance obligations or security exist" };
+  const repayment = actions({ ...base, "debt-transaction-effect": "Repayment or cancellation required", "debt-releases": "No target-group security or guarantees to release — confirmed" });
+  assert.ok(repayment.some(action => action.id === "D02"));
+  assert.ok(repayment.some(action => action.id === "D03"));
+  assert.ok(repayment.some(action => action.id === "D09"));
+  assert.ok(!repayment.some(action => action.id === "D04" || action.id === "D08"));
+  const consent = actions({ ...base, "debt-transaction-effect": "Lender consent or waiver required to continue", "debt-consent": "Not yet sought" });
+  assert.ok(consent.some(action => action.id === "D04"));
+  assert.ok(!consent.some(action => ["D02", "D03", "D07", "D08", "D09"].includes(action.id)));
+});
+
+test("buyer, seller and balanced priorities differ where the SPA protection is negotiable", () => {
+  const facts = { "debt-obligations": "Yes — finance obligations or security exist", "debt-transaction-effect": "Lender consent or waiver required to continue", "debt-consent": "Not yet sought" };
+  const priority = (selectedSide, id) => actions(facts, selectedSide).find(action => action.id === id)?.priority;
+  assert.equal(priority("Buyer", "D10"), "Required");
+  assert.equal(priority("Seller", "D10"), "Consider");
+  assert.equal(priority("Balanced", "D10"), "Recommended");
+  assert.equal(priority("Buyer", "D04"), "Required");
+  assert.equal(priority("Seller", "D04"), "Required");
+});
+
+test("a combined blocked route keeps essential protections within the ten-action cap", () => {
+  const facts = {
+    "debt-obligations": "Yes — finance obligations or security exist",
+    "debt-transaction-effect": "Both repayment and lender consent or waiver required",
+    "debt-payoff": "No — no written payoff obtained",
+    "debt-consent": "No — lender has declined or required terms are unmet",
+    "debt-funding": "No — shortfall or timing gap",
+    "debt-releases": "No — required releases are unresolved",
+    "debt-completion-sequence": "No — a completion dependency is unresolved"
+  };
+  const buyer = actions(facts, "Buyer", "APA");
+  assert.equal(buyer.length, 10);
+  assert.ok(buyer.every(action => action.priority === "Required"));
+  for (const id of ["D02", "D03", "D04", "D06", "D07", "D08", "D09", "D10", "D11", "D14"]) assert.ok(buyer.some(action => action.id === id), id);
+  assert.ok(!actions(facts, "Buyer", "SPA").some(action => action.id === "D14"));
+  assert.ok(actions(facts, "Buyer", "APA").some(action => action.id === "D14"));
+});
+
+test("rendered actions match the selected structure and show their priorities", () => {
+  context.answers = { "debt-obligations": "Yes — finance obligations or security exist", "debt-transaction-effect": "None — no repayment, consent or waiver required" };
+  side = "Seller";
+  context.renderLogic(issue);
+  assert.match(actionSection.innerHTML, /data-action-id="D12"/);
+  assert.match(actionSection.innerHTML, /data-level="required"/);
+  assert.doesNotMatch(actionSection.innerHTML, /data-action-id="D14"/);
+  clickHandler({ target: { closest: selector => selector === "[data-debt-structure]" ? { dataset: { debtStructure: "APA" } } : null } });
+  assert.match(actionSection.innerHTML, /data-action-id="D14"/);
 });
