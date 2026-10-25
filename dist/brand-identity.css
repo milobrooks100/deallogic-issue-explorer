@@ -4,7 +4,7 @@
 .workspace-brand-name { display: flex; flex-direction: column; justify-content: center; align-items: flex-start; gap: 2px; height: 42px; font-weight: 400; letter-spacing: -.055em; white-space: nowrap; }
 .workspace-brand-wordmark { display: block; line-height: 21px; }
 .workspace-brand-name strong { font-weight: 750; }
-.workspace-brand-name small { display: block; margin: 0 0 0 2px; line-height: 12px; letter-spacing: .02em; }
+.workspace-brand-name small { display: block; margin: 0 0 0 1px; line-height: 12px; letter-spacing: .02em; }
 body > header .brand h1 { display: flex; align-items: center; gap: 9px; font-family: Inter, ui-sans-serif, system-ui, sans-serif; letter-spacing: -.055em; }
 body > header .brand h1 img { width: 40px; height: 40px; }
 body > header .brand h1 span { font-weight: 400; }
