@@ -68,3 +68,28 @@ html{scroll-behavior:auto}body{font-family:Inter,-apple-system,BlinkMacSystemFon
     max-width: none;
   }
 }
+
+@media (max-width: 600px) {
+  /* Match answer and search text to the question labels. */
+  select,
+  .other-input,
+  input[type="text"],
+  input[type="search"],
+  textarea {
+    font-size: 13px !important;
+  }
+  .question select,
+  .question .other-input,
+  .radar-search input {
+    min-height: 38px;
+    padding-top: 8px;
+    padding-bottom: 8px;
+  }
+  /* iOS keeps the page steady when an editable field receives focus. */
+  input[type="text"]:focus,
+  input[type="search"]:focus,
+  select:focus,
+  textarea:focus {
+    font-size: 16px !important;
+  }
+}
