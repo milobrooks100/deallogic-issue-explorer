@@ -133,7 +133,7 @@
     const collapseLabel = `${sidebarCollapsed ? "Expand" : "Collapse"} Deal companies sidebar`;
     collapse.setAttribute("aria-label", collapseLabel); collapse.title = collapseLabel;
     collapse.setAttribute("aria-expanded", String(!sidebarCollapsed));
-    collapse.innerHTML = '<i data-lucide="panel-left-close" aria-hidden="true"></i>';
+    collapse.innerHTML = '<i data-lucide="chevron-left" aria-hidden="true"></i>';
     heading.insertBefore(collapse, heading.lastElementChild);
     sidebar.querySelectorAll("[data-radar-select]").forEach(button => {
       const name = button.querySelector("strong")?.textContent || "Company";

@@ -65,7 +65,7 @@
     const rail = document.querySelector('.project-rail');
     if (!rail || rail.querySelector('.workspace-navigation')) return;
     const nav = document.createElement('div'); nav.className = 'workspace-navigation';
-    nav.innerHTML = `<a class="workspace-brand" href="#deal-map" aria-label="DealLogic home"><span class="brand-mark">${icon('scale')}</span><span class="workspace-brand-name">DealLogic<small>Transaction workspace</small></span></a><div class="nav-caption"><span class="nav-caption-label">WORKSPACE</span><button type="button" class="sidebar-collapse-toggle" data-collapse-workspace aria-label="${main.classList.contains('workspace-rail-collapsed') ? 'Expand workspace sidebar' : 'Collapse workspace sidebar'}" aria-expanded="${!main.classList.contains('workspace-rail-collapsed')}" aria-controls="workspace-navigation-links" title="${main.classList.contains('workspace-rail-collapsed') ? 'Expand workspace sidebar' : 'Collapse workspace sidebar'}"><i data-lucide="panel-left-close" aria-hidden="true"></i></button></div><nav id="workspace-navigation-links" aria-label="Main navigation">${destinations.map(([id,label,symbol])=>`<button type="button" data-workspace-view="${id}" aria-label="${label}" title="${label}">${icon(symbol)}<span>${label}</span></button>`).join('')}</nav>`;
+    nav.innerHTML = `<a class="workspace-brand" href="#deal-map" aria-label="DealLogic home"><span class="brand-mark">${icon('scale')}</span><span class="workspace-brand-name">DealLogic<small>Transaction workspace</small></span></a><div class="nav-caption"><span class="nav-caption-label">WORKSPACE</span><button type="button" class="sidebar-collapse-toggle" data-collapse-workspace aria-label="${main.classList.contains('workspace-rail-collapsed') ? 'Expand workspace sidebar' : 'Collapse workspace sidebar'}" aria-expanded="${!main.classList.contains('workspace-rail-collapsed')}" aria-controls="workspace-navigation-links" title="${main.classList.contains('workspace-rail-collapsed') ? 'Expand workspace sidebar' : 'Collapse workspace sidebar'}"><i data-lucide="chevron-left" aria-hidden="true"></i></button></div><nav id="workspace-navigation-links" aria-label="Main navigation">${destinations.map(([id,label,symbol])=>`<button type="button" data-workspace-view="${id}" aria-label="${label}" title="${label}">${icon(symbol)}<span>${label}</span></button>`).join('')}</nav>`;
     rail.prepend(nav);
     main.prepend(rail);
     nav.querySelector('.workspace-brand').onclick = event => {event.preventDefault();window.showDealLogicView('deal-map');};
@@ -87,7 +87,7 @@
       const button = document.createElement('button');
       button.type = 'button'; button.className = 'sidebar-collapse-toggle'; button.dataset.collapseMap = '';
       button.setAttribute('aria-controls', 'mind-map');
-      button.innerHTML = '<i data-lucide="panel-left-close" aria-hidden="true"></i>';
+      button.innerHTML = '<i data-lucide="chevron-left" aria-hidden="true"></i>';
       button.onclick = () => {
         const collapsed = map.closest('.workspace').classList.toggle('map-sidebar-collapsed');
         setSidebarPreference('map', collapsed);
@@ -103,14 +103,6 @@
       button.setAttribute('aria-label', label); button.title = label; button.setAttribute('aria-expanded', String(!collapsed));
     };
     updateMapToggle();
-    const categoryIcons = {'commercial-contracts':'file-text','intellectual-property':'lightbulb','corporate-and-shares':'chart-pie','litigation-and-disputes':'scale','finance-and-banking':'landmark'};
-    map.querySelectorAll('.area:not(:has(.area-label))').forEach(button => {
-      const label = button.firstChild?.textContent.trim() || '';
-      button.firstChild?.remove();
-      button.setAttribute('aria-label', label);
-      button.title = label;
-      button.insertAdjacentHTML('afterbegin', `<i class="area-symbol" data-lucide="${categoryIcons[button.dataset.area] || 'file-text'}" aria-hidden="true"></i><span class="area-label">${label}</span>`);
-    });
   }
   const originalShow = window.showDealLogicView;
   window.showDealLogicView = view => {

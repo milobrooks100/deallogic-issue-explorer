@@ -12,13 +12,24 @@
   background: transparent;
   color: #68766e;
   cursor: pointer;
+  position: relative;
 }
-.sidebar-collapse-toggle svg { width: 17px; height: 17px; }
-.sidebar-collapse-toggle:hover { background: #e8ebea; color: var(--ink); }
+.sidebar-collapse-toggle::before {
+  content: "";
+  position: absolute;
+  width: 28px;
+  height: 28px;
+  border-radius: 7px;
+  background: transparent;
+  transition: background-color 150ms ease;
+}
+.sidebar-collapse-toggle svg { width: 18px; height: 18px; position: relative; }
+.sidebar-collapse-toggle:hover { color: var(--ink); }
+.sidebar-collapse-toggle:hover::before { background: #dfe5e0; }
+.sidebar-collapse-toggle:focus-visible { outline: 2px solid #8aa9a0; outline-offset: -5px; }
 .workspace-rail-collapsed [data-collapse-workspace] svg,
 .map-sidebar-collapsed [data-collapse-map] svg,
 .radar-sidebar-collapsed [data-collapse-radar] svg { transform: rotate(180deg); }
-.area-symbol,
 .radar-company-symbol { display: none; }
 
 @media (min-width: 981px) {
@@ -61,20 +72,7 @@
   .workspace.map-sidebar-collapsed .map h3 { justify-content: center; padding: 0; }
   .workspace.map-sidebar-collapsed .map h3 .sidebar-collapse-toggle { margin: -8px 0; }
   .workspace.map-sidebar-collapsed .map-title-wrap,
-  .workspace.map-sidebar-collapsed .area-label,
-  .workspace.map-sidebar-collapsed .chevron,
-  .workspace.map-sidebar-collapsed .issue-nodes { display: none; }
-  .workspace.map-sidebar-collapsed .map-branches { display: grid; grid-template-columns: 1fr; gap: 5px; margin-top: 22px; }
-  .workspace.map-sidebar-collapsed .branch { margin: 0; padding: 0; }
-  .workspace.map-sidebar-collapsed .area {
-    justify-content: center;
-    width: 44px;
-    height: 44px;
-    min-height: 44px;
-    margin: 0 auto;
-    padding: 0;
-  }
-  .workspace.map-sidebar-collapsed .area-symbol { display: block; width: 18px; height: 18px; }
+  .workspace.map-sidebar-collapsed .map-branches { display: none; }
 
   .radar-layout.radar-sidebar-collapsed { grid-template-columns: 68px minmax(0, 1fr); }
   .radar-sidebar-collapsed .radar-sidebar { min-width: 0; padding: 17px 8px; overflow: hidden; }
@@ -103,4 +101,5 @@
 
 @media (prefers-reduced-motion: reduce) {
   main:has(.project-rail), .workspace, .radar-layout { transition: none; }
+  .sidebar-collapse-toggle::before { transition: none; }
 }
