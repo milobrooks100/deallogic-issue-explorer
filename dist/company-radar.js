@@ -134,7 +134,7 @@
     collapse.setAttribute("aria-label", collapseLabel); collapse.title = collapseLabel;
     collapse.setAttribute("aria-expanded", String(!sidebarCollapsed));
     collapse.innerHTML = '<i data-lucide="chevron-left" aria-hidden="true"></i>';
-    heading.insertBefore(collapse, heading.lastElementChild);
+    heading.append(collapse);
     sidebar.querySelectorAll("[data-radar-select]").forEach(button => {
       const name = button.querySelector("strong")?.textContent || "Company";
       button.setAttribute("aria-label", `${name}, ${button.dataset.radarSelect}`); button.title = name;
