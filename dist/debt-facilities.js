@@ -153,6 +153,58 @@
     return sentences.join(" ");
   };
 
+  const debtImplications = () => {
+    const existence = answer(ids[0]);
+    const effect = answer(ids[1]);
+    if (existence === options[ids[0]][1]) return ["No debt-specific completion step is currently indicated."];
+    if (existence === "Unanswered" || existence === options[ids[0]][4]) return ["Review the finance documents and charge records before settling the transaction's lender requirements."];
+    if (effect === "Unanswered" || effect === options[ids[1]][5]) return ["Confirm whether the transaction triggers repayment, lender consent or a waiver before fixing the completion plan."];
+    if (effect === options[ids[1]][1]) return existence === options[ids[0]][3]
+      ? ["The finance records remain incomplete, so the absence of a lender requirement is not yet confirmed."]
+      : ["No repayment or lender-consent completion step is currently indicated."];
+
+    const repay = repaymentRequired(effect);
+    const consent = consentRequired(effect);
+    const implications = [];
+    const consentStatus = answer(ids[3]);
+    if (consent) {
+      const opening = repay ? "Repayment is required, and " : "";
+      const consentText = consentStatus === options[ids[3]][1]
+        ? "the effective lender consent or waiver should be retained with the completion evidence."
+        : consentStatus === options[ids[3]][2]
+          ? "agreement in principle still needs an effective written lender consent or waiver."
+          : consentStatus === options[ids[3]][3]
+            ? "the lender's refusal or unmet conditions leave the consent route unresolved."
+            : consentStatus === options[ids[3]][4]
+              ? "the required lender consent or waiver must be sought."
+              : "the required lender consent or waiver remains unconfirmed.";
+      implications.push(opening + (repay ? consentText : consentText.charAt(0).toUpperCase() + consentText.slice(1)));
+    } else {
+      implications.push("The required facility repayment or cancellation must be built into the transaction timetable.");
+    }
+
+    if (repay) {
+      const payoff = answer(ids[2]);
+      const funding = answer(ids[4]);
+      if (funding === options[ids[4]][3]) implications.push("A funding shortfall or timing gap could prevent the required repayment.");
+      else if (payoff !== options[ids[2]][1]) implications.push("The lender's full payoff and release conditions must be confirmed before the funds flow is finalised.");
+      else if (funding !== options[ids[4]][1]) implications.push("Committed repayment funds and the completion funds flow remain unconfirmed.");
+    }
+
+    const sequence = answer(ids[6]);
+    const sequenceOpen = sequence !== options[ids[6]][1];
+    if (repay) {
+      const releases = answer(ids[5]);
+      const releasesOpen = ![options[ids[5]][1], options[ids[5]][2]].includes(releases);
+      if (releasesOpen && sequenceOpen) implications.push("The release package and completion sequence remain open, creating a closing gap.");
+      else if (releasesOpen) implications.push("Target-group security or guarantees may remain unless the release package is agreed and delivered.");
+      else if (sequenceOpen) implications.push("Repayment and release steps need a final agreed completion sequence.");
+    } else if (sequenceOpen) {
+      implications.push("The lender consent or waiver must be effective on the agreed transaction timetable.");
+    }
+    return implications.slice(0, 3);
+  };
+
   const previousRenderPanel = renderPanel;
   renderPanel = function () {
     previousRenderPanel();
@@ -182,5 +234,11 @@
     if (issue?.id !== issueId) return;
     const summary = document.querySelector("#logic-card .logic-conclusion");
     if (summary) summary.textContent = debtSummary();
+    const implications = document.querySelector("#logic-card .logic-section:nth-of-type(2) ul");
+    if (implications) implications.replaceChildren(...debtImplications().map(item => {
+      const li = document.createElement("li");
+      li.textContent = item;
+      return li;
+    }));
   };
 })();
