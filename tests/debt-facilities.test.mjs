@@ -8,10 +8,12 @@ const issues = JSON.parse(await readFile(new URL("../dist/issues.json", import.m
 const issue = issues.find(item => item.id === "debt-facilities-repayment");
 let markup = "";
 const card = { querySelector: () => ({}), replaceChildren: () => {}, insertAdjacentHTML: (_where, html) => { markup = html; }, querySelectorAll: () => [] };
-const context = vm.createContext({ answers: {}, current: () => issue, riskScore: () => 99, renderPanel: () => {}, document: { querySelector: () => card } });
-vm.runInContext(source, context);
+const summaryNode = { textContent: "" };
+const context = vm.createContext({ answers: {}, current: () => issue, riskScore: () => 99, renderPanel: () => {}, renderLogic: () => {}, document: { querySelector: selector => selector === ".content-grid > .card" ? card : summaryNode } });
+vm.runInContext(source.replace(/\}\)\(\);\s*$/, "globalThis.__debtTest = { options, debtSummary }; })();"), context);
 const score = answers => { context.answers = answers; return context.riskScore(); };
 const questions = answers => { context.answers = answers; context.renderPanel(); return markup; };
+const summary = answers => { context.answers = answers; context.renderLogic(issue); return summaryNode.textContent; };
 
 test("debt questions have distinct answer keys", () => {
   assert.equal(issue.key_questions.length, 7);
@@ -53,4 +55,35 @@ test("a documented and funded payoff with agreed releases reduces risk", () => {
     "debt-releases": "Yes — all required releases are agreed for completion",
     "debt-completion-sequence": "Yes — all required steps are coordinated for completion"
   }), 2);
+});
+
+test("summary turns an unsought consent into a complete sentence", () => {
+  const text = summary({
+    "debt-obligations": "Yes — finance obligations or security exist",
+    "debt-transaction-effect": "Lender consent or waiver required to continue",
+    "debt-consent": "Not yet sought"
+  });
+  assert.match(text, /The required lender consent or waiver has not yet been sought\./);
+  assert.match(text, /completion sequence remains unconfirmed\./);
+  assert.doesNotMatch(text, /payoff|release package/);
+});
+
+test("every valid answer combination produces readable summary sentences", () => {
+  const entries = Object.entries(context.__debtTest.options);
+  const selected = {};
+  let count = 0;
+  const visit = index => {
+    if (index === entries.length) {
+      const text = summary(selected);
+      assert.ok(text.length > 20);
+      assert.match(text, /\.$/);
+      assert.doesNotMatch(text, /\b(?:undefined|null|Unanswered)\b/);
+      count += 1;
+      return;
+    }
+    const [id, choices] = entries[index];
+    for (const choice of choices) { selected[id] = choice; visit(index + 1); }
+  };
+  visit(0);
+  assert.equal(count, 112500);
 });
