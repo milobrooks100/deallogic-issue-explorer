@@ -1,4 +1,64 @@
-.facts-title { position: relative; display: inline-block; cursor: help; outline: none; }
+/* Both heading tooltips use the Deal Map treatment and timing. */
+.map-title,
+.facts-title { position: relative; display: inline-block; cursor: default; outline: none; }
+
+.map-title:focus-visible,
 .facts-title:focus-visible { outline: 2px solid var(--moss); outline-offset: 3px; border-radius: 2px; }
-.facts-guidance { position: absolute; z-index: 20; left: 0; top: calc(100% + 9px); width: min(260px, 70vw); padding: 9px 10px; border-radius: 7px; background: var(--ink); color: #fff; font: 12px/1.4 Inter, sans-serif; box-shadow: 0 8px 20px rgba(7, 27, 15, .2); opacity: 0; visibility: hidden; transform: translateY(-3px); transition: opacity .14s, transform .14s; pointer-events: none; }
-.facts-title:is(:hover, :focus-visible) .facts-guidance { opacity: 1; visibility: visible; transform: translateY(0); }
+
+.map-guidance,
+.facts-guidance {
+  position: absolute;
+  z-index: 20;
+  left: calc(100% + 12px);
+  top: 50%;
+  width: 220px;
+  padding: 9px 10px;
+  border-radius: 7px;
+  background: var(--ink);
+  color: #fff;
+  font: 12px/1.4 Inter, sans-serif;
+  box-shadow: 0 8px 20px rgba(7, 27, 15, .2);
+  opacity: 0;
+  visibility: hidden;
+  transform: translate(-3px, -50%);
+  transition: opacity .14s, transform .14s, visibility 0s linear .14s;
+  pointer-events: none;
+}
+
+.map-guidance::before,
+.facts-guidance::before {
+  content: "";
+  position: absolute;
+  right: 100%;
+  top: 50%;
+  transform: translateY(-50%);
+  border: 6px solid transparent;
+  border-right-color: var(--ink);
+}
+
+.map h3:has(.map-title:hover) .map-guidance,
+.facts-title:hover .facts-guidance {
+  opacity: 1;
+  visibility: visible;
+  transform: translate(0, -50%);
+  transition: opacity .14s 1s, transform .14s 1s, visibility 0s linear 1s;
+}
+
+.map h3:has(.map-title:focus-visible) .map-guidance,
+.facts-title:focus-visible .facts-guidance {
+  opacity: 1;
+  visibility: visible;
+  transform: translate(0, -50%);
+  transition: opacity .14s, transform .14s, visibility 0s;
+}
+
+@media (max-width: 980px) {
+  .map-guidance,
+  .facts-guidance { left: 0; top: calc(100% + 9px); transform: translateY(-3px); }
+  .map-guidance::before,
+  .facts-guidance::before { right: auto; left: 18px; top: auto; bottom: 100%; transform: none; border-right-color: transparent; border-bottom-color: var(--ink); }
+  .map h3:has(.map-title:hover) .map-guidance,
+  .facts-title:hover .facts-guidance,
+  .map h3:has(.map-title:focus-visible) .map-guidance,
+  .facts-title:focus-visible .facts-guidance { transform: translateY(0); }
+}
