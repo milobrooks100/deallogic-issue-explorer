@@ -136,7 +136,7 @@
     const hub=document.querySelector('.deal-hub-view');
     if(hub && hub.querySelector('[data-hub-view="summary"].active') && !hub.querySelector('.workspace-metrics')){
       const data=activeDealProject().hub;const actions=data.actions||[];
-      const metrics=document.createElement('div');metrics.className='workspace-metrics';metrics.setAttribute('aria-label','Project overview');
+      const metrics=document.createElement('div');metrics.className='workspace-metrics';metrics.setAttribute('aria-label','Deal overview');
       const values=[['Open issues',(data.issues||[]).length,'document'],['Action items',actions.length,'grid'],['Required actions',actions.filter(a=>a.priority==='Required').length,'shield'],['Satisfied / closed',actions.filter(a=>a.status==='Satisfied/Closed').length,'check']];
       metrics.innerHTML=values.map(([label,count,symbol])=>`<div class="metric"><span class="metric-label">${label}</span><span class="metric-icon">${icon(symbol)}</span><strong>${count}</strong></div>`).join('');
       hub.querySelector('.hub-content')?.prepend(metrics);

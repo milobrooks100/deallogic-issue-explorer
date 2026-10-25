@@ -1,15 +1,15 @@
 # DealLogic Issue Explorer
 
-DealLogic is a prototype M&A issue-analysis workspace. It combines a structured Deal Map with rule-based deal logic, recommended actions, and a project-specific Deal Hub.
+DealLogic is a prototype M&A issue-analysis workspace. It combines a structured Deal Map with rule-based deal logic, recommended actions, and a deal-specific Deal Hub.
 
 ## Current checkpoint
 
 This repository captures the `v0.2-project-workspaces` version, including:
 
-- project-specific Deal Map answers and transaction-side settings;
-- a Deal Hub with summary, task-board, table, and project-settings views;
+- deal-specific Deal Map answers and transaction-side settings;
+- a Deal Hub with summary, task-board, table, and deal-settings views;
 - recommended-action selection and custom action items; and
-- a structural project sidebar for switching between saved deal workspaces.
+- a structural deal sidebar for switching between saved deal workspaces.
 
 ## Local development
 
@@ -23,13 +23,13 @@ python3 -m http.server 4173 --directory dist
 
 ## Data storage
 
-Project data is currently stored in the browser's local storage. It is not yet synchronised to a user account or server, so clearing browser storage will remove locally saved projects.
+Deal data is currently stored in the browser's local storage. It is not yet synchronised to a user account or server, so clearing browser storage will remove locally saved deals.
 
 Browser persistence is accessed through `dist/app-storage.js`. That small adapter preserves the current local-storage behaviour while providing a single boundary for a future signed-in account or backend synchronisation layer.
 
 ## Company Radar
 
-Company Radar is a project-specific dashboard of public Companies House register data. Users can add several entities to a deal, review rule-based attention flags, open the original register pages, filter recent filings, download available PDFs on demand, and add a finding to Deal Hub. Individual attention flags can be marked reviewed; the app clears that mark if the flag's underlying detail changes. After a fresh check, it highlights changed register fields compared with the prior successful check. Company selections, review marks, and comparison snapshots are stored in this browser with the rest of the project. Register data is fetched when the section is opened or refreshed.
+Company Radar is a deal-specific dashboard of public Companies House register data. Users can add several entities to a deal, review rule-based attention flags, open the original register pages, filter recent filings, download available PDFs on demand, and add a finding to Deal Hub. Individual attention flags can be marked reviewed; the app clears that mark if the flag's underlying detail changes. After a fresh check, it highlights changed register fields compared with the prior successful check. Company selections, review marks, and comparison snapshots are stored in this browser with the rest of the deal. Register data is fetched when the section is opened or refreshed.
 
 The Vercel `api/` functions provide same-origin search, company summary and document-download routes. Register for a live Companies House API key and set `COMPANIES_HOUSE_API_KEY` in the Vercel project's environment variables for Preview and Production, then redeploy. Never add the key to `dist/` or commit a filled-in `.env` file. Local development can use `vercel dev` with the same environment variable; a plain static file server cannot run these functions.
 
