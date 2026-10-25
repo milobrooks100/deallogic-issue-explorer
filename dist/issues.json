@@ -806,37 +806,51 @@
     ],
     "key_questions": [
       {
-        "id": "identify-finance-documents-and-obligors",
-        "question": "What facilities, finance documents, hedging arrangements, guarantees and security documents exist, and which target-group entities are obligors or security providers?",
-        "purpose": "Establish the full debt and credit-support perimeter that could affect the transaction.",
+        "id": "debt-obligations",
+        "question": "Does any target-group company have outstanding borrowing, guarantees or security under a finance arrangement?",
+        "purpose": "Identify the facilities and target-group obligations that could affect completion.",
         "priority": "critical",
         "answer_status": "unanswered"
       },
       {
-        "id": "determine-transaction-consequences",
-        "question": "Do the finance documents require repayment, lender consent, a waiver or amendment because of the proposed transaction?",
-        "purpose": "Identify hard completion dependencies and any risk of default or acceleration.",
+        "id": "debt-transaction-effect",
+        "question": "What does the proposed transaction require under the finance documents?",
+        "purpose": "Identify mandatory repayment, cancellation, lender consent or waiver requirements.",
         "priority": "critical",
         "answer_status": "unanswered"
       },
       {
-        "id": "verify-payoff-amount",
-        "question": "What amount must be paid at completion, including principal, accrued interest, break costs, fees, hedging close-out and other amounts?",
-        "purpose": "Enable an accurate funds flow and avoid residual debt after completion.",
+        "id": "debt-payoff",
+        "question": "Has the lender confirmed the full repayment amount and release conditions in writing?",
+        "purpose": "Check the amount and conditions needed to discharge the facility.",
         "priority": "critical",
         "answer_status": "unanswered"
       },
       {
-        "id": "verify-release-perimeter",
-        "question": "What releases, discharges, terminations, return of collateral and registry filings are needed, and which persons must deliver them?",
-        "purpose": "Ensure that all target-related security and credit support are removed, not merely the principal debt.",
+        "id": "debt-consent",
+        "question": "Has the required lender consent or waiver been obtained in writing?",
+        "purpose": "Confirm that the transaction can proceed without an unwaived breach.",
         "priority": "critical",
         "answer_status": "unanswered"
       },
       {
-        "id": "confirm-closing-sequencing",
-        "question": "How will payoff funds and release documents be held, delivered and sequenced at completion, including any escrow or solicitors' undertaking arrangements?",
-        "purpose": "Make repayment, release and acquisition occur in a controlled and auditable sequence.",
+        "id": "debt-funding",
+        "question": "Are sufficient funds available under an agreed completion funds flow?",
+        "purpose": "Check that all amounts due can be paid when required.",
+        "priority": "critical",
+        "answer_status": "unanswered"
+      },
+      {
+        "id": "debt-releases",
+        "question": "Are all target-group security, guarantees and other credit support identified, with releases agreed for completion?",
+        "purpose": "Avoid residual target-group liabilities or encumbrances after repayment.",
+        "priority": "critical",
+        "answer_status": "unanswered"
+      },
+      {
+        "id": "debt-completion-sequence",
+        "question": "Are all required lender steps sequenced with completion?",
+        "purpose": "Coordinate payment, consent and release delivery at completion.",
         "priority": "high",
         "answer_status": "unanswered"
       }
