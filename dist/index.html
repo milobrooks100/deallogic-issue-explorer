@@ -69,6 +69,7 @@
         const heading = factsCard?.querySelector("h3");
         if (heading && !heading.querySelector(".reset-answers")) {
           heading.classList.add("facts-heading");
+          heading.innerHTML = '<span class="facts-title" tabindex="0" aria-describedby="facts-guidance">Establish the facts<span class="facts-guidance" id="facts-guidance" role="tooltip">Record the diligence facts to see how the risk assessment and recommended actions respond.</span></span>';
           heading.insertAdjacentHTML("beforeend", '<button class="reset-answers" type="button">Reset answers</button>');
         }
         const trigger = document.querySelector("#triggered-provision-consequences");
@@ -505,6 +506,7 @@
     <link rel="stylesheet" href="./sidebar-collapse.css" />
     <link rel="stylesheet" href="./app-theme.css" />
     <link rel="stylesheet" href="./brand-identity.css" />
+    <link rel="stylesheet" href="./facts-guidance.css" />
     <script src="./workspace-redesign.js?v=1"></script>
     <script src="./company-radar.js"></script>
     <script>
