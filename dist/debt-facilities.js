@@ -336,5 +336,6 @@
       const actionMarkup = actions.length ? actions.map(({ id, priority, title, description }) => `<div class="logic-action" data-action-id="${id}"><span class="logic-icon">◌</span><div><span class="logic-priority" data-level="${priority.toLowerCase()}">${priority}</span><strong>${title}</strong><span>${description}</span></div></div>`).join("") : `<p>There are no active transaction actions on the information recorded.</p>`;
       actionSection.innerHTML = `<div class="logic-section-heading"><h4>Recommended actions</h4>${sidePicker}</div>${actionMarkup}`;
     }
+    document.dispatchEvent(new CustomEvent("debt-facilities-logic-rendered"));
   };
 })();
