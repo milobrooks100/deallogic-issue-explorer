@@ -6,13 +6,26 @@ import test from "node:test";
 const source = await readFile(new URL("../dist/debt-facilities.js", import.meta.url), "utf8");
 const issues = JSON.parse(await readFile(new URL("../dist/issues.json", import.meta.url), "utf8"));
 const issue = issues.find(item => item.id === "debt-facilities-repayment");
-const context = vm.createContext({ answers: {}, current: () => issue, riskScore: () => 99, renderPanel: () => {} });
+let markup = "";
+const card = { querySelector: () => ({}), replaceChildren: () => {}, insertAdjacentHTML: (_where, html) => { markup = html; }, querySelectorAll: () => [] };
+const context = vm.createContext({ answers: {}, current: () => issue, riskScore: () => 99, renderPanel: () => {}, document: { querySelector: () => card } });
 vm.runInContext(source, context);
 const score = answers => { context.answers = answers; return context.riskScore(); };
+const questions = answers => { context.answers = answers; context.renderPanel(); return markup; };
 
 test("debt questions have distinct answer keys", () => {
   assert.equal(issue.key_questions.length, 7);
   assert.equal(new Set(issue.key_questions.map(question => question.id)).size, 7);
+});
+
+test("follow-up questions match the repayment or consent route", () => {
+  assert.match(questions({}), /id="debt-obligations"/);
+  assert.doesNotMatch(markup, /id="debt-payoff"/);
+  const base = { "debt-obligations": "Yes — finance obligations or security exist" };
+  assert.match(questions({ ...base, "debt-transaction-effect": "Repayment or cancellation required" }), /id="debt-payoff"/);
+  assert.doesNotMatch(markup, /id="debt-consent"/);
+  assert.match(questions({ ...base, "debt-transaction-effect": "Lender consent or waiver required to continue" }), /id="debt-consent"/);
+  assert.doesNotMatch(markup, /id="debt-payoff"/);
 });
 
 test("confirmed absence and unreviewed debt have different risk", () => {
