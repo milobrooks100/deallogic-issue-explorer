@@ -43,12 +43,12 @@ const registrySource = await readFile(path.join(distRoot, "action-registry.js"),
 const registrySandbox = { window: {} };
 vm.runInNewContext(registrySource, registrySandbox, { filename: "action-registry.js" });
 const playbookTopics = registrySandbox.window.DealLogicActionRegistry?.topics || [];
-const expectedCounts = new Map([["customer-change-of-control",9],["missing-ip-assignment",11],["option-holders",9],["threatened-litigation",14]]);
+const expectedCounts = new Map([["customer-change-of-control",9],["missing-ip-assignment",11],["option-holders",9],["threatened-litigation",14],["debt-facilities-repayment",14]]);
 for (const [topicId, expectedCount] of expectedCounts) {
   const topic = playbookTopics.find(item => item.id === topicId);
   if (!topic || topic.actions.length !== expectedCount) throw new Error(`Expected ${expectedCount} actions for ${topicId}.`);
 }
-if (playbookTopics.flatMap(topic => topic.actions).length !== 43) throw new Error("Expected 43 issue-playbook actions.");
+if (playbookTopics.flatMap(topic => topic.actions).length !== 57) throw new Error("Expected 57 issue-playbook actions.");
 
 const storageConsumers = [
   indexPath,
