@@ -4,6 +4,7 @@ import vm from "node:vm";
 import test from "node:test";
 
 const source = await readFile(new URL("../dist/debt-facilities.js", import.meta.url), "utf8");
+const registrySource = await readFile(new URL("../dist/action-registry.js", import.meta.url), "utf8");
 const issues = JSON.parse(await readFile(new URL("../dist/issues.json", import.meta.url), "utf8"));
 const issue = issues.find(item => item.id === "debt-facilities-repayment");
 let markup = "";
@@ -14,9 +15,11 @@ const actionSection = { innerHTML: "" };
 const logicClasses = new Set();
 const logicCard = { innerHTML: "", classList: { add: value => logicClasses.add(value), remove: value => logicClasses.delete(value), contains: value => logicClasses.has(value) } };
 let side = "Balanced";
-const context = vm.createContext({ answers: {}, current: () => issue, riskScore: () => 99, renderPanel: () => {}, renderLogic: () => { logicCard.innerHTML = ""; }, getTransactionSide: () => side, storedKey: () => "test-debt", DealLogicStorage: { setItem: () => {} }, document: {
+const events = [];
+const context = vm.createContext({ answers: {}, current: () => issue, riskScore: () => 99, renderPanel: () => {}, renderLogic: () => { logicCard.innerHTML = ""; }, getTransactionSide: () => side, storedKey: () => "test-debt", DealLogicStorage: { setItem: () => {} }, CustomEvent: class { constructor(type) { this.type = type; } }, document: {
   querySelector: selector => selector === ".content-grid > .card" ? card : selector === "#logic-card" ? logicCard : selector === "#logic-card .logic-conclusion" ? summaryNode : selector === "#logic-card .logic-section:nth-of-type(2) ul" ? implicationsNode : selector === "#logic-card .logic-section:nth-of-type(3)" ? actionSection : null,
-  createElement: tag => ({ tag, textContent: "" })
+  createElement: tag => ({ tag, textContent: "" }),
+  dispatchEvent: event => { events.push(event.type); }
 } });
 vm.runInContext(source.replace(/\}\)\(\);\s*$/, "globalThis.__debtTest = { options, debtSummary, debtImplications, debtActions, actionCatalog }; })();"), context);
 const score = answers => { context.answers = answers; return context.riskScore(); };
@@ -142,6 +145,20 @@ test("only the approved fourteen action descriptions are used", () => {
   assert.deepEqual(actions({ "debt-obligations": "Not yet checked" }).map(action => action.id), ["D01"]);
 });
 
+test("Action Library contains the same fourteen Debt Facilities actions", () => {
+  const registryContext = vm.createContext({ window: {} });
+  vm.runInContext(registrySource, registryContext);
+  const topic = registryContext.window.DealLogicActionRegistry.byTopic.get(issue.id);
+  assert.equal(topic.actions.length, 14);
+  for (const action of topic.actions) {
+    const catalog = context.__debtTest.actionCatalog[action.id];
+    assert.ok(catalog, action.id);
+    assert.equal(action.title, catalog[0]);
+    assert.equal(action.description, catalog[1]);
+    assert.ok(action.icon && action.phase);
+  }
+});
+
 test("repayment and consent routes select different transaction protections", () => {
   const base = { "debt-obligations": "Yes — finance obligations or security exist" };
   const repayment = actions({ ...base, "debt-transaction-effect": "Repayment or cancellation required", "debt-releases": "No target-group security or guarantees to release — confirmed" });
@@ -195,14 +212,18 @@ test("APA action appears with an asset-sale qualification and no sale-type selec
 test("deal logic waits for all visible answers on each question route", () => {
   const render = answers => { context.answers = answers; context.renderLogic(issue); return logicCard.classList.contains("logic-standby"); };
   const base = { "debt-obligations": "Yes — finance obligations or security exist" };
+  events.length = 0;
   assert.equal(render({}), true);
   assert.match(logicCard.innerHTML, /Turn the recorded facts/);
   assert.equal(render(base), true);
+  assert.deepEqual(events, []);
   assert.equal(render({ "debt-obligations": "Not yet checked" }), false);
+  assert.deepEqual(events, ["debt-facilities-logic-rendered"]);
   assert.equal(render({ ...base, "debt-transaction-effect": "Unclear — documents or transaction analysis incomplete" }), false);
   assert.equal(render({ ...base, "debt-transaction-effect": "Repayment or cancellation required" }), true);
   assert.equal(render({ ...base, "debt-transaction-effect": "Repayment or cancellation required", "debt-payoff": "Not yet requested", "debt-funding": "Not yet assessed", "debt-releases": "Not yet mapped", "debt-completion-sequence": "Not yet agreed" }), false);
   assert.equal(render({ ...base, "debt-transaction-effect": "Lender consent or waiver required to continue", "debt-consent": "Not yet sought" }), true);
   assert.equal(render({ ...base, "debt-transaction-effect": "Lender consent or waiver required to continue", "debt-consent": "Not yet sought", "debt-completion-sequence": "Not yet agreed" }), false);
   assert.equal(render({ ...base, "debt-transaction-effect": "Both repayment and lender consent or waiver required", "debt-payoff": "Not yet requested", "debt-consent": "Not yet sought", "debt-funding": "Not yet assessed", "debt-releases": "Not yet mapped", "debt-completion-sequence": "Not yet agreed" }), false);
+  assert.ok(events.includes("debt-facilities-logic-rendered"));
 });
