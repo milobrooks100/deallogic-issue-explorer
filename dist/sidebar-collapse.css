@@ -65,7 +65,7 @@
   cursor: pointer;
 }
 .map-expand-button svg { width: 16px; height: 16px; color: #5f7964; }
-.map-expand-button:hover { text-decoration: underline; }
+.map-expand-button:hover { background: color-mix(in srgb, var(--soft) 94%, var(--ink)); border-color: color-mix(in srgb, var(--soft) 94%, var(--ink)); }
 .map-expand-button:focus-visible { outline: 3px solid #8aa9a0; outline-offset: 3px; }
 
 @media (min-width: 981px) {
