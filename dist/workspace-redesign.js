@@ -82,26 +82,48 @@
   function decorateMapSidebar() {
     const map = document.querySelector('.map');
     if (!map) return;
+    const workspace = map.closest('.workspace');
     const heading = map.querySelector('h3');
-    if (heading && !heading.querySelector('[data-collapse-map]')) {
-      const button = document.createElement('button');
-      button.type = 'button'; button.className = 'sidebar-collapse-toggle'; button.dataset.collapseMap = '';
-      button.setAttribute('aria-controls', 'mind-map');
-      button.innerHTML = '<i data-lucide="chevron-left" aria-hidden="true"></i>';
-      button.onclick = () => {
-        const collapsed = map.closest('.workspace').classList.toggle('map-sidebar-collapsed');
-        setSidebarPreference('map', collapsed);
-        updateMapToggle();
-      };
-      heading.append(button);
+    if (!workspace || !heading) return;
+
+    let collapseButton = heading.querySelector('[data-collapse-map]');
+    if (!collapseButton) {
+      collapseButton = document.createElement('button');
+      collapseButton.type = 'button';
+      collapseButton.className = 'sidebar-collapse-toggle';
+      collapseButton.dataset.collapseMap = '';
+      collapseButton.setAttribute('aria-controls', 'mind-map');
+      collapseButton.innerHTML = '<i data-lucide="chevron-left" aria-hidden="true"></i>';
+      heading.append(collapseButton);
     }
+
+    let expandButton = workspace.querySelector('[data-expand-map]');
+    if (!expandButton) {
+      expandButton = document.createElement('button');
+      expandButton.type = 'button';
+      expandButton.className = 'map-expand-button';
+      expandButton.dataset.expandMap = '';
+      expandButton.setAttribute('aria-controls', 'mind-map');
+      expandButton.innerHTML = `${icon('map')}<span>Deal areas</span>`;
+      map.after(expandButton);
+    }
+
     const updateMapToggle = () => {
-      const button = heading.querySelector('[data-collapse-map]');
-      if (!button) return;
-      const collapsed = map.closest('.workspace').classList.contains('map-sidebar-collapsed');
-      const label = `${collapsed ? 'Expand' : 'Collapse'} Deal Map sidebar`;
-      button.setAttribute('aria-label', label); button.title = label; button.setAttribute('aria-expanded', String(!collapsed));
+      const collapsed = workspace.classList.contains('map-sidebar-collapsed');
+      const label = `${collapsed ? 'Expand' : 'Collapse'} Deal areas`;
+      collapseButton.setAttribute('aria-label', label);
+      collapseButton.title = label;
+      collapseButton.setAttribute('aria-expanded', String(!collapsed));
+      expandButton.setAttribute('aria-expanded', String(!collapsed));
     };
+    const setCollapsed = collapsed => {
+      workspace.classList.toggle('map-sidebar-collapsed', collapsed);
+      setSidebarPreference('map', collapsed);
+      updateMapToggle();
+      (collapsed ? expandButton : collapseButton).focus();
+    };
+    collapseButton.onclick = () => setCollapsed(!workspace.classList.contains('map-sidebar-collapsed'));
+    expandButton.onclick = () => setCollapsed(false);
     updateMapToggle();
   }
   const originalShow = window.showDealLogicView;
