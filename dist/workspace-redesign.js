@@ -162,7 +162,7 @@
     if(empty && !empty.querySelector('.explore-categories') && issues.length){
       const prompt = document.createElement('h3');prompt.textContent='Explore a legal issue';empty.prepend(prompt);
       const cards=document.createElement('div');cards.className='explore-categories';
-      issues.forEach(issue=>{
+      order.flatMap(category => issues.filter(issue => issue.category === category)).forEach(issue=>{
         const button=document.createElement('button');button.type='button';
         const mark=document.createElement('span');mark.className='category-symbol';mark.innerHTML=icon('document');
         const label=document.createElement('span');const category=document.createElement('small');category.textContent=areas[issue.category];const title=document.createElement('strong');title.textContent=issue.title;
