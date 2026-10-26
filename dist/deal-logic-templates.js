@@ -29,8 +29,13 @@
     const actions = (issue.recommended_actions || []).slice(0, 3);
     const summary = escapeLogicText(issue.summary || "Filler — issue summary to be confirmed.");
     const implication = "Draft template — the tailored trigger analysis and transaction response will be added once the substantive deal logic is finalised.";
-    const notes = escapeLogicText(issue.notes || "Filler — issue-specific legal notes will be added during content finalisation.");
+    const notes = (issue.notes || "Filler — issue-specific legal notes will be added during content finalisation.")
+      .split(/\n\s*\n/)
+      .map(entry => {
+        const match = entry.match(/^([^:]+:)\s*(.*)$/s);
+        return `<div class="logic-note">${match ? `<strong>${escapeLogicText(match[1])}</strong> ${escapeLogicText(match[2])}` : escapeLogicText(entry)}</div>`;
+      }).join("");
 
-    logicCard.innerHTML = `<h3>Apply deal logic</h3><section class="logic-section"><h4>Summary</h4><p class="logic-conclusion">${summary}</p></section><section class="logic-section"><h4>Key deal implications</h4><ul><li>${implication}</li></ul></section><section class="logic-section"><div class="logic-section-heading"><h4>Recommended actions</h4></div>${actionMarkup(actions)}</section><section class="logic-section"><h4>Notes</h4><div class="logic-note">${notes}</div></section>`;
+    logicCard.innerHTML = `<h3>Apply deal logic</h3><section class="logic-section"><h4>Summary</h4><p class="logic-conclusion">${summary}</p></section><section class="logic-section"><h4>Key deal implications</h4><ul><li>${implication}</li></ul></section><section class="logic-section"><div class="logic-section-heading"><h4>Recommended actions</h4></div>${actionMarkup(actions)}</section><section class="logic-section"><h4>Notes</h4>${notes}</section>`;
   };
 })();
