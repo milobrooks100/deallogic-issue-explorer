@@ -77,7 +77,7 @@
   }
 
   .nav-caption { display: flex; align-items: center; justify-content: space-between; gap: 4px; padding-right: 4px; }
-  .nav-caption .sidebar-collapse-toggle { margin: -9px -4px -3px 0; }
+  .nav-caption .sidebar-collapse-toggle { margin: 0 -4px 0 0; }
   .map h3 { display: flex; align-items: center; justify-content: space-between; gap: 4px; min-height: 36px; }
   .map h3 .sidebar-collapse-toggle { margin: -8px -8px -8px 0; }
   .radar-side-heading { gap: 6px; }
