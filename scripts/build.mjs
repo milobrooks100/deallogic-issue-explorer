@@ -49,11 +49,12 @@ if (optionHolders) {
 
 await mkdir(distRoot, { recursive: true });
 await writeFile(path.join(distRoot, "issues.json"), `${JSON.stringify(issues, null, 2)}\n`);
+const projectFirebaseConfig = JSON.parse(await readFile(path.join(siteRoot, "firebase.web.json"), "utf8"));
 const firebaseConfig = {
-  apiKey: process.env.FIREBASE_API_KEY,
-  authDomain: process.env.FIREBASE_AUTH_DOMAIN,
-  projectId: process.env.FIREBASE_PROJECT_ID,
-  appId: process.env.FIREBASE_APP_ID
+  apiKey: process.env.FIREBASE_API_KEY || projectFirebaseConfig.apiKey,
+  authDomain: process.env.FIREBASE_AUTH_DOMAIN || projectFirebaseConfig.authDomain,
+  projectId: process.env.FIREBASE_PROJECT_ID || projectFirebaseConfig.projectId,
+  appId: process.env.FIREBASE_APP_ID || projectFirebaseConfig.appId
 };
 const configured = Object.values(firebaseConfig).every(Boolean);
 await writeFile(path.join(distRoot, "firebase-config.js"),

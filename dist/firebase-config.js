@@ -1,1 +1,1 @@
-window.DEALLOGIC_FIREBASE_CONFIG = null;
+window.DEALLOGIC_FIREBASE_CONFIG = {"apiKey":"AIzaSyCS6UoWbTPdxwy3YO-9oJSbjmOM3rYhEp0","authDomain":"deal-logic.firebaseapp.com","projectId":"deal-logic","appId":"1:851454119355:web:cc59ce55213c01ec4c089e"};
