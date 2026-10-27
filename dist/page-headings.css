@@ -1,0 +1,29 @@
+/* A single title/subtitle rhythm across the five workspace views. */
+:is(.intro, .hub-header, .view-header, .radar-page-heading) h2 {
+  margin: 0;
+  color: var(--ink);
+  font-family: inherit;
+  font-size: 34px;
+  font-weight: 500;
+  letter-spacing: -1.3px;
+  line-height: 1.12;
+}
+
+:is(.intro, .hub-header, .view-header, .radar-page-heading) > :first-child > p,
+:is(.intro, .view-header) > p {
+  max-width: 720px;
+  margin: 10px 0 0;
+  color: var(--muted);
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 400;
+  letter-spacing: normal;
+  line-height: 1.65;
+}
+
+.intro { padding-right: 0; margin-bottom: 26px; }
+.hub-header, .view-header, .radar-page-heading { margin-bottom: 26px; }
+
+@media (max-width: 600px) {
+  :is(.intro, .hub-header, .view-header, .radar-page-heading) h2 { font-size: 29px; }
+}
