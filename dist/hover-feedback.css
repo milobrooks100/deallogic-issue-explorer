@@ -36,6 +36,10 @@
   .library-tabs button[aria-selected="true"]:hover,
   .playbook-tabs button[aria-selected="true"]:hover,
   .transaction-side-options button.active:hover { filter: brightness(1.12); }
+
+  .core-library-panel .action-item:hover { background: #f1f2f1; }
+  :root[data-app-theme="navy"] .core-library-panel .action-item:hover,
+  :root[data-app-theme="forest"] .core-library-panel .action-item:hover { background: var(--theme-hover); }
 }
 
 @media (prefers-reduced-motion: no-preference) {

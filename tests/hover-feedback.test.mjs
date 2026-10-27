@@ -13,4 +13,7 @@ test("workspace controls have shared hover feedback without styling disabled but
     assert.ok(css.includes(selector), `${selector} has hover styling`);
   }
   assert.match(css, /prefers-reduced-motion: no-preference/);
+  assert.match(css, /\.core-library-panel \.action-item:hover \{ background: #f1f2f1; \}/);
+  assert.match(css, /:root\[data-app-theme="navy"\] \.core-library-panel \.action-item:hover/);
+  assert.match(css, /:root\[data-app-theme="forest"\] \.core-library-panel \.action-item:hover/);
 });
