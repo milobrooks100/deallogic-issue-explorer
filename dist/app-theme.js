@@ -7,11 +7,9 @@
   document.documentElement.dataset.appTheme = current;
   document.querySelector('meta[name="theme-color"]')?.setAttribute("content", browserColours[current]);
 
-  function syncControls(theme, announce = false) {
+  function syncControls(theme) {
     const input = document.querySelector(`input[name="app-theme"][value="${theme}"]`);
     if (input) input.checked = true;
-    const status = document.getElementById("theme-status");
-    if (status) status.textContent = announce ? `${names[theme]} colour selected.` : "";
   }
 
   document.addEventListener("DOMContentLoaded", () => syncControls(current));
@@ -21,6 +19,6 @@
     document.documentElement.dataset.appTheme = theme;
     document.querySelector('meta[name="theme-color"]')?.setAttribute("content", browserColours[theme]);
     DealLogicStorage.setItem(key, theme);
-    syncControls(theme, true);
+    syncControls(theme);
   });
 })();

@@ -14,6 +14,7 @@ if (!storage.guestSession() && config?.apiKey && config?.authDomain && config?.p
   let verifiedUser = null;
   let syncRunning = null;
   let syncTimer = 0;
+  let syncRetryMs = 3000;
   let signingOut = false;
   let card;
 
@@ -38,7 +39,7 @@ if (!storage.guestSession() && config?.apiKey && config?.authDomain && config?.p
     ["Places", "Wave", "Mountains", "Sailboat", "Coastal village", "Palm sunset", "Northern lights"],
     ["Dogs", "Golden retriever", "Black Labrador", "Chocolate Labrador", "Cocker spaniel", "Irish setter", "Springer spaniel"],
     ["Animals", "Panda", "Penguin", "Flamingo", "Fox", "Giraffe", "Octopus"],
-    ["People", "Sunglasses portrait", "Woman portrait", "Bearded portrait", "Blonde portrait", "Man portrait", "Astronaut"],
+    ["People", "Sunglasses portrait", "Woman portrait", "Bearded portrait", "Blonde portrait", "Orange sunglasses portrait", "Astronaut"],
     ["Interests", "Tennis", "Golf", "Laptop", "Books", "Coffee", "Football"]
   ];
   const avatarNames = avatarGroups.flatMap(group => group.slice(1));
@@ -52,6 +53,7 @@ if (!storage.guestSession() && config?.apiKey && config?.authDomain && config?.p
     return defaultAvatar;
   };
   const avatarMarkup = avatar => {
+    if (avatar.index === 22) return '<span class="avatar-art avatar-art-replacement" aria-hidden="true"></span>';
     const column = avatar.index % 6;
     const row = Math.floor(avatar.index / 6);
     const x = ((50 + column * 247) / 1336 * 100).toFixed(2);
@@ -89,6 +91,88 @@ if (!storage.guestSession() && config?.apiKey && config?.authDomain && config?.p
     renderAccountEntry();
     refreshIcons();
   }
+  function setupPasswordChange() {
+    const form = card.querySelector("[data-password-form]");
+    const reviewButton = form.querySelector("[data-password-review]");
+    const confirmation = form.querySelector("[data-password-confirmation]");
+    const confirmButton = form.querySelector("[data-password-confirm]");
+    const status = card.querySelector("[data-password-status]");
+    const resetConfirmation = () => {
+      confirmation.hidden = true;
+      reviewButton.hidden = false;
+    };
+    form.oninput = () => {
+      resetConfirmation();
+      status.textContent = "";
+      status.classList.remove("account-error");
+    };
+    form.onsubmit = event => {
+      event.preventDefault();
+      const currentPassword = form.elements.namedItem("currentPassword").value;
+      const newPassword = form.elements.namedItem("newPassword").value;
+      if (currentPassword === newPassword) {
+        status.textContent = "Choose a new password that differs from your current one.";
+        status.classList.add("account-error");
+        return;
+      }
+      status.textContent = "";
+      confirmation.hidden = false;
+      reviewButton.hidden = true;
+      confirmButton.focus();
+    };
+    form.querySelector("[data-password-cancel]").onclick = () => {
+      form.reset();
+      resetConfirmation();
+      status.textContent = "Password change cancelled.";
+      status.classList.remove("account-error");
+      reviewButton.focus();
+    };
+    confirmButton.onclick = async () => {
+      if (!form.reportValidity()) return;
+      const user = auth.currentUser;
+      if (!user || !verifiedUser || user.uid !== verifiedUser.uid || !user.email) {
+        status.textContent = "Sign in again before changing your password.";
+        status.classList.add("account-error");
+        resetConfirmation();
+        return;
+      }
+      const currentPassword = form.elements.namedItem("currentPassword").value;
+      const newPassword = form.elements.namedItem("newPassword").value;
+      if (currentPassword === newPassword) {
+        status.textContent = "Choose a new password that differs from your current one.";
+        status.classList.add("account-error");
+        resetConfirmation();
+        return;
+      }
+      confirmButton.disabled = true;
+      form.querySelector("[data-password-cancel]").disabled = true;
+      status.textContent = "Changing password…";
+      status.classList.remove("account-error");
+      try {
+        const credential = authSdk.EmailAuthProvider.credential(user.email, currentPassword);
+        await authSdk.reauthenticateWithCredential(user, credential);
+        if (auth.currentUser?.uid !== user.uid || verifiedUser?.uid !== user.uid) throw new Error("Account changed");
+        await authSdk.updatePassword(user, newPassword);
+        form.reset();
+        resetConfirmation();
+        status.textContent = "Password changed successfully.";
+      } catch (error) {
+        resetConfirmation();
+        form.elements.namedItem("currentPassword").value = "";
+        status.textContent = ({
+          "auth/invalid-credential": "Current password was not recognised. Try again.",
+          "auth/wrong-password": "Current password was not recognised. Try again.",
+          "auth/weak-password": "Choose a stronger new password.",
+          "auth/network-request-failed": "Connection failed. Your password was not changed. Try again."
+        })[error?.code] || "Password was not changed. Please try again.";
+        status.classList.add("account-error");
+        form.elements.namedItem("currentPassword").focus();
+      } finally {
+        confirmButton.disabled = false;
+        form.querySelector("[data-password-cancel]").disabled = false;
+      }
+    };
+  }
 
   async function flushPending() {
     if (!verifiedUser) return;
@@ -117,11 +201,23 @@ if (!storage.guestSession() && config?.apiKey && config?.authDomain && config?.p
     for (let attempt = 0; attempt < 3 && storage.pendingKeys(verifiedUser.uid).length; attempt++) await flushPending();
     if (storage.pendingKeys(verifiedUser.uid).length) throw new Error("Sync still pending");
   }
-  function scheduleSync() {
+  function scheduleSync(delay = 900) {
     clearTimeout(syncTimer);
-    syncTimer = setTimeout(() => flushPending().catch(() => {
-      message("Progress is saved in this browser, but cloud sync is unavailable. Try again when connected.", true);
-    }), 900);
+    syncTimer = setTimeout(async () => {
+      try {
+        await flushPending();
+        syncRetryMs = 3000;
+        if (verifiedUser && !storage.pendingKeys(verifiedUser.uid).length && card?.querySelector("[data-account-message]")?.textContent === "Avatar updated. Saving to your account…") {
+          message("Avatar saved to your account.");
+        }
+      } catch {
+        message("Progress is saved in this browser, but cloud sync is unavailable. We will retry automatically.", true);
+        if (verifiedUser && storage.pendingKeys(verifiedUser.uid).length) {
+          scheduleSync(syncRetryMs);
+          syncRetryMs = Math.min(syncRetryMs * 2, 60000);
+        }
+      }
+    }, delay);
     updateStatus();
   }
   function updateStatus() {
@@ -162,7 +258,7 @@ if (!storage.guestSession() && config?.apiKey && config?.authDomain && config?.p
     const user = auth.currentUser;
     renderAccountEntry();
     if (verifiedUser) {
-      card.innerHTML = `<span class="eyebrow">Account</span><h3>Your account</h3><p>Signed in as <strong data-account-email></strong>. Your deal progress is saved to your account.</p><div class="account-avatar-settings settings-subsection"><div class="account-avatar-intro"><span class="account-avatar-preview" data-account-avatar-preview></span><div><h4>Your avatar</h4><p>Choose one of 30 avatars for your sidebar account button.</p></div></div><div class="account-avatar-groups">${avatarChoicesMarkup()}</div></div><div class="account-sync-settings settings-subsection"><div><h4>Cloud sync</h4><p>Your deal progress and preferences are saved to your account.</p></div><div class="account-actions"><button type="button" data-account-sync>Sync now</button></div></div><div data-account-import class="settings-subsection"></div><div class="account-security-settings settings-subsection"><div><h4>Session</h4><p>Sign out on this device when you are finished.</p></div><div class="account-actions"><button type="button" data-account-signout>Sign out</button></div></div><p class="account-message" data-account-message role="status" aria-live="polite"></p>`;
+      card.innerHTML = `<span class="eyebrow">Account</span><h3>Your account</h3><p>Signed in as <strong data-account-email></strong>. Your deal progress and preferences save automatically to your account.</p><div class="account-avatar-settings settings-subsection"><div class="account-avatar-intro"><span class="account-avatar-preview" data-account-avatar-preview></span><div><h4>Your avatar</h4><p>Choose one of 30 avatars for your sidebar account button.</p></div></div><div class="account-avatar-groups">${avatarChoicesMarkup()}</div></div><div class="account-password-settings settings-subsection"><h4>Change password</h4><p>Enter your current password and a new one. You will review the change before confirming it.</p><form data-password-form><label>Current password<input type="password" name="currentPassword" autocomplete="current-password" required></label><label>New password<input type="password" name="newPassword" autocomplete="new-password" minlength="6" required></label><div class="account-password-actions"><button type="submit" data-password-review>Review password change</button><div class="account-password-confirmation" data-password-confirmation role="group" aria-label="Confirm password change" hidden><strong>Change your password?</strong><p>This will replace the password you use to sign in.</p><div><button type="button" data-password-confirm>Confirm password change</button><button type="button" data-password-cancel>Cancel</button></div></div></div></form><p class="account-password-status" data-password-status role="status" aria-live="polite"></p></div><div data-account-import class="settings-subsection"></div><div class="account-security-settings settings-subsection"><div><h4>Session</h4><p>Sign out on this device when you are finished.</p></div><div class="account-actions"><button type="button" data-account-signout>Sign out</button></div></div><p class="account-message" data-account-message role="status" aria-live="polite"></p>`;
       card.querySelector("[data-account-email]").textContent = verifiedUser.email;
       card.querySelectorAll("[data-avatar-index]").forEach(button => button.onclick = () => {
         storage.setItem(avatarKey, JSON.stringify({ kind: "preset", index: Number(button.dataset.avatarIndex) }));
@@ -170,7 +266,7 @@ if (!storage.guestSession() && config?.apiKey && config?.authDomain && config?.p
         message("Avatar updated. Saving to your account…");
       });
       updateAvatarEditor();
-      card.querySelector("[data-account-sync]").onclick = () => drainPending().then(() => message("Progress saved.")).catch(() => message("Cloud sync is unavailable. Your changes remain in this browser.", true));
+      setupPasswordChange();
       card.querySelector("[data-account-signout]").onclick = async () => {
         try {
           clearTimeout(syncTimer);
@@ -182,7 +278,11 @@ if (!storage.guestSession() && config?.apiKey && config?.authDomain && config?.p
           storage.clearAccountCache(uid);
           storage.setAccount(null);
           location.reload();
-        } catch { signingOut = false; message("Cloud sync must finish before signing out. Please try again.", true); }
+        } catch {
+          signingOut = false;
+          if (verifiedUser && storage.pendingKeys(verifiedUser.uid).length) scheduleSync(syncRetryMs);
+          message("Your latest changes are still saving. We will retry automatically before you sign out.", true);
+        }
       };
       if (storage.guestEntries().length) {
         const slot = card.querySelector("[data-account-import]");
@@ -191,7 +291,7 @@ if (!storage.guestSession() && config?.apiKey && config?.authDomain && config?.p
           if (!confirm("Import this browser's saved progress into your account? Matching saved items in your account will be overwritten.")) return;
           for (const [key, value] of storage.guestEntries()) storage.setItem(key, value);
           try { await drainPending(); location.reload(); }
-          catch { message("Import is still saved in this browser, but cloud sync failed. Try Sync now.", true); }
+          catch { message("Import is saved in this browser, but cloud sync is unavailable. We will retry automatically.", true); }
         };
       }
       return;

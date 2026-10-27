@@ -39,6 +39,7 @@
   background-repeat: no-repeat;
   background-size: 768% 512%;
 }
+.avatar-art-replacement { background-image: url("./avatar-sunglasses-orange.png"); background-size: cover; background-position: center; }
 .account-entry-copy { display: grid; gap: 2px; min-width: 0; }
 .account-entry-copy strong { font-size: 11px; font-weight: 600; line-height: 1.3; overflow-wrap: anywhere; }
 .account-entry-copy small { font-size: 10px; line-height: 1.3; color: var(--muted); }
@@ -59,7 +60,6 @@
 .settings-panel .theme-settings-heading h3 { margin-bottom: 8px; }
 .settings-panel .theme-settings-heading p { max-width: 60ch; }
 .settings-panel .theme-options { margin-top: 20px; }
-.settings-panel .theme-status { margin-bottom: 0; }
 .settings-panel .account-settings > .eyebrow { display: block; }
 .settings-panel .account-settings > h3 { margin-bottom: 6px; }
 .settings-panel .account-settings > p { max-width: 65ch; }
@@ -68,9 +68,32 @@
 .settings-panel .account-settings .settings-subsection p { margin: 0; }
 .settings-panel .account-settings .account-actions { margin: 0; }
 .settings-panel .account-settings [data-account-import]:not(:empty),
-.settings-panel .account-settings .account-sync-settings,
 .settings-panel .account-settings .account-security-settings { display: flex; align-items: center; justify-content: space-between; gap: 20px; }
 .settings-panel .account-settings .account-message { margin-top: 0; }
+.account-password-settings form { margin-top: 18px; }
+.account-password-actions button {
+  min-height: 38px;
+  padding: 9px 17px;
+  border: 1px solid var(--line);
+  border-radius: 24px;
+  background: var(--surface);
+  color: var(--ink);
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+}
+.account-password-actions [data-password-review],
+.account-password-actions [data-password-confirm] { background: var(--ink); border-color: var(--ink); color: #fff; }
+.account-password-actions button:hover { filter: brightness(.94); }
+.account-password-actions button:disabled { cursor: wait; opacity: .6; }
+.account-password-confirmation { max-width: 420px; padding: 16px; border: 1px solid var(--line); border-radius: 14px; background: var(--soft); }
+.account-password-confirmation[hidden], .account-password-actions [hidden] { display: none !important; }
+.account-password-confirmation strong { display: block; font-size: 13px; color: var(--ink); }
+.account-password-confirmation p { margin: 4px 0 12px !important; }
+.account-password-confirmation > div { display: flex; flex-wrap: wrap; gap: 8px; }
+.settings-panel .account-settings .account-password-status { margin: 8px 0 0; color: #365f49; }
+.account-password-status:empty { display: none; }
+.settings-panel .account-settings .account-password-status.account-error { color: #9d3939; }
 .account-avatar-intro { display: flex; align-items: center; gap: 14px; }
 .account-avatar-preview { width: 58px; height: 58px; }
 .account-avatar-groups { display: grid; gap: 2px; margin-top: 20px; }
@@ -104,7 +127,6 @@
   .account-avatar-group { grid-template-columns: 1fr; gap: 8px; padding: 8px 0; }
   .account-avatar-options { grid-template-columns: repeat(3, 54px); }
   .settings-panel .account-settings [data-account-import]:not(:empty),
-  .settings-panel .account-settings .account-sync-settings,
   .settings-panel .account-settings .account-security-settings { display: grid; justify-content: start; gap: 12px; }
 }
 @media (min-width: 981px) {
