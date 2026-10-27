@@ -73,6 +73,13 @@
 .settings-panel .account-settings .account-message { margin-top: 0; }
 .settings-panel .account-settings .account-message:empty { display: none; }
 .settings-panel .account-settings:has(.account-security-settings) { padding-bottom: 0; }
+.account-form-actions button { transition: background-color 150ms ease, border-color 150ms ease, color 150ms ease; }
+.account-form-actions:has([data-account-action="sign-in"]:is(:hover, :focus-visible)) [data-account-action="create"] { background: var(--surface); border-color: var(--line); color: var(--ink); }
+.account-form-actions [data-account-action="sign-in"]:is(:hover, :focus-visible) { background: var(--ink); border-color: var(--ink); color: #fff; }
+@media (hover: hover) {
+  .settings-panel .theme-option:hover,
+  .settings-panel .theme-option:has(input:checked):hover { background: color-mix(in srgb, var(--theme-hover, #f1f2f1) 76%, #d5d9d7); }
+}
 .account-password-settings form { margin-top: 18px; }
 .account-password-actions button {
   min-height: 38px;
@@ -138,6 +145,6 @@
   main.workspace-rail-collapsed .account-entry-copy, main.workspace-rail-collapsed .account-entry-chevron { display: none; }
 }
 @media (prefers-reduced-motion: reduce) {
-  .account-entry-chevron, .account-avatar-options button { transition: none; }
+  .account-entry-chevron, .account-avatar-options button, .account-form-actions button { transition: none; }
   .account-avatar-options button:hover { transform: none; }
 }
