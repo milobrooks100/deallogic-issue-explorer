@@ -1,0 +1,46 @@
+/* Consistent pointer feedback, without changing selected or disabled states. */
+@media (hover: hover) {
+  button:not(:disabled):hover {
+    filter: brightness(.97);
+  }
+
+  .map .area:not(.open):hover,
+  .map .area:not(.open):focus-visible {
+    background: var(--theme-hover, #e9ecea);
+    color: var(--ink);
+  }
+  .map .area.open:hover { filter: brightness(.94); }
+
+  .hub-export button:not(:disabled):hover,
+  .hub-export button:focus-visible {
+    background: var(--theme-hover, #f1f2f1);
+    border-color: var(--theme-ring, #aab4ae);
+  }
+
+  .transaction-side-toggle:not(:disabled):hover,
+  .transaction-side-toggle:focus-visible,
+  .transaction-side-options button:not(.active):hover,
+  .transaction-side-options button:not(.active):focus-visible {
+    background: color-mix(in srgb, var(--ink) 88%, white);
+    border-color: var(--ink);
+    color: #fff;
+  }
+
+  .library-tabs button:not([aria-selected="true"]):hover,
+  .playbook-tabs button:not([aria-selected="true"]):hover {
+    background: var(--theme-hover, #e9ecea);
+    color: var(--ink);
+  }
+  .library-tabs button[aria-selected="true"]:hover,
+  .playbook-tabs button[aria-selected="true"]:hover,
+  .transaction-side-options button.active:hover { filter: brightness(1.12); }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .map .area,
+  .hub-export button,
+  .transaction-side-toggle,
+  .transaction-side-options button,
+  .library-tabs button,
+  .playbook-tabs button { transition: background-color 150ms ease, border-color 150ms ease, color 150ms ease, filter 150ms ease; }
+}
