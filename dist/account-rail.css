@@ -65,6 +65,7 @@
 .settings-panel .account-settings > p { max-width: 65ch; }
 .settings-panel .account-settings h4 { margin: 0 0 4px; font-size: 14px; font-weight: 600; color: var(--ink); }
 .settings-panel .account-settings .settings-subsection { border-top: 1px solid var(--line); padding: 22px 0; }
+.settings-panel .account-settings .account-avatar-settings { margin-top: 24px; }
 .settings-panel .account-settings .settings-subsection p { margin: 0; }
 .settings-panel .account-settings .account-actions { margin: 0; }
 .settings-panel .account-settings [data-account-import]:not(:empty),
