@@ -116,22 +116,14 @@
 :root[data-app-theme="forest"] .metric:nth-child(3) .metric-icon { color: var(--theme-icon-3); }
 :root[data-app-theme="navy"] .metric:nth-child(4) .metric-icon,
 :root[data-app-theme="forest"] .metric:nth-child(4) .metric-icon { color: var(--theme-icon-4); }
-:root[data-app-theme="navy"] :is(.hub-column[data-drop-status="To Review"] h3, .library-view .action-item:nth-child(4n + 1) .action-symbol),
-:root[data-app-theme="forest"] :is(.hub-column[data-drop-status="To Review"] h3, .library-view .action-item:nth-child(4n + 1) .action-symbol) { color: var(--theme-icon-1); }
-:root[data-app-theme="navy"] :is(.hub-column[data-drop-status="In Negotiation"] h3, .library-view .action-item:nth-child(4n + 2) .action-symbol),
-:root[data-app-theme="forest"] :is(.hub-column[data-drop-status="In Negotiation"] h3, .library-view .action-item:nth-child(4n + 2) .action-symbol) { color: var(--theme-icon-2); }
-:root[data-app-theme="navy"] :is(.hub-column[data-drop-status="Drafted in SPA"] h3, .library-view .action-item:nth-child(4n + 3) .action-symbol),
-:root[data-app-theme="forest"] :is(.hub-column[data-drop-status="Drafted in SPA"] h3, .library-view .action-item:nth-child(4n + 3) .action-symbol) { color: var(--theme-icon-3); }
-:root[data-app-theme="navy"] :is(.hub-column[data-drop-status="Satisfied/Closed"] h3, .library-view .action-item:nth-child(4n) .action-symbol),
-:root[data-app-theme="forest"] :is(.hub-column[data-drop-status="Satisfied/Closed"] h3, .library-view .action-item:nth-child(4n) .action-symbol) { color: var(--theme-icon-4); }
-:root[data-app-theme="navy"] .library-view .action-item:nth-child(4n + 1) .action-symbol,
-:root[data-app-theme="forest"] .library-view .action-item:nth-child(4n + 1) .action-symbol { background: var(--theme-stage-1); }
-:root[data-app-theme="navy"] .library-view .action-item:nth-child(4n + 2) .action-symbol,
-:root[data-app-theme="forest"] .library-view .action-item:nth-child(4n + 2) .action-symbol { background: var(--theme-stage-2); }
-:root[data-app-theme="navy"] .library-view .action-item:nth-child(4n + 3) .action-symbol,
-:root[data-app-theme="forest"] .library-view .action-item:nth-child(4n + 3) .action-symbol { background: var(--theme-stage-3); }
-:root[data-app-theme="navy"] .library-view .action-item:nth-child(4n) .action-symbol,
-:root[data-app-theme="forest"] .library-view .action-item:nth-child(4n) .action-symbol { background: var(--theme-stage-4); }
+:root[data-app-theme="navy"] .hub-column[data-drop-status="To Review"] h3,
+:root[data-app-theme="forest"] .hub-column[data-drop-status="To Review"] h3 { color: var(--theme-icon-1); }
+:root[data-app-theme="navy"] .hub-column[data-drop-status="In Negotiation"] h3,
+:root[data-app-theme="forest"] .hub-column[data-drop-status="In Negotiation"] h3 { color: var(--theme-icon-2); }
+:root[data-app-theme="navy"] .hub-column[data-drop-status="Drafted in SPA"] h3,
+:root[data-app-theme="forest"] .hub-column[data-drop-status="Drafted in SPA"] h3 { color: var(--theme-icon-3); }
+:root[data-app-theme="navy"] .hub-column[data-drop-status="Satisfied/Closed"] h3,
+:root[data-app-theme="forest"] .hub-column[data-drop-status="Satisfied/Closed"] h3 { color: var(--theme-icon-4); }
 :root[data-app-theme="navy"] :is(.category-symbol, .logic-action .logic-icon, .info, .hub-count),
 :root[data-app-theme="forest"] :is(.category-symbol, .logic-action .logic-icon, .info, .hub-count) { background: var(--theme-selected); color: var(--theme-accent); }
 :root:is([data-app-theme="navy"], [data-app-theme="forest"]) :is(.logic-action[data-action-icon="search"], .logic-action[data-action-icon="filePenLine"], .logic-action[data-action-icon="arrowCircle"]) .logic-icon,
