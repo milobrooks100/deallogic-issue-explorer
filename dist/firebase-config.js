@@ -1,0 +1,1 @@
+window.DEALLOGIC_FIREBASE_CONFIG = null;

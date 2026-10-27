@@ -49,4 +49,13 @@ if (optionHolders) {
 
 await mkdir(distRoot, { recursive: true });
 await writeFile(path.join(distRoot, "issues.json"), `${JSON.stringify(issues, null, 2)}\n`);
+const firebaseConfig = {
+  apiKey: process.env.FIREBASE_API_KEY,
+  authDomain: process.env.FIREBASE_AUTH_DOMAIN,
+  projectId: process.env.FIREBASE_PROJECT_ID,
+  appId: process.env.FIREBASE_APP_ID
+};
+const configured = Object.values(firebaseConfig).every(Boolean);
+await writeFile(path.join(distRoot, "firebase-config.js"),
+  `window.DEALLOGIC_FIREBASE_CONFIG = ${JSON.stringify(configured ? firebaseConfig : null)};\n`);
 console.log(`Prepared ${issues.length} DealLogic issue records.`);

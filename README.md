@@ -23,9 +23,21 @@ python3 -m http.server 4173 --directory dist
 
 ## Data storage
 
-Deal data is currently stored in the browser's local storage. It is not yet synchronised to a user account or server, so clearing browser storage will remove locally saved deals.
+Without an account, deal data stays in this browser. Verified email/password accounts can save progress to Cloud Firestore and retrieve it on another device. Browser data can be imported from the Account panel in Settings. Browser and account data use separate local keys; signing out removes the account's local cache.
 
-Browser persistence is accessed through `dist/app-storage.js`. That small adapter preserves the current local-storage behaviour while providing a single boundary for a future signed-in account or backend synchronisation layer.
+Browser persistence is accessed through `dist/app-storage.js`. `dist/account.js` mirrors account changes to Firestore. A failed cloud write remains marked for retry in the browser, and the page shows a saving status until it succeeds.
+
+## Set up Firebase accounts
+
+1. In [Firebase Console](https://console.firebase.google.com/), create a new project on the **Spark** plan. Google Analytics is optional.
+2. In **Project overview → Add app**, register a **Web** app. Copy `apiKey`, `authDomain`, `projectId` and `appId` from its `firebaseConfig` object. These are public web configuration values, not a service account key.
+3. In **Security → Authentication → Sign-in method**, enable **Email/Password**. The Email link option is not needed. Review the **Email address verification** template under **Authentication → Templates**.
+4. In **Build → Firestore Database**, create a **Standard edition** database in **production mode**. Choose the region deliberately because it cannot be changed later; `europe-west2` (London) is available for UK-focused data.
+5. In Firestore's **Rules** tab, paste the contents of `firestore.rules` and publish. These rules grant each verified user access only to their own saved state. Do not leave test-mode rules in place.
+6. In the Vercel project, add `FIREBASE_API_KEY`, `FIREBASE_AUTH_DOMAIN`, `FIREBASE_PROJECT_ID` and `FIREBASE_APP_ID` as environment variables for the environments you use, then redeploy. `npm run build` writes the public values into `dist/firebase-config.js`. Without all four values, the account UI stays disabled and existing browser storage still works.
+7. Open Settings → **Save your deal progress**, create an account, open the verification email, return to the app and select **I've verified my email**. Then choose **Import browser progress** if you have existing work in this browser. You can also sign in, request a password reset and sign out there.
+
+Account progress is private to one Firebase user; deal sharing and invitations are not implemented. The Firestore free tier has no managed backups, so arrange exports or upgrade before relying on it as the only copy of live transaction records. The first version stores one Firestore document per browser storage key; a very large single deal record may require a future per-deal data model.
 
 ## Company Radar
 
