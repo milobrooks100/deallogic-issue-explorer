@@ -32,6 +32,80 @@ if (!storage.guestSession() && config?.apiKey && config?.authDomain && config?.p
     "auth/too-many-requests": "Too many attempts. Please try again later.",
     "auth/network-request-failed": "The connection failed. Please try again."
   }[error?.code] || "This could not be completed. Please try again.");
+  const avatarKey = "deallogic:account-avatar";
+  const avatarIcons = [
+    ["user-round", "Person"],
+    ["briefcase-business", "Briefcase"],
+    ["scale", "Scales"],
+    ["sparkles", "Sparkles"]
+  ];
+  const readAvatar = () => {
+    if (!verifiedUser) return { kind: "icon", name: "user-round" };
+    try {
+      const value = JSON.parse(storage.getItem(avatarKey) || "null");
+      if (value?.kind === "icon" && avatarIcons.some(([name]) => name === value.name)) return value;
+      if (value?.kind === "photo" && /^data:image\/jpeg;base64,[A-Za-z0-9+/=]+$/.test(value.data) && value.data.length < 100000) return value;
+    } catch { /* Keep the default icon when an older value is malformed. */ }
+    return { kind: "icon", name: "user-round" };
+  };
+  const avatarMarkup = avatar => avatar.kind === "photo"
+    ? `<img src="${avatar.data}" alt="">`
+    : `<i data-lucide="${avatar.name}" aria-hidden="true"></i>`;
+  const refreshIcons = () => window.lucide?.createIcons({ attrs: { "stroke-width": 1.75 } });
+  function renderAccountEntry() {
+    const slot = document.querySelector(".project-rail [data-account-slot]");
+    if (!slot) return;
+    const state = verifiedUser ? "verified" : auth.currentUser ? "unverified" : "guest";
+    const avatar = verifiedUser ? readAvatar() : { kind: "icon", name: "user-round" };
+    const avatarId = avatar.kind === "photo" ? avatar.data : avatar.name;
+    const renderKey = `${state}:${avatarId}`;
+    if (slot.dataset.renderKey !== renderKey) {
+      const heading = state === "verified" ? "My account" : state === "unverified" ? "Verify your email" : "Create account / Sign in";
+      const action = state === "verified" ? "Open account settings" : state === "unverified" ? "Open email verification" : "Create an account or sign in";
+      slot.innerHTML = `<button type="button" class="account-entry" title="${action}" aria-label="${action}"><span class="account-entry-avatar">${avatarMarkup(avatar)}</span><span class="account-entry-copy"><strong>${heading}</strong><small data-account-save-status></small></span><i class="account-entry-chevron" data-lucide="chevron-right" aria-hidden="true"></i></button>`;
+      slot.dataset.renderKey = renderKey;
+      slot.querySelector("button").onclick = () => window.showDealLogicView?.("settings");
+      refreshIcons();
+    }
+    const status = slot.querySelector("[data-account-save-status]");
+    if (status) status.textContent = verifiedUser
+      ? storage.pendingKeys(verifiedUser.uid).length ? "Saving to account…" : "Saved to account"
+      : state === "unverified" ? "Finish account setup" : "Saved in this browser";
+  }
+  function updateAvatarEditor() {
+    const avatar = readAvatar();
+    const preview = card?.querySelector("[data-account-avatar-preview]");
+    if (preview) preview.innerHTML = avatarMarkup(avatar);
+    card?.querySelectorAll("[data-avatar-icon]").forEach(button => {
+      button.setAttribute("aria-pressed", String(avatar.kind === "icon" && avatar.name === button.dataset.avatarIcon));
+    });
+    renderAccountEntry();
+    refreshIcons();
+  }
+  async function saveAvatarPhoto(file) {
+    if (!file) return;
+    const uid = verifiedUser?.uid;
+    if (!uid || !["image/jpeg", "image/png", "image/webp"].includes(file.type) || file.size > 5 * 1024 * 1024) {
+      message("Choose a JPG, PNG or WebP photo smaller than 5 MB.", true);
+      return;
+    }
+    try {
+      const image = await createImageBitmap(file);
+      const canvas = document.createElement("canvas");
+      canvas.width = canvas.height = 160;
+      const side = Math.min(image.width, image.height);
+      canvas.getContext("2d").drawImage(image, (image.width - side) / 2, (image.height - side) / 2, side, side, 0, 0, 160, 160);
+      image.close();
+      const data = canvas.toDataURL("image/jpeg", 0.8);
+      if (data.length >= 100000) throw new Error("Photo could not be reduced enough");
+      if (verifiedUser?.uid !== uid || storage.activeUid() !== uid) return;
+      storage.setItem(avatarKey, JSON.stringify({ kind: "photo", data }));
+      updateAvatarEditor();
+      message("Photo updated. Saving to your account…");
+    } catch {
+      message("That photo could not be used. Try another JPG, PNG or WebP image.", true);
+    }
+  }
 
   async function flushPending() {
     if (!verifiedUser) return;
@@ -68,10 +142,7 @@ if (!storage.guestSession() && config?.apiKey && config?.authDomain && config?.p
     updateStatus();
   }
   function updateStatus() {
-    const label = document.querySelector(".context-status");
-    if (label && verifiedUser) label.innerHTML = `<i></i> ${storage.pendingKeys(verifiedUser.uid).length ? "Saving to account…" : "Saved to account"}`;
-    const openAccount = document.querySelector(".account-open");
-    if (openAccount) openAccount.textContent = verifiedUser ? "Account" : "Sign in or create account";
+    renderAccountEntry();
   }
 
   async function loadAccount(user) {
@@ -106,9 +177,17 @@ if (!storage.guestSession() && config?.apiKey && config?.authDomain && config?.p
   function render() {
     if (!card) return;
     const user = auth.currentUser;
+    renderAccountEntry();
     if (verifiedUser) {
-      card.innerHTML = `<h3>Your account</h3><p>Signed in as <strong data-account-email></strong>. Your deal progress is saved to your account.</p><div class="account-actions"><button type="button" data-account-sync>Sync now</button><button type="button" data-account-signout>Sign out</button></div><div data-account-import></div><p class="account-message" data-account-message role="status" aria-live="polite"></p>`;
+      card.innerHTML = `<h3>Your account</h3><p>Signed in as <strong data-account-email></strong>. Your deal progress is saved to your account.</p><div class="account-avatar-settings"><div class="account-avatar-intro"><span class="account-avatar-preview" data-account-avatar-preview></span><div><h4>Your avatar</h4><p>Choose an icon or upload a photo for your sidebar account button.</p></div></div><div class="account-avatar-options" role="group" aria-label="Choose an account icon">${avatarIcons.map(([name, label]) => `<button type="button" data-avatar-icon="${name}" aria-label="Use ${label} icon" aria-pressed="false" title="${label}"><i data-lucide="${name}" aria-hidden="true"></i></button>`).join("")}</div><label class="account-photo-upload">Upload a photo<input type="file" accept="image/jpeg,image/png,image/webp" data-account-photo></label></div><div class="account-actions"><button type="button" data-account-sync>Sync now</button><button type="button" data-account-signout>Sign out</button></div><div data-account-import></div><p class="account-message" data-account-message role="status" aria-live="polite"></p>`;
       card.querySelector("[data-account-email]").textContent = verifiedUser.email;
+      card.querySelectorAll("[data-avatar-icon]").forEach(button => button.onclick = () => {
+        storage.setItem(avatarKey, JSON.stringify({ kind: "icon", name: button.dataset.avatarIcon }));
+        updateAvatarEditor();
+        message("Avatar updated. Saving to your account…");
+      });
+      card.querySelector("[data-account-photo]").onchange = event => saveAvatarPhoto(event.target.files?.[0]);
+      updateAvatarEditor();
       card.querySelector("[data-account-sync]").onclick = () => drainPending().then(() => message("Progress saved.")).catch(() => message("Cloud sync is unavailable. Your changes remain in this browser.", true));
       card.querySelector("[data-account-signout]").onclick = async () => {
         try {
@@ -185,15 +264,7 @@ if (!storage.guestSession() && config?.apiKey && config?.authDomain && config?.p
     card = document.createElement("section");
     card.className = "settings-card account-settings";
     settings.append(card);
-    const context = document.querySelector(".workspace-context");
-    if (context) {
-      const openAccount = document.createElement("button");
-      openAccount.type = "button";
-      openAccount.className = "account-open";
-      openAccount.textContent = "Sign in or create account";
-      openAccount.onclick = () => window.showDealLogicView?.("settings");
-      context.append(openAccount);
-    }
+    document.addEventListener("deal-project-rail-rendered", renderAccountEntry);
     render();
     storage.onChange(() => { if (verifiedUser) scheduleSync(); });
     window.addEventListener("online", () => { if (verifiedUser && storage.pendingKeys(verifiedUser.uid).length) scheduleSync(); });
@@ -222,5 +293,19 @@ if (!storage.guestSession() && config?.apiKey && config?.authDomain && config?.p
   if (storage.activeUid()) {
     storage.setAccount(null);
     location.reload();
-  } else document.documentElement.classList.remove("account-restoring");
+  } else {
+    document.documentElement.classList.remove("account-restoring");
+    if (storage.guestSession() && config?.apiKey && config?.authDomain && config?.projectId && config?.appId) {
+      const showGuestEntry = () => {
+        const slot = document.querySelector(".project-rail [data-account-slot]");
+        if (!slot) return;
+        slot.innerHTML = '<button type="button" class="account-entry" title="Return to your account" aria-label="Return to your account"><span class="account-entry-avatar"><i data-lucide="user-round" aria-hidden="true"></i></span><span class="account-entry-copy"><strong>Create account / Sign in</strong><small>Saved in this browser</small></span><i class="account-entry-chevron" data-lucide="chevron-right" aria-hidden="true"></i></button>';
+        slot.querySelector("button").onclick = () => { storage.endGuestSession(); location.reload(); };
+        window.lucide?.createIcons({ attrs: { "stroke-width": 1.75 } });
+      };
+      document.addEventListener("deal-project-rail-rendered", showGuestEntry);
+      if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", showGuestEntry, { once: true });
+      else showGuestEntry();
+    }
+  }
 }

@@ -1,0 +1,118 @@
+/* The account entry occupies the save-status position at the foot of the rail. */
+@media (min-width: 981px) {
+  .project-rail {
+    display: flex;
+    flex-direction: column;
+    min-height: calc(100vh - 48px);
+  }
+}
+
+.project-rail-account {
+  min-width: 0;
+  margin: auto 0 0;
+  padding: 12px 2px 0;
+  border-top: 1px solid var(--line);
+}
+.account-entry {
+  display: grid;
+  grid-template-columns: 40px minmax(0, 1fr) 16px;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  min-height: 56px;
+  padding: 6px;
+  border: 0;
+  border-radius: 14px;
+  background: transparent;
+  color: var(--ink);
+  text-align: left;
+  cursor: pointer;
+}
+.account-entry-avatar,
+.account-avatar-preview {
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: 40px;
+  height: 40px;
+  overflow: hidden;
+  border: 1px solid var(--line);
+  border-radius: 50%;
+  background: var(--soft);
+  color: var(--ink);
+}
+.account-entry-avatar svg { width: 19px; height: 19px; }
+.account-entry-avatar img,
+.account-avatar-preview img { display: block; width: 100%; height: 100%; object-fit: cover; }
+.account-entry-copy { display: grid; gap: 2px; min-width: 0; }
+.account-entry-copy strong { font-size: 11px; font-weight: 600; line-height: 1.3; overflow-wrap: anywhere; }
+.account-entry-copy small { font-size: 10px; line-height: 1.3; color: var(--muted); }
+.account-entry-chevron { width: 15px; height: 15px; color: var(--muted); transition: transform 150ms ease; }
+.account-entry:hover,
+.account-entry:focus-visible { background: var(--theme-hover, #f1f2f1); }
+.account-entry:hover .account-entry-avatar,
+.account-entry:focus-visible .account-entry-avatar { background: var(--ink); color: #fff; border-color: var(--ink); }
+.account-entry:hover .account-entry-chevron,
+.account-entry:focus-visible .account-entry-chevron { transform: translateX(2px); color: var(--ink); }
+.account-entry:focus-visible { outline: 3px solid var(--theme-ring, #8aa9a0); outline-offset: 2px; }
+
+.account-avatar-settings {
+  max-width: 500px;
+  margin: 20px 0 18px;
+  padding: 18px;
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  background: var(--soft);
+}
+.account-avatar-intro { display: flex; align-items: center; gap: 13px; }
+.account-avatar-preview { width: 52px; height: 52px; background: var(--surface); }
+.account-avatar-preview svg { width: 24px; height: 24px; }
+.account-avatar-intro h4 { margin: 0 0 3px; color: var(--ink); font-size: 14px; font-weight: 600; }
+.account-settings .account-avatar-intro p { margin: 0; font-size: 11px; line-height: 1.45; }
+.account-avatar-options { display: flex; flex-wrap: wrap; gap: 9px; margin: 16px 0 12px; }
+.account-avatar-options button {
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  padding: 0;
+  border: 1px solid var(--line);
+  border-radius: 50%;
+  background: var(--surface);
+  color: var(--ink);
+  cursor: pointer;
+}
+.account-avatar-options button svg { width: 20px; height: 20px; }
+.account-avatar-options button:hover { background: var(--theme-hover, #e9ecea); }
+.account-avatar-options button[aria-pressed="true"] { border-color: var(--ink); box-shadow: 0 0 0 2px var(--theme-selected, #e9ecea); }
+.account-photo-upload {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 40px;
+  padding: 8px 15px;
+  border: 1px solid var(--line);
+  border-radius: 22px;
+  background: var(--surface);
+  color: var(--ink);
+  font-size: 11px;
+  font-weight: 600;
+  cursor: pointer;
+}
+.account-photo-upload:hover { background: var(--theme-hover, #e9ecea); }
+.account-photo-upload:focus-within { outline: 3px solid var(--theme-ring, #8aa9a0); outline-offset: 2px; }
+.account-photo-upload input { position: absolute; inset: 0; width: 100%; height: 100%; opacity: 0; cursor: pointer; }
+
+@media (max-width: 980px) {
+  .project-rail-account { grid-column: 1 / -1; margin-top: 16px; }
+}
+@media (min-width: 981px) {
+  main.workspace-rail-collapsed .project-rail > .project-rail-account { display: block; padding: 12px 0 0; }
+  main.workspace-rail-collapsed .account-entry { display: flex; justify-content: center; width: 44px; min-height: 44px; padding: 2px; margin: 0 auto; }
+  main.workspace-rail-collapsed .account-entry-copy,
+  main.workspace-rail-collapsed .account-entry-chevron { display: none; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .account-entry-chevron { transition: none; }
+}

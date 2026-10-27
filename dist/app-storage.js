@@ -45,6 +45,7 @@
       activeUid = null;
       provider.removeItem(accountKey);
     },
+    endGuestSession() { window.sessionStorage?.removeItem(guestSessionKey); },
     setAccount(uid) {
       activeUid = uid || null;
       if (activeUid) provider.setItem(accountKey, activeUid);

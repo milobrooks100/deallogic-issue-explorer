@@ -20,5 +20,3 @@ html.account-restoring .account-restore{position:fixed;inset:0;z-index:100;displ
 .account-settings .account-message.account-error{color:#9d3939}
 .account-settings [data-account-import]{border-top:1px solid var(--line);padding-top:18px;margin-top:20px}
 .account-settings [data-account-import]:empty{display:none}
-.workspace-context .account-open{border:1px solid var(--line);border-radius:20px;background:#fff;color:var(--ink);padding:6px 11px;font-size:11px;font-weight:600;white-space:nowrap;cursor:pointer}
-@media(max-width:600px){.workspace-context .account-open{white-space:normal;text-align:center}}

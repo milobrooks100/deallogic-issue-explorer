@@ -41,7 +41,7 @@
   document.querySelector('.workspace')?.classList.toggle('map-sidebar-collapsed', sidebarPreference('map'));
   const top = document.createElement('div');
   top.className = 'workspace-context';
-  top.innerHTML = '<span class="context-project"></span><span class="context-divider">/</span><span class="context-view">Deal Map</span><span class="context-status"><i></i> Saved in this browser</span>';
+  top.innerHTML = '<span class="context-project"></span><span class="context-divider">/</span><span class="context-view">Deal Map</span>';
   main.prepend(top);
   const skip = document.createElement('a');
   skip.href = '#workspace-content'; skip.className = 'skip-content'; skip.textContent = 'Skip to content';
