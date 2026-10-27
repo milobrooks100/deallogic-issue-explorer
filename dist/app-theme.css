@@ -92,10 +92,8 @@
 :root[data-app-theme="forest"] :is(.logic, .logic.coc-deal-logic, .hub-new-action, .hub-editor, .custom-action, .hub-summary-tile .hub-issue) { background: var(--theme-hover); border-color: var(--line); }
 :root[data-app-theme="navy"] :is(.hub-tabs button.active, .hub-table th, .hub-table tbody tr:hover, .risk-score),
 :root[data-app-theme="forest"] :is(.hub-tabs button.active, .hub-table th, .hub-table tbody tr:hover, .risk-score) { background: var(--theme-hover); color: var(--ink); }
-:root[data-app-theme="navy"] :is(.project-start, .radar-overview),
-:root[data-app-theme="forest"] :is(.project-start, .radar-overview) { background: var(--workflow-summary-gradient); }
-:root[data-app-theme="navy"] .project-start,
-:root[data-app-theme="forest"] .project-start { background: var(--theme-start-gradient); }
+:root[data-app-theme="navy"] .radar-overview,
+:root[data-app-theme="forest"] .radar-overview { background: var(--workflow-summary-gradient); }
 :root[data-app-theme="navy"] :is(.metric, .radar-overview > div),
 :root[data-app-theme="forest"] :is(.metric, .radar-overview > div) { background: #ffffffdc; border-color: #fff; }
 :root[data-app-theme="navy"] .metric-label,
