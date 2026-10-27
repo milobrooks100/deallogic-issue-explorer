@@ -3,6 +3,8 @@
   button:not(:disabled):hover {
     filter: brightness(.97);
   }
+  /* Deal Hub tabs retain their original hover treatment. */
+  .hub-tabs button:not(:disabled):hover { filter: none; }
 
   .map .area:not(.open):hover,
   .map .area:not(.open):focus-visible {

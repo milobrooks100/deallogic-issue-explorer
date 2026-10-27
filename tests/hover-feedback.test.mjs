@@ -8,6 +8,7 @@ test("workspace controls have shared hover feedback without styling disabled but
   assert.ok(html.indexOf("./hover-feedback.css") > html.indexOf("./app-theme.css"));
   assert.match(css, /@media \(hover: hover\)/);
   assert.match(css, /button:not\(:disabled\):hover/);
+  assert.match(css, /\.hub-tabs button:not\(:disabled\):hover \{ filter: none; \}/);
   for (const selector of [".map .area", ".hub-export button", ".transaction-side-toggle", ".transaction-side-options button", ".library-tabs button", ".playbook-tabs button"]) {
     assert.ok(css.includes(selector), `${selector} has hover styling`);
   }
