@@ -33,32 +33,38 @@ if (!storage.guestSession() && config?.apiKey && config?.authDomain && config?.p
     "auth/network-request-failed": "The connection failed. Please try again."
   }[error?.code] || "This could not be completed. Please try again.");
   const avatarKey = "deallogic:account-avatar";
-  const avatarIcons = [
-    ["user-round", "Person"],
-    ["briefcase-business", "Briefcase"],
-    ["scale", "Scales"],
-    ["sparkles", "Sparkles"]
+  const avatarGroups = [
+    ["Places", "Wave", "Mountains", "Sailboat", "Coastal village", "Palm sunset", "Northern lights"],
+    ["Dogs", "Golden retriever", "Black Labrador", "Chocolate Labrador", "Cocker spaniel", "Irish setter", "Springer spaniel"],
+    ["Animals", "Panda", "Penguin", "Flamingo", "Fox", "Giraffe", "Octopus"],
+    ["People", "Sunglasses portrait", "Woman portrait", "Bearded portrait", "Blonde portrait", "Man portrait", "Astronaut"],
+    ["Interests", "Tennis", "Golf", "Laptop", "Books", "Coffee", "Football"]
   ];
+  const avatarNames = avatarGroups.flatMap(group => group.slice(1));
+  const defaultAvatar = { kind: "preset", index: 0 };
   const readAvatar = () => {
-    if (!verifiedUser) return { kind: "icon", name: "user-round" };
+    if (!verifiedUser) return defaultAvatar;
     try {
       const value = JSON.parse(storage.getItem(avatarKey) || "null");
-      if (value?.kind === "icon" && avatarIcons.some(([name]) => name === value.name)) return value;
-      if (value?.kind === "photo" && /^data:image\/jpeg;base64,[A-Za-z0-9+/=]+$/.test(value.data) && value.data.length < 100000) return value;
-    } catch { /* Keep the default icon when an older value is malformed. */ }
-    return { kind: "icon", name: "user-round" };
+      if (value?.kind === "preset" && Number.isInteger(value.index) && value.index >= 0 && value.index < avatarNames.length) return value;
+    } catch { /* Keep the wave when an older value is malformed. */ }
+    return defaultAvatar;
   };
-  const avatarMarkup = avatar => avatar.kind === "photo"
-    ? `<img src="${avatar.data}" alt="">`
-    : `<i data-lucide="${avatar.name}" aria-hidden="true"></i>`;
+  const avatarMarkup = avatar => {
+    const column = avatar.index % 6;
+    const row = Math.floor(avatar.index / 6);
+    const x = ((50 + column * 247) / 1336 * 100).toFixed(2);
+    const y = ((5 + row * 200) / 824 * 100).toFixed(2);
+    return `<span class="avatar-art" style="background-position:${x}% ${y}%" aria-hidden="true"></span>`;
+  };
+  const avatarChoicesMarkup = () => avatarGroups.map((group, row) => `<div class="account-avatar-group"><p class="account-avatar-group-label">${group[0]}</p><div class="account-avatar-options" role="group" aria-label="${group[0]} avatars">${group.slice(1).map((name, column) => `<button type="button" data-avatar-index="${row * 6 + column}" aria-label="Use ${name} avatar" aria-pressed="false" title="${name}">${avatarMarkup({ index: row * 6 + column })}</button>`).join("")}</div></div>`).join("");
   const refreshIcons = () => window.lucide?.createIcons({ attrs: { "stroke-width": 1.75 } });
   function renderAccountEntry() {
     const slot = document.querySelector(".project-rail [data-account-slot]");
     if (!slot) return;
     const state = verifiedUser ? "verified" : auth.currentUser ? "unverified" : "guest";
-    const avatar = verifiedUser ? readAvatar() : { kind: "icon", name: "user-round" };
-    const avatarId = avatar.kind === "photo" ? avatar.data : avatar.name;
-    const renderKey = `${state}:${avatarId}`;
+    const avatar = readAvatar();
+    const renderKey = `${state}:${avatar.index}`;
     if (slot.dataset.renderKey !== renderKey) {
       const heading = state === "verified" ? "My account" : state === "unverified" ? "Verify your email" : "Create account / Sign in";
       const action = state === "verified" ? "Open account settings" : state === "unverified" ? "Open email verification" : "Create an account or sign in";
@@ -76,35 +82,11 @@ if (!storage.guestSession() && config?.apiKey && config?.authDomain && config?.p
     const avatar = readAvatar();
     const preview = card?.querySelector("[data-account-avatar-preview]");
     if (preview) preview.innerHTML = avatarMarkup(avatar);
-    card?.querySelectorAll("[data-avatar-icon]").forEach(button => {
-      button.setAttribute("aria-pressed", String(avatar.kind === "icon" && avatar.name === button.dataset.avatarIcon));
+    card?.querySelectorAll("[data-avatar-index]").forEach(button => {
+      button.setAttribute("aria-pressed", String(avatar.index === Number(button.dataset.avatarIndex)));
     });
     renderAccountEntry();
     refreshIcons();
-  }
-  async function saveAvatarPhoto(file) {
-    if (!file) return;
-    const uid = verifiedUser?.uid;
-    if (!uid || !["image/jpeg", "image/png", "image/webp"].includes(file.type) || file.size > 5 * 1024 * 1024) {
-      message("Choose a JPG, PNG or WebP photo smaller than 5 MB.", true);
-      return;
-    }
-    try {
-      const image = await createImageBitmap(file);
-      const canvas = document.createElement("canvas");
-      canvas.width = canvas.height = 160;
-      const side = Math.min(image.width, image.height);
-      canvas.getContext("2d").drawImage(image, (image.width - side) / 2, (image.height - side) / 2, side, side, 0, 0, 160, 160);
-      image.close();
-      const data = canvas.toDataURL("image/jpeg", 0.8);
-      if (data.length >= 100000) throw new Error("Photo could not be reduced enough");
-      if (verifiedUser?.uid !== uid || storage.activeUid() !== uid) return;
-      storage.setItem(avatarKey, JSON.stringify({ kind: "photo", data }));
-      updateAvatarEditor();
-      message("Photo updated. Saving to your account…");
-    } catch {
-      message("That photo could not be used. Try another JPG, PNG or WebP image.", true);
-    }
   }
 
   async function flushPending() {
@@ -179,14 +161,13 @@ if (!storage.guestSession() && config?.apiKey && config?.authDomain && config?.p
     const user = auth.currentUser;
     renderAccountEntry();
     if (verifiedUser) {
-      card.innerHTML = `<h3>Your account</h3><p>Signed in as <strong data-account-email></strong>. Your deal progress is saved to your account.</p><div class="account-avatar-settings"><div class="account-avatar-intro"><span class="account-avatar-preview" data-account-avatar-preview></span><div><h4>Your avatar</h4><p>Choose an icon or upload a photo for your sidebar account button.</p></div></div><div class="account-avatar-options" role="group" aria-label="Choose an account icon">${avatarIcons.map(([name, label]) => `<button type="button" data-avatar-icon="${name}" aria-label="Use ${label} icon" aria-pressed="false" title="${label}"><i data-lucide="${name}" aria-hidden="true"></i></button>`).join("")}</div><label class="account-photo-upload">Upload a photo<input type="file" accept="image/jpeg,image/png,image/webp" data-account-photo></label></div><div class="account-actions"><button type="button" data-account-sync>Sync now</button><button type="button" data-account-signout>Sign out</button></div><div data-account-import></div><p class="account-message" data-account-message role="status" aria-live="polite"></p>`;
+      card.innerHTML = `<span class="eyebrow">Account</span><h3>Your account</h3><p>Signed in as <strong data-account-email></strong>. Your deal progress is saved to your account.</p><div class="account-avatar-settings settings-subsection"><div class="account-avatar-intro"><span class="account-avatar-preview" data-account-avatar-preview></span><div><h4>Your avatar</h4><p>Choose one of 30 avatars for your sidebar account button.</p></div></div><div class="account-avatar-groups">${avatarChoicesMarkup()}</div></div><div class="account-sync-settings settings-subsection"><div><h4>Cloud sync</h4><p>Your deal progress and preferences are saved to your account.</p></div><div class="account-actions"><button type="button" data-account-sync>Sync now</button></div></div><div data-account-import class="settings-subsection"></div><div class="account-security-settings settings-subsection"><div><h4>Session</h4><p>Sign out on this device when you are finished.</p></div><div class="account-actions"><button type="button" data-account-signout>Sign out</button></div></div><p class="account-message" data-account-message role="status" aria-live="polite"></p>`;
       card.querySelector("[data-account-email]").textContent = verifiedUser.email;
-      card.querySelectorAll("[data-avatar-icon]").forEach(button => button.onclick = () => {
-        storage.setItem(avatarKey, JSON.stringify({ kind: "icon", name: button.dataset.avatarIcon }));
+      card.querySelectorAll("[data-avatar-index]").forEach(button => button.onclick = () => {
+        storage.setItem(avatarKey, JSON.stringify({ kind: "preset", index: Number(button.dataset.avatarIndex) }));
         updateAvatarEditor();
         message("Avatar updated. Saving to your account…");
       });
-      card.querySelector("[data-account-photo]").onchange = event => saveAvatarPhoto(event.target.files?.[0]);
       updateAvatarEditor();
       card.querySelector("[data-account-sync]").onclick = () => drainPending().then(() => message("Progress saved.")).catch(() => message("Cloud sync is unavailable. Your changes remain in this browser.", true));
       card.querySelector("[data-account-signout]").onclick = async () => {
@@ -204,7 +185,7 @@ if (!storage.guestSession() && config?.apiKey && config?.authDomain && config?.p
       };
       if (storage.guestEntries().length) {
         const slot = card.querySelector("[data-account-import]");
-        slot.innerHTML = `<p>Progress saved in this browser can be copied into this account.</p><button type="button" data-account-import-button>Import browser progress</button>`;
+        slot.innerHTML = `<div><h4>Browser progress</h4><p>Copy progress saved before you signed in. Matching saved items in this account will be replaced.</p></div><button type="button" data-account-import-button>Import browser progress</button>`;
         slot.querySelector("button").onclick = async () => {
           if (!confirm("Import this browser's saved progress into your account? Matching saved items in your account will be overwritten.")) return;
           for (const [key, value] of storage.guestEntries()) storage.setItem(key, value);
@@ -215,18 +196,21 @@ if (!storage.guestSession() && config?.apiKey && config?.authDomain && config?.p
       return;
     }
     if (user && !user.emailVerified) {
-      card.innerHTML = `<h3>Verify your email</h3><p>We sent a verification link to <strong data-account-email></strong>. Open it, then return here.</p><div class="account-actions"><button type="button" data-account-verified>I've verified my email</button><button type="button" data-account-resend>Resend email</button><button type="button" data-account-signout>Use another email</button></div><p class="account-message" data-account-message role="status" aria-live="polite"></p>`;
+      card.innerHTML = `<span class="eyebrow">Account</span><h3>Verify your email</h3><p>We sent a verification link to <strong data-account-email></strong>. Open it, then return here.</p><div class="account-actions"><button type="button" data-account-verified>I've verified my email</button><button type="button" data-account-resend>Resend email</button><button type="button" data-account-signout>Use another email</button></div><p class="account-message" data-account-message role="status" aria-live="polite"></p>`;
       card.querySelector("[data-account-email]").textContent = user.email;
       card.querySelector("[data-account-verified]").onclick = () => loadAccount(user).catch(error => message(friendlyError(error), true));
       card.querySelector("[data-account-resend]").onclick = () => authSdk.sendEmailVerification(user).then(() => message("Verification email sent.")).catch(error => message(friendlyError(error), true));
       card.querySelector("[data-account-signout]").onclick = () => authSdk.signOut(auth).then(() => render());
       return;
     }
-    card.innerHTML = `<h3>Save your deal progress</h3><p>Create an account with any email address and a password. We will email you a link to verify the address before cloud saving begins.</p><div class="account-tabs" role="group" aria-label="Account action"><button type="button" data-account-mode="create" class="active">Create account</button><button type="button" data-account-mode="sign-in">Sign in</button></div><form data-account-form><label>Email address<input name="email" type="email" autocomplete="email" required></label><label>Password<input name="password" type="password" autocomplete="new-password" minlength="6" required></label><button type="submit" data-account-submit>Create account</button></form><button type="button" class="account-text-button" data-account-reset>Forgot password?</button><p class="account-message" data-account-message role="status" aria-live="polite"></p>`;
+    card.innerHTML = `<span class="eyebrow">Account</span><h3>Save your deal progress</h3><p>Create an account with any email address and a password. We will email you a link to verify the address before cloud saving begins.</p><div class="account-tabs" role="group" aria-label="Account action"><button type="button" data-account-mode="create" class="active" aria-pressed="true">Create account</button><button type="button" data-account-mode="sign-in" aria-pressed="false">Sign in</button></div><form data-account-form><label>Email address<input name="email" type="email" autocomplete="email" required></label><label>Password<input name="password" type="password" autocomplete="new-password" minlength="6" required></label><button type="submit" data-account-submit>Create account</button></form><button type="button" class="account-text-button" data-account-reset>Forgot password?</button><p class="account-message" data-account-message role="status" aria-live="polite"></p>`;
     let mode = "create";
     card.querySelectorAll("[data-account-mode]").forEach(button => button.onclick = () => {
       mode = button.dataset.accountMode;
-      card.querySelectorAll("[data-account-mode]").forEach(tab => tab.classList.toggle("active", tab === button));
+      card.querySelectorAll("[data-account-mode]").forEach(tab => {
+        tab.classList.toggle("active", tab === button);
+        tab.setAttribute("aria-pressed", String(tab === button));
+      });
       card.querySelector("[name=password]").autocomplete = mode === "create" ? "new-password" : "current-password";
       card.querySelector("[data-account-submit]").textContent = mode === "create" ? "Create account" : "Sign in";
       message("");
@@ -259,10 +243,11 @@ if (!storage.guestSession() && config?.apiKey && config?.authDomain && config?.p
   }
 
   function mount() {
-    const settings = document.querySelector(".settings-view");
+    const settings = document.querySelector(".settings-panel");
     if (!settings) return;
     card = document.createElement("section");
-    card.className = "settings-card account-settings";
+    card.className = "settings-section account-settings";
+    card.setAttribute("aria-label", "Account settings");
     settings.append(card);
     document.addEventListener("deal-project-rail-rendered", renderAccountEntry);
     render();
@@ -299,7 +284,7 @@ if (!storage.guestSession() && config?.apiKey && config?.authDomain && config?.p
       const showGuestEntry = () => {
         const slot = document.querySelector(".project-rail [data-account-slot]");
         if (!slot) return;
-        slot.innerHTML = '<button type="button" class="account-entry" title="Return to your account" aria-label="Return to your account"><span class="account-entry-avatar"><i data-lucide="user-round" aria-hidden="true"></i></span><span class="account-entry-copy"><strong>Create account / Sign in</strong><small>Saved in this browser</small></span><i class="account-entry-chevron" data-lucide="chevron-right" aria-hidden="true"></i></button>';
+        slot.innerHTML = '<button type="button" class="account-entry" title="Return to your account" aria-label="Return to your account"><span class="account-entry-avatar"><span class="avatar-art" style="background-position:3.74% 0.61%" aria-hidden="true"></span></span><span class="account-entry-copy"><strong>Create account / Sign in</strong><small>Saved in this browser</small></span><i class="account-entry-chevron" data-lucide="chevron-right" aria-hidden="true"></i></button>';
         slot.querySelector("button").onclick = () => { storage.endGuestSession(); location.reload(); };
         window.lucide?.createIcons({ attrs: { "stroke-width": 1.75 } });
       };

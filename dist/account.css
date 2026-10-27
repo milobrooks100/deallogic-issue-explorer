@@ -4,7 +4,6 @@ html.account-restoring .account-restore{position:fixed;inset:0;z-index:100;displ
 .account-restore strong{font-size:21px;font-weight:600}
 .account-restore p{margin:0 0 8px;color:var(--muted)}
 .account-restore button{border:1px solid var(--line);background:#fff;border-radius:24px;padding:9px 17px;color:var(--ink);cursor:pointer}
-.settings-view .account-settings{margin-top:18px}
 .account-settings h3{font-size:23px;font-weight:550;margin:0 0 8px}
 .account-settings p{font-size:13px;line-height:1.6;color:var(--muted);margin:0 0 18px}
 .account-settings p strong{color:var(--ink)}
@@ -18,5 +17,4 @@ html.account-restoring .account-restore{position:fixed;inset:0;z-index:100;displ
 .account-settings .account-text-button{border:0;background:transparent;color:var(--moss);padding:10px 0;font-size:12px;font-weight:600;cursor:pointer}
 .account-settings .account-message{margin:12px 0 0;color:#365f49;min-height:20px}
 .account-settings .account-message.account-error{color:#9d3939}
-.account-settings [data-account-import]{border-top:1px solid var(--line);padding-top:18px;margin-top:20px}
 .account-settings [data-account-import]:empty{display:none}

@@ -1,18 +1,8 @@
-/* The account entry occupies the save-status position at the foot of the rail. */
+/* Account entry at the foot of the workspace rail. */
 @media (min-width: 981px) {
-  .project-rail {
-    display: flex;
-    flex-direction: column;
-    min-height: calc(100vh - 48px);
-  }
+  .project-rail { display: flex; flex-direction: column; min-height: calc(100vh - 48px); }
 }
-
-.project-rail-account {
-  min-width: 0;
-  margin: auto 0 0;
-  padding: 12px 2px 0;
-  border-top: 1px solid var(--line);
-}
+.project-rail-account { min-width: 0; margin: auto 0 0; padding: 12px 2px 0; border-top: 1px solid var(--line); }
 .account-entry {
   display: grid;
   grid-template-columns: 40px minmax(0, 1fr) 16px;
@@ -28,10 +18,8 @@
   text-align: left;
   cursor: pointer;
 }
-.account-entry-avatar,
-.account-avatar-preview {
-  display: grid;
-  place-items: center;
+.account-entry-avatar, .account-avatar-preview {
+  display: block;
   flex: none;
   width: 40px;
   height: 40px;
@@ -39,80 +27,86 @@
   border: 1px solid var(--line);
   border-radius: 50%;
   background: var(--soft);
-  color: var(--ink);
 }
-.account-entry-avatar svg { width: 19px; height: 19px; }
-.account-entry-avatar img,
-.account-avatar-preview img { display: block; width: 100%; height: 100%; object-fit: cover; }
+.avatar-art {
+  display: block;
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  background-image: url("./avatar-grid.png");
+  background-repeat: no-repeat;
+  background-size: 768% 512%;
+}
 .account-entry-copy { display: grid; gap: 2px; min-width: 0; }
 .account-entry-copy strong { font-size: 11px; font-weight: 600; line-height: 1.3; overflow-wrap: anywhere; }
 .account-entry-copy small { font-size: 10px; line-height: 1.3; color: var(--muted); }
 .account-entry-chevron { width: 15px; height: 15px; color: var(--muted); transition: transform 150ms ease; }
-.account-entry:hover,
-.account-entry:focus-visible { background: var(--theme-hover, #f1f2f1); }
-.account-entry:hover .account-entry-avatar,
-.account-entry:focus-visible .account-entry-avatar { background: var(--ink); color: #fff; border-color: var(--ink); }
-.account-entry:hover .account-entry-chevron,
-.account-entry:focus-visible .account-entry-chevron { transform: translateX(2px); color: var(--ink); }
+.account-entry:hover, .account-entry:focus-visible { background: var(--theme-hover, #f1f2f1); }
+.account-entry:hover .account-entry-avatar, .account-entry:focus-visible .account-entry-avatar { border-color: var(--ink); }
+.account-entry:hover .account-entry-chevron, .account-entry:focus-visible .account-entry-chevron { transform: translateX(2px); color: var(--ink); }
 .account-entry:focus-visible { outline: 3px solid var(--theme-ring, #8aa9a0); outline-offset: 2px; }
 
-.account-avatar-settings {
-  max-width: 500px;
-  margin: 20px 0 18px;
-  padding: 18px;
-  border: 1px solid var(--line);
-  border-radius: 16px;
-  background: var(--soft);
-}
-.account-avatar-intro { display: flex; align-items: center; gap: 13px; }
-.account-avatar-preview { width: 52px; height: 52px; background: var(--surface); }
-.account-avatar-preview svg { width: 24px; height: 24px; }
-.account-avatar-intro h4 { margin: 0 0 3px; color: var(--ink); font-size: 14px; font-weight: 600; }
-.account-settings .account-avatar-intro p { margin: 0; font-size: 11px; line-height: 1.45; }
-.account-avatar-options { display: flex; flex-wrap: wrap; gap: 9px; margin: 16px 0 12px; }
+/* One settings surface, with rules separating each preference and account action. */
+.settings-view .settings-panel { max-width: 1120px; padding: 0 32px; }
+.settings-panel .settings-section { max-width: none; padding: 30px 0; }
+.settings-panel .settings-section + .settings-section { border-top: 1px solid var(--line); }
+.settings-panel .theme-settings-heading h3 { margin-bottom: 8px; }
+.settings-panel .theme-settings-heading p { max-width: 60ch; }
+.settings-panel .theme-options { margin-top: 20px; }
+.settings-panel .theme-status { margin-bottom: 0; }
+.settings-panel .account-settings > .eyebrow { display: block; }
+.settings-panel .account-settings > h3 { margin-bottom: 6px; }
+.settings-panel .account-settings > p { max-width: 65ch; }
+.settings-panel .account-settings h4 { margin: 0 0 4px; font-size: 14px; font-weight: 600; color: var(--ink); }
+.settings-panel .account-settings .settings-subsection { border-top: 1px solid var(--line); padding: 22px 0; }
+.settings-panel .account-settings .settings-subsection p { margin: 0; }
+.settings-panel .account-settings .account-actions { margin: 0; }
+.settings-panel .account-settings [data-account-import]:not(:empty),
+.settings-panel .account-settings .account-sync-settings,
+.settings-panel .account-settings .account-security-settings { display: flex; align-items: center; justify-content: space-between; gap: 20px; }
+.settings-panel .account-settings .account-message { margin-top: 0; }
+.account-avatar-intro { display: flex; align-items: center; gap: 14px; }
+.account-avatar-preview { width: 58px; height: 58px; }
+.account-avatar-groups { display: grid; gap: 2px; margin-top: 20px; }
+.account-avatar-group { display: grid; grid-template-columns: 88px minmax(0, 1fr); align-items: center; gap: 16px; min-height: 65px; }
+.settings-panel .account-settings .account-avatar-group-label { margin: 0; color: var(--muted); font-size: 11px; font-weight: 600; letter-spacing: .03em; }
+.account-avatar-options { display: grid; grid-template-columns: repeat(6, 54px); gap: 10px; }
 .account-avatar-options button {
-  display: grid;
-  place-items: center;
-  width: 44px;
-  height: 44px;
-  padding: 0;
-  border: 1px solid var(--line);
-  border-radius: 50%;
-  background: var(--surface);
-  color: var(--ink);
-  cursor: pointer;
-}
-.account-avatar-options button svg { width: 20px; height: 20px; }
-.account-avatar-options button:hover { background: var(--theme-hover, #e9ecea); }
-.account-avatar-options button[aria-pressed="true"] { border-color: var(--ink); box-shadow: 0 0 0 2px var(--theme-selected, #e9ecea); }
-.account-photo-upload {
   position: relative;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  min-height: 40px;
-  padding: 8px 15px;
-  border: 1px solid var(--line);
-  border-radius: 22px;
-  background: var(--surface);
-  color: var(--ink);
-  font-size: 11px;
-  font-weight: 600;
+  display: block;
+  width: 54px;
+  height: 54px;
+  padding: 0;
+  overflow: visible;
+  border: 2px solid transparent;
+  border-radius: 50%;
+  background: transparent;
   cursor: pointer;
+  transition: transform 120ms ease, box-shadow 120ms ease;
 }
-.account-photo-upload:hover { background: var(--theme-hover, #e9ecea); }
-.account-photo-upload:focus-within { outline: 3px solid var(--theme-ring, #8aa9a0); outline-offset: 2px; }
-.account-photo-upload input { position: absolute; inset: 0; width: 100%; height: 100%; opacity: 0; cursor: pointer; }
+.account-avatar-options button .avatar-art { overflow: hidden; }
+.account-avatar-options button:hover { transform: translateY(-2px); box-shadow: 0 3px 9px #15251d29; }
+.account-avatar-options button[aria-pressed="true"] { border-color: var(--ink); box-shadow: 0 0 0 3px var(--theme-selected, #e9ecea); }
+.account-avatar-options button:focus-visible { outline: 3px solid var(--theme-ring, #8aa9a0); outline-offset: 4px; }
 
 @media (max-width: 980px) {
   .project-rail-account { grid-column: 1 / -1; margin-top: 16px; }
 }
+@media (max-width: 700px) {
+  .settings-view .settings-panel { padding: 0 22px; }
+  .settings-panel .settings-section { padding: 25px 0; }
+  .account-avatar-group { grid-template-columns: 1fr; gap: 8px; padding: 8px 0; }
+  .account-avatar-options { grid-template-columns: repeat(3, 54px); }
+  .settings-panel .account-settings [data-account-import]:not(:empty),
+  .settings-panel .account-settings .account-sync-settings,
+  .settings-panel .account-settings .account-security-settings { display: grid; justify-content: start; gap: 12px; }
+}
 @media (min-width: 981px) {
   main.workspace-rail-collapsed .project-rail > .project-rail-account { display: block; padding: 12px 0 0; }
   main.workspace-rail-collapsed .account-entry { display: flex; justify-content: center; width: 44px; min-height: 44px; padding: 2px; margin: 0 auto; }
-  main.workspace-rail-collapsed .account-entry-copy,
-  main.workspace-rail-collapsed .account-entry-chevron { display: none; }
+  main.workspace-rail-collapsed .account-entry-copy, main.workspace-rail-collapsed .account-entry-chevron { display: none; }
 }
 @media (prefers-reduced-motion: reduce) {
-  .account-entry-chevron { transition: none; }
+  .account-entry-chevron, .account-avatar-options button { transition: none; }
+  .account-avatar-options button:hover { transform: none; }
 }
