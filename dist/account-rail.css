@@ -28,6 +28,8 @@
   border-radius: 50%;
   background: var(--soft);
 }
+.account-entry-avatar.is-guest { border: 0; background: transparent; color: var(--ink); }
+.guest-avatar-art { display: block; width: 100%; height: 100%; }
 .avatar-art {
   display: block;
   width: 100%;

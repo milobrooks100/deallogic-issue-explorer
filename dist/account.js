@@ -1,5 +1,6 @@
 const config = window.DEALLOGIC_FIREBASE_CONFIG;
 const storage = window.DealLogicStorage;
+const guestAvatarMarkup = '<svg class="guest-avatar-art" viewBox="0 0 64 64" aria-hidden="true"><defs><clipPath id="guest-avatar-clip"><circle cx="32" cy="32" r="28"/></clipPath></defs><g clip-path="url(#guest-avatar-clip)" fill="currentColor"><circle cx="32" cy="23" r="10"/><ellipse cx="32" cy="58" rx="20" ry="22"/></g><circle cx="32" cy="32" r="28" fill="none" stroke="currentColor" stroke-width="2"/></svg>';
 
 if (!storage.guestSession() && config?.apiKey && config?.authDomain && config?.projectId && config?.appId) {
   const [{ initializeApp }, authSdk, firestore] = await Promise.all([
@@ -64,11 +65,11 @@ if (!storage.guestSession() && config?.apiKey && config?.authDomain && config?.p
     if (!slot) return;
     const state = verifiedUser ? "verified" : auth.currentUser ? "unverified" : "guest";
     const avatar = readAvatar();
-    const renderKey = `${state}:${avatar.index}`;
+    const renderKey = `${state}:${state === "guest" ? "silhouette" : avatar.index}`;
     if (slot.dataset.renderKey !== renderKey) {
       const heading = state === "verified" ? "My account" : state === "unverified" ? "Verify your email" : "Create account / Sign in";
       const action = state === "verified" ? "Open account settings" : state === "unverified" ? "Open email verification" : "Create an account or sign in";
-      slot.innerHTML = `<button type="button" class="account-entry" title="${action}" aria-label="${action}"><span class="account-entry-avatar">${avatarMarkup(avatar)}</span><span class="account-entry-copy"><strong>${heading}</strong><small data-account-save-status></small></span><i class="account-entry-chevron" data-lucide="chevron-right" aria-hidden="true"></i></button>`;
+      slot.innerHTML = `<button type="button" class="account-entry" title="${action}" aria-label="${action}"><span class="account-entry-avatar${state === "guest" ? " is-guest" : ""}">${state === "guest" ? guestAvatarMarkup : avatarMarkup(avatar)}</span><span class="account-entry-copy"><strong>${heading}</strong><small data-account-save-status></small></span><i class="account-entry-chevron" data-lucide="chevron-right" aria-hidden="true"></i></button>`;
       slot.dataset.renderKey = renderKey;
       slot.querySelector("button").onclick = () => window.showDealLogicView?.("settings");
       refreshIcons();
@@ -248,7 +249,7 @@ if (!storage.guestSession() && config?.apiKey && config?.authDomain && config?.p
     card = document.createElement("section");
     card.className = "settings-section account-settings";
     card.setAttribute("aria-label", "Account settings");
-    settings.append(card);
+    settings.prepend(card);
     document.addEventListener("deal-project-rail-rendered", renderAccountEntry);
     render();
     storage.onChange(() => { if (verifiedUser) scheduleSync(); });
@@ -284,7 +285,7 @@ if (!storage.guestSession() && config?.apiKey && config?.authDomain && config?.p
       const showGuestEntry = () => {
         const slot = document.querySelector(".project-rail [data-account-slot]");
         if (!slot) return;
-        slot.innerHTML = '<button type="button" class="account-entry" title="Return to your account" aria-label="Return to your account"><span class="account-entry-avatar"><span class="avatar-art" style="background-position:3.74% 0.61%" aria-hidden="true"></span></span><span class="account-entry-copy"><strong>Create account / Sign in</strong><small>Saved in this browser</small></span><i class="account-entry-chevron" data-lucide="chevron-right" aria-hidden="true"></i></button>';
+        slot.innerHTML = `<button type="button" class="account-entry" title="Return to your account" aria-label="Return to your account"><span class="account-entry-avatar is-guest">${guestAvatarMarkup}</span><span class="account-entry-copy"><strong>Create account / Sign in</strong><small>Saved in this browser</small></span><i class="account-entry-chevron" data-lucide="chevron-right" aria-hidden="true"></i></button>`;
         slot.querySelector("button").onclick = () => { storage.endGuestSession(); location.reload(); };
         window.lucide?.createIcons({ attrs: { "stroke-width": 1.75 } });
       };
