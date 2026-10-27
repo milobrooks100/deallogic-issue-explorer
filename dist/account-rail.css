@@ -71,6 +71,8 @@
 .settings-panel .account-settings [data-account-import]:not(:empty),
 .settings-panel .account-settings .account-security-settings { display: flex; align-items: center; justify-content: space-between; gap: 20px; }
 .settings-panel .account-settings .account-message { margin-top: 0; }
+.settings-panel .account-settings .account-message:empty { display: none; }
+.settings-panel .account-settings:has(.account-security-settings) { padding-bottom: 0; }
 .account-password-settings form { margin-top: 18px; }
 .account-password-actions button {
   min-height: 38px;

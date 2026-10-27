@@ -1,3 +1,5 @@
+import { prepareBrowserProgressImport } from "./browser-progress-import.js";
+
 const config = window.DEALLOGIC_FIREBASE_CONFIG;
 const storage = window.DealLogicStorage;
 const guestAvatarMarkup = '<svg class="guest-avatar-art" viewBox="0 0 64 64" aria-hidden="true"><defs><clipPath id="guest-avatar-clip"><circle cx="32" cy="32" r="28"/></clipPath></defs><g clip-path="url(#guest-avatar-clip)" fill="currentColor"><circle cx="32" cy="23" r="10"/><ellipse cx="32" cy="58" rx="20" ry="22"/></g><circle cx="32" cy="32" r="28" fill="none" stroke="currentColor" stroke-width="2"/></svg>';
@@ -286,12 +288,19 @@ if (!storage.guestSession() && config?.apiKey && config?.authDomain && config?.p
       };
       if (storage.guestEntries().length) {
         const slot = card.querySelector("[data-account-import]");
-        slot.innerHTML = `<div><h4>Browser progress</h4><p>Copy progress saved before you signed in. Matching saved items in this account will be replaced.</p></div><button type="button" data-account-import-button>Import browser progress</button>`;
+        slot.innerHTML = `<div><h4>Browser progress</h4><p>Add this browser's saved work as separate deals. Your existing account deals will not change.</p></div><button type="button" data-account-import-button>Import browser progress</button>`;
         slot.querySelector("button").onclick = async () => {
-          if (!confirm("Import this browser's saved progress into your account? Matching saved items in your account will be overwritten.")) return;
-          for (const [key, value] of storage.guestEntries()) storage.setItem(key, value);
+          let plan;
+          try {
+            plan = prepareBrowserProgressImport(storage.guestEntries(), storage.getItem("deallogic:deal-projects:v1"), () => crypto.randomUUID());
+          } catch (error) { message(error.message, true); return; }
+          if (!plan.count) { message("There is no browser deal progress to import."); return; }
+          if (!confirm(`Add ${plan.count} browser ${plan.count === 1 ? "deal" : "deals"} to your account? Your existing deals will stay unchanged.`)) return;
+          const button = slot.querySelector("button");
+          button.disabled = true;
+          for (const [key, value] of plan.writes) storage.setItem(key, value);
           try { await drainPending(); location.reload(); }
-          catch { message("Import is saved in this browser, but cloud sync is unavailable. We will retry automatically.", true); }
+          catch { message("Imported deals are saved on this browser. Account sync will retry automatically.", true); button.disabled = false; }
         };
       }
       return;

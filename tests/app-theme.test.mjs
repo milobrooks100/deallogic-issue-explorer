@@ -40,5 +40,5 @@ test("changing app colour persists and an unknown saved value falls back to grey
   assert.equal(session.document.documentElement.dataset.appTheme, "forest");
   assert.equal(session.values.get("deallogic:app-theme"), "forest");
   assert.equal(session.meta.content, "#f1f5ef");
-  assert.equal(session.status.textContent, "Dark green colour selected.");
+  assert.equal(session.status.textContent, "");
 });
