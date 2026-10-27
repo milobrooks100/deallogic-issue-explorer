@@ -48,6 +48,10 @@
 .account-entry:hover .account-entry-chevron, .account-entry:focus-visible .account-entry-chevron { transform: translateX(2px); color: var(--ink); }
 .account-entry:focus-visible { outline: 3px solid var(--theme-ring, #8aa9a0); outline-offset: 2px; }
 
+/* The active deal is marked by its dot, never a theme-coloured pill. */
+:root .project-rail .project-rail-item.active,
+:root .project-rail .project-rail-item.active:hover { background: transparent !important; box-shadow: none !important; }
+
 /* One settings surface, with rules separating each preference and account action. */
 .settings-view .settings-panel { max-width: 1120px; padding: 0 32px; }
 .settings-panel .settings-section { max-width: none; padding: 30px 0; }

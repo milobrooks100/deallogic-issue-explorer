@@ -7,13 +7,14 @@ html.account-restoring .account-restore{position:fixed;inset:0;z-index:100;displ
 .account-settings h3{font-size:23px;font-weight:550;margin:0 0 8px}
 .account-settings p{font-size:13px;line-height:1.6;color:var(--muted);margin:0 0 18px}
 .account-settings p strong{color:var(--ink)}
-.account-tabs,.account-actions{display:flex;flex-wrap:wrap;gap:8px;margin:18px 0}
-.account-tabs button,.account-actions button,.account-settings [data-account-import-button],.account-settings [data-account-submit]{border:1px solid var(--line);border-radius:24px;background:#fff;color:var(--ink);padding:9px 17px;font-size:12px;font-weight:600;cursor:pointer}
-.account-tabs button.active,.account-settings [data-account-submit]{background:var(--ink);border-color:var(--ink);color:#fff}
+.account-actions,.account-form-actions{display:flex;flex-wrap:wrap;gap:8px;margin:18px 0}
+.account-actions button,.account-form-actions button,.account-settings [data-account-import-button]{border:1px solid var(--line);border-radius:24px;background:#fff;color:var(--ink);padding:9px 17px;font-size:12px;font-weight:600;cursor:pointer}
+.account-form-actions [data-account-action="create"]{background:var(--ink);border-color:var(--ink);color:#fff}
 .account-settings form{display:grid;gap:15px;max-width:420px}
 .account-settings form label{display:grid;gap:6px;color:var(--ink);font-size:12px;font-weight:600}
 .account-settings form input{width:100%;min-height:42px;margin:0;padding:10px 12px;border:1px solid #cbd5cd;border-radius:10px;background:#fff;color:var(--ink);font-size:14px}
 .account-settings form button{justify-self:start}
+.account-settings .account-form-actions{margin:2px 0 0}
 .account-settings .account-text-button{border:0;background:transparent;color:var(--moss);padding:10px 0;font-size:12px;font-weight:600;cursor:pointer}
 .account-settings .account-message{margin:12px 0 0;color:#365f49;min-height:20px}
 .account-settings .account-message.account-error{color:#9d3939}

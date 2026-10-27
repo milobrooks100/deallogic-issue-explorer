@@ -204,27 +204,17 @@ if (!storage.guestSession() && config?.apiKey && config?.authDomain && config?.p
       card.querySelector("[data-account-signout]").onclick = () => authSdk.signOut(auth).then(() => render());
       return;
     }
-    card.innerHTML = `<span class="eyebrow">Account</span><h3>Save your deal progress</h3><p>Create an account with any email address and a password. We will email you a link to verify the address before cloud saving begins.</p><div class="account-tabs" role="group" aria-label="Account action"><button type="button" data-account-mode="create" class="active" aria-pressed="true">Create account</button><button type="button" data-account-mode="sign-in" aria-pressed="false">Sign in</button></div><form data-account-form><label>Email address<input name="email" type="email" autocomplete="email" required></label><label>Password<input name="password" type="password" autocomplete="new-password" minlength="6" required></label><button type="submit" data-account-submit>Create account</button></form><button type="button" class="account-text-button" data-account-reset>Forgot password?</button><p class="account-message" data-account-message role="status" aria-live="polite"></p>`;
-    let mode = "create";
-    card.querySelectorAll("[data-account-mode]").forEach(button => button.onclick = () => {
-      mode = button.dataset.accountMode;
-      card.querySelectorAll("[data-account-mode]").forEach(tab => {
-        tab.classList.toggle("active", tab === button);
-        tab.setAttribute("aria-pressed", String(tab === button));
-      });
-      card.querySelector("[name=password]").autocomplete = mode === "create" ? "new-password" : "current-password";
-      card.querySelector("[data-account-submit]").textContent = mode === "create" ? "Create account" : "Sign in";
-      message("");
-    });
+    card.innerHTML = `<span class="eyebrow">Account</span><h3>Save your deal progress</h3><p>Create an account or sign in with your email address and password. New accounts need email verification before cloud saving begins.</p><form data-account-form><label>Email address<input name="email" type="email" autocomplete="email" required></label><label>Password<input name="password" type="password" autocomplete="current-password" minlength="6" required></label><div class="account-form-actions"><button type="submit" data-account-action="create">Create account</button><button type="submit" data-account-action="sign-in">Sign in</button></div></form><button type="button" class="account-text-button" data-account-reset>Forgot password?</button><p class="account-message" data-account-message role="status" aria-live="polite"></p>`;
     card.querySelector("[data-account-form]").onsubmit = async event => {
       event.preventDefault();
       const form = event.currentTarget;
       const email = form.elements.namedItem("email").value.trim();
       const password = form.elements.namedItem("password").value;
-      const button = form.querySelector("[type=submit]");
-      button.disabled = true;
+      const action = event.submitter?.dataset.accountAction || "create";
+      const buttons = form.querySelectorAll("[type=submit]");
+      buttons.forEach(button => { button.disabled = true; });
       try {
-        if (mode === "create") {
+        if (action === "create") {
           const { user: created } = await authSdk.createUserWithEmailAndPassword(auth, email, password);
           await authSdk.sendEmailVerification(created);
           render();
@@ -233,7 +223,7 @@ if (!storage.guestSession() && config?.apiKey && config?.authDomain && config?.p
           await authSdk.signInWithEmailAndPassword(auth, email, password);
         }
       } catch (error) { message(friendlyError(error), true); }
-      finally { button.disabled = false; }
+      finally { buttons.forEach(button => { button.disabled = false; }); }
     };
     card.querySelector("[data-account-reset]").onclick = async () => {
       const email = card.querySelector("[name=email]").value.trim();
