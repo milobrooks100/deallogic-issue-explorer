@@ -17,8 +17,8 @@
     { title: "Build an action plan", body: "Save recommended actions to Deal Hub. Use the summary, task board and table to review and track your action items.", view: "deal-hub", target: ".hub-tabs button:first-child", targetEnd: ".hub-tabs button:last-child" },
     { title: "Find more deal actions", body: "In the Action Library view common M&A responses or browse all available actions for each legal issue. Add useful actions to the active deal.", view: "action-library", target: ".library-tabs button:first-child", targetEnd: ".library-tabs button:last-child" },
     { title: "Check the company record", body: "Search Companies House data in Company Radar to find the right legal entity, review key points and add actions to Deal Hub.", view: "company-radar", target: ".radar-search" },
-    { title: "Choose how your work is saved", body: "Guest work stays in this browser. In Settings, a verified account can sync saved deals and preferences across devices.", view: "settings", target: ".project-rail-account .account-entry", fallbackTarget: ".project-rail-account" },
-    { title: "You’re ready to explore", body: "Start with a legal issue, review the result against the transaction documents, and add the actions you want to track in Deal Hub.", kind: "finish" }
+    { title: "Choose how your work is saved", body: "Guest work stays in your browser. Create an account to save your work to the cloud, customise the app and more.", view: "settings", target: ".project-rail-account .account-entry", fallbackTarget: ".project-rail-account" },
+    { title: "You're good to go", kind: "finish" }
   ];
 
   const overlay = document.createElement("div");
@@ -32,9 +32,9 @@
   let index = -1, initialView = "deal-map", returnFocus = help, target = null, targetEnd = null, positioning = false;
 
   const dots = () => `<div class="tour-dots" aria-hidden="true">${steps.map((_, step) => `<span class="${step === index ? "active" : ""}"></span>`).join("")}</div>`;
-  const foot = () => `<div class="tour-footer">${dots()}<div class="tour-actions">${index === 0 ? '<button type="button" class="tour-back" data-tour-skip>Skip</button>' : '<button type="button" class="tour-back" data-tour-back>Back</button>'}<button type="button" class="tour-next" data-tour-next>${index === steps.length - 1 ? "Explore Deal Map" : "Next"}</button></div></div>`;
+  const foot = () => `<div class="tour-footer">${dots()}<div class="tour-actions">${index === 0 ? '<button type="button" class="tour-back" data-tour-skip>Skip</button>' : '<button type="button" class="tour-back" data-tour-back>Back</button>'}<button type="button" class="tour-next" data-tour-next>${index === steps.length - 1 ? "Explore Deal Logic" : "Next"}</button></div></div>`;
   const hero = () => '<div class="tour-hero" aria-hidden="true"><div class="tour-hero-icon"><img src="./deallogic-mark.svg" alt=""></div></div>';
-  const card = step => `<div class="tour-card ${step.kind ? `tour-card-${step.kind}` : "tour-card-tip"}" role="document">${index === 0 ? "" : '<button type="button" class="tour-close" data-tour-close aria-label="Close tour">&times;</button>'}${step.kind ? hero() : ""}<h2 id="tour-title">${step.title}</h2><p>${step.body}</p>${step.kind === "finish" ? '<p class="tour-review">Prototype content is a starting point for professional review, not legal advice.</p>' : ""}${foot()}</div>`;
+  const card = step => `<div class="tour-card ${step.kind ? `tour-card-${step.kind}` : "tour-card-tip"}" role="document">${step.kind ? "" : '<button type="button" class="tour-close" data-tour-close aria-label="Close tour">&times;</button>'}${step.kind ? hero() : ""}<h2 id="tour-title">${step.title}</h2>${step.body ? `<p>${step.body}</p>` : ""}${foot()}</div>`;
   const anchor = step => {
     const wanted = document.querySelector(step.target);
     if (wanted && wanted.getClientRects().length) return wanted;

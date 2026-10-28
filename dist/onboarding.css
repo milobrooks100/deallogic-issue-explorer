@@ -16,7 +16,6 @@
 .tour-card p { margin:0; color:#47534c; font-size:13px; line-height:1.55; }
 .tour-card-welcome h2, .tour-card-finish h2 { font-size:23px; }
 .tour-card-welcome h2, .tour-card-finish h2 { margin-right:0; }
-.tour-review { margin-top:12px!important; color:#69756d!important; font-size:11px!important; }
 .tour-footer { display:flex; align-items:center; justify-content:space-between; gap:12px; margin-top:24px; }
 .tour-dots { display:flex; align-items:center; gap:7px; }
 .tour-dots span { width:8px; height:8px; border-radius:50%; background:#e3e6e3; }
