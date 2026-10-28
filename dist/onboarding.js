@@ -1,14 +1,38 @@
 /* An on-demand tour of the real workspace. It does not change deal data. */
 (() => {
   const navigation = document.querySelector(".workspace-navigation");
-  if (!navigation || !window.showDealLogicView) return;
+  const settingsPanel = document.querySelector(".settings-panel");
+  if (!navigation || !settingsPanel || !window.showDealLogicView) return;
+  const dismissalKey = "deallogic:tour-sidebar-dismissed";
 
-  const help = document.createElement("button");
-  help.type = "button";
-  help.className = "tour-help";
-  help.innerHTML = '<i data-lucide="circle-help" aria-hidden="true"></i><span>Getting started</span>';
-  navigation.append(help);
-  window.lucide?.createIcons({ attrs: { "stroke-width": 1.75 } });
+  const settingsHelp = document.createElement("button");
+  settingsHelp.type = "button";
+  settingsHelp.className = "tour-settings-button";
+  settingsHelp.textContent = "Getting started with Deal Logic";
+  const settingsSection = document.createElement("section");
+  settingsSection.className = "settings-section tour-settings";
+  settingsSection.append(settingsHelp);
+  settingsPanel.append(settingsSection);
+
+  function mountSidebarHelp() {
+    const slot = document.querySelector(".project-rail-account");
+    if (!slot || slot.previousElementSibling?.classList.contains("tour-launcher") || DealLogicStorage.getItem(dismissalKey) === "true") return;
+    const launcher = document.createElement("div");
+    launcher.className = "tour-launcher";
+    launcher.innerHTML = '<div class="tour-launcher-row"><button type="button" class="tour-help"><i data-lucide="circle-help" aria-hidden="true"></i><span>Getting started</span></button><button type="button" class="tour-dismiss" aria-label="Remove Getting started from sidebar" title="Remove Getting started from sidebar">&times;</button></div>';
+    slot.before(launcher);
+    launcher.querySelector(".tour-help").addEventListener("click", startTour);
+    launcher.querySelector(".tour-dismiss").addEventListener("click", () => {
+      DealLogicStorage.setItem(dismissalKey, "true");
+      launcher.classList.add("is-dismissing");
+      const finish = () => { launcher.remove(); document.querySelector(".project-rail-account .account-entry")?.focus(); };
+      if (matchMedia("(prefers-reduced-motion: reduce)").matches) finish();
+      else setTimeout(finish, 380);
+    });
+    window.lucide?.createIcons({ attrs: { "stroke-width": 1.75 } });
+  }
+  mountSidebarHelp();
+  document.addEventListener("deal-project-rail-rendered", mountSidebarHelp);
 
   const steps = [
     { title: "Welcome to Deal Logic", body: "A quick tour of how to explore a legal issue, assess the facts and turn recommendations into a deal action plan.", kind: "welcome" },
@@ -19,7 +43,7 @@
     { title: "Find more deal actions", body: "In the Action Library view common M&A responses or browse all available actions for each legal issue. Add useful actions to the active deal.", view: "action-library", target: ".library-tabs button:first-child", targetEnd: ".library-tabs button:last-child" },
     { title: "Check the company record", body: "Search Companies House data in Company Radar to find the right legal entity, review key points and add actions to Deal Hub.", view: "company-radar", target: ".radar-search" },
     { title: "Choose how your work is saved", body: "Guest work stays in your browser. Create an account to save your work to the cloud, customise the app and more.", view: "settings", target: ".project-rail-account .account-entry", fallbackTarget: ".project-rail-account" },
-    { title: "You're good to go", kind: "finish" }
+    { title: "You're ready to explore", kind: "finish" }
   ];
 
   const overlay = document.createElement("div");
@@ -30,7 +54,7 @@
   overlay.setAttribute("aria-labelledby", "tour-title");
   document.body.append(overlay);
   const workspace = document.querySelector("main");
-  let index = -1, initialView = "deal-map", returnFocus = help, target = null, targetEnd = null, positioning = false;
+  let index = -1, initialView = "deal-map", returnFocus = settingsHelp, target = null, targetEnd = null, positioning = false;
 
   const dots = () => `<div class="tour-dots" aria-hidden="true">${steps.map((_, step) => `<span class="${step === index ? "active" : ""}"></span>`).join("")}</div>`;
   const foot = () => `<div class="tour-footer">${dots()}<div class="tour-actions">${index === 0 ? '<button type="button" class="tour-back" data-tour-skip>Skip</button>' : '<button type="button" class="tour-back" data-tour-back>Back</button>'}<button type="button" class="tour-next" data-tour-next>${index === steps.length - 1 ? "Explore Deal Logic" : "Next"}</button></div></div>`;
@@ -100,13 +124,14 @@
     workspace.inert = false;
     returnFocus?.focus();
   }
-  help.addEventListener("click", () => {
+  function startTour() {
     if (index >= 0) return;
     initialView = document.querySelector("[data-workspace-view].active")?.dataset.workspaceView || "deal-map";
     returnFocus = document.activeElement;
     workspace.inert = true;
     show(0);
-  });
+  }
+  settingsHelp.addEventListener("click", startTour);
   overlay.addEventListener("click", event => {
     if (event.target.closest("[data-tour-close]")) end();
     if (event.target.closest("[data-tour-skip]")) end();

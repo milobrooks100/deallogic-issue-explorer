@@ -1,6 +1,17 @@
-.tour-help { display:flex; align-items:center; gap:12px; width:calc(100% - 8px); min-height:42px; margin:-18px 4px 24px; padding:10px 12px; border:1px solid var(--line); border-radius:12px; background:transparent; color:var(--ink); font-size:12px; font-weight:600; text-align:left; cursor:pointer; }
+.tour-launcher { min-width:0; height:52px; margin:auto 2px 0; overflow:hidden; }
+.project-rail:has(.tour-launcher) .project-rail-account { margin-top:0; }
+.tour-launcher-row { display:grid; grid-template-columns:minmax(0, 1fr) 40px; align-items:center; gap:6px; }
+.tour-help { display:flex; align-items:center; gap:12px; width:100%; min-height:44px; padding:10px 12px; border:1px solid var(--line); border-radius:12px; background:transparent; color:var(--ink); font-size:12px; font-weight:600; text-align:left; cursor:pointer; }
 .tour-help svg { width:17px; height:17px; }
 .tour-help:hover { background:var(--soft, #edf2ed); }
+.tour-dismiss { display:grid; place-items:center; width:40px; height:44px; padding:0; border:0; border-radius:10px; background:transparent; color:var(--muted); font-size:22px; cursor:pointer; }
+.tour-dismiss:hover { background:var(--soft, #edf2ed); color:var(--ink); }
+.tour-help:focus-visible, .tour-dismiss:focus-visible, .tour-settings-button:focus-visible { outline:3px solid var(--theme-ring, #8aa9a0); outline-offset:2px; }
+.tour-launcher.is-dismissing .tour-launcher-row { pointer-events:none; animation:tour-slide-below-divider 360ms cubic-bezier(.4, 0, 1, 1) forwards; }
+@keyframes tour-slide-below-divider { to { transform:translateY(70px); opacity:0; } }
+.tour-settings { display:flex; align-items:center; }
+.tour-settings-button { min-height:44px; padding:10px 16px; border:1px solid var(--line); border-radius:12px; background:var(--surface, #fff); color:var(--ink); font-size:13px; font-weight:600; cursor:pointer; }
+.tour-settings-button:hover { background:var(--soft, #edf2ed); }
 .tour-overlay { position:fixed; inset:0; z-index:9000; font-family:Inter,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif; }
 .tour-overlay[hidden] { display:none!important; }
 .tour-full-shade { position:fixed; inset:0; background:rgba(17,24,22,.58); }
@@ -28,6 +39,6 @@
 .tour-next { border:1px solid #202823; background:#202823; color:#fff; }
 .tour-next:hover { border-color:#3a5142; background:#3a5142; box-shadow:0 3px 10px #11181630; transform:translateY(-1px); }
 .tour-card button:focus-visible { outline:3px solid #8aa9a0; outline-offset:2px; }
-@media(max-width:980px) { .tour-help { width:auto; margin:0 0 10px; } }
+@media(max-width:980px) { .tour-launcher { grid-column:1 / -1; margin:12px 2px 0; } }
 @media(max-width:600px) { .tour-card { padding:17px; } .tour-card-welcome, .tour-card-finish { padding:19px; } .tour-hero { height:145px; margin-bottom:18px; } .tour-footer { margin-top:20px; } .tour-dots { gap:5px; } .tour-dots span { width:7px; height:7px; } .tour-actions button { padding:0 11px; } }
-@media(prefers-reduced-motion:reduce) { .tour-overlay * { transition:none!important; animation:none!important; } }
+@media(prefers-reduced-motion:reduce) { .tour-overlay * { transition:none!important; animation:none!important; } .tour-launcher.is-dismissing .tour-launcher-row { animation:none!important; } }
