@@ -13,9 +13,9 @@
   const steps = [
     { title: "Welcome to Deal Logic", body: "A quick tour of how to explore a legal issue, assess the facts and turn recommendations into a deal action plan.", kind: "welcome" },
     { title: "Keep each deal together", body: "Create a deal here to keep its answers and actions separate. The quick workspace is available when you want to explore first.", view: "deal-map", target: ".project-rail-head" },
-    { title: "Explore a legal issue", body: "In Deal Map, choose an issue and record what the diligence tells you. The risk assessment and proposed protections respond to the facts.", view: "deal-map", target: ".map:not(.screen-hidden)" },
-    { title: "Build an action plan", body: "Save relevant recommendations to Deal Hub. Switch between the summary, task board and table to track what happens next.", view: "deal-hub", target: ".hub-tabs" },
-    { title: "Find more deal actions", body: "Action Library has core M&A responses and full issue playbooks. Add useful actions to the active deal.", view: "action-library", target: ".library-tabs" },
+    { title: "Explore a legal issue", body: "In Deal Map, choose a common legal issue and answer a few questions. You’ll see a risk assessment and recommended actions tailored to the facts you enter.", view: "deal-map", target: ".map:not(.screen-hidden)" },
+    { title: "Build an action plan", body: "Save recommended actions to Deal Hub. Use the summary, task board and table to review and track your action items.", view: "deal-hub", target: ".hub-tabs button:first-child", targetEnd: ".hub-tabs button:last-child" },
+    { title: "Find more deal actions", body: "Action Library has core M&A responses and full issue playbooks. Add useful actions to the active deal.", view: "action-library", target: ".library-tabs button:first-child", targetEnd: ".library-tabs button:last-child" },
     { title: "Check the company record", body: "Company Radar uses public Companies House information. Search for the right legal entity and review the points that need attention.", view: "company-radar", target: ".radar-search" },
     { title: "Choose how your work is saved", body: "Guest work stays in this browser. In Settings, a verified account can sync saved deals and preferences across devices.", view: "settings", target: ".account-settings h3" },
     { title: "You’re ready to explore", body: "Start with a legal issue, review the result against the transaction documents, and add the actions you want to track in Deal Hub.", kind: "finish" }
@@ -29,7 +29,7 @@
   overlay.setAttribute("aria-labelledby", "tour-title");
   document.body.append(overlay);
   const workspace = document.querySelector("main");
-  let index = -1, initialView = "deal-map", returnFocus = help, target = null, positioning = false;
+  let index = -1, initialView = "deal-map", returnFocus = help, target = null, targetEnd = null, positioning = false;
 
   const dots = () => `<div class="tour-dots" aria-hidden="true">${steps.map((_, step) => `<span class="${step === index ? "active" : ""}"></span>`).join("")}</div>`;
   const foot = () => `<div class="tour-footer">${dots()}<div class="tour-actions"><button type="button" class="tour-back" data-tour-back ${index === 0 ? "disabled" : ""}>Back</button><button type="button" class="tour-next" data-tour-next>${index === steps.length - 1 ? "Explore Deal Map" : "Next"}</button></div></div>`;
@@ -48,11 +48,13 @@
     requestAnimationFrame(() => {
       positioning = false;
       if (index < 0 || !target?.isConnected) return;
-      const rect = target.getBoundingClientRect(), pad = 7;
-      const left = clamp(rect.left - pad, 8, innerWidth - 8);
-      const top = clamp(rect.top - pad, 8, innerHeight - 8);
-      const right = clamp(rect.right + pad, 8, innerWidth - 8);
-      const bottom = clamp(rect.bottom + pad, 8, innerHeight - 8);
+      const rect = target.getBoundingClientRect();
+      const endRect = targetEnd?.isConnected ? targetEnd.getBoundingClientRect() : rect;
+      const pad = 7;
+      const left = clamp(Math.min(rect.left, endRect.left) - pad, 8, innerWidth - 8);
+      const top = clamp(Math.min(rect.top, endRect.top) - pad, 8, innerHeight - 8);
+      const right = clamp(Math.max(rect.right, endRect.right) + pad, 8, innerWidth - 8);
+      const bottom = clamp(Math.max(rect.bottom, endRect.bottom) + pad, 8, innerHeight - 8);
       Object.assign(overlay.querySelector(".tour-spotlight").style, { left: `${left}px`, top: `${top}px`, width: `${Math.max(0, right - left)}px`, height: `${Math.max(0, bottom - top)}px` });
       const popover = overlay.querySelector(".tour-card"), width = popover.offsetWidth, height = popover.offsetHeight, gap = 17;
       let x, y;
@@ -69,6 +71,7 @@
     const step = steps[index];
     overlay.hidden = false;
     target = null;
+    targetEnd = null;
     if (step.kind) {
       overlay.classList.add("tour-modal");
       overlay.innerHTML = `<div class="tour-full-shade"></div>${card(step)}`;
@@ -76,6 +79,7 @@
       overlay.classList.remove("tour-modal");
       window.showDealLogicView(step.view);
       target = anchor(step);
+      targetEnd = step.targetEnd ? document.querySelector(step.targetEnd) : null;
       overlay.innerHTML = `<div class="tour-spotlight" aria-hidden="true"></div>${card(step)}`;
       target?.scrollIntoView({ block: "nearest", behavior: "instant" });
       position();
@@ -88,6 +92,7 @@
     overlay.innerHTML = "";
     index = -1;
     target = null;
+    targetEnd = null;
     window.showDealLogicView(goToMap ? "deal-map" : initialView);
     workspace.inert = false;
     returnFocus?.focus();
