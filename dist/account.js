@@ -1,4 +1,5 @@
 import { prepareBrowserProgressImport } from "./browser-progress-import.js";
+import { accountManagementMarkup, setupAccountManagement } from "./account-management.js";
 
 const config = window.DEALLOGIC_FIREBASE_CONFIG;
 const storage = window.DealLogicStorage;
@@ -18,6 +19,33 @@ if (!storage.guestSession() && config?.apiKey && config?.authDomain && config?.p
   let syncTimer = 0;
   let syncRetryMs = 3000;
   let signingOut = false;
+  let accountOperation = false;
+  const accountChannel = typeof BroadcastChannel === "function" ? new BroadcastChannel("deallogic-account-lifecycle") : null;
+  const withCloudLock = (uid, task) => navigator.locks?.request
+    ? navigator.locks.request(`deallogic-cloud:${uid}`, task) : task();
+  const pauseAccount = uid => {
+    accountOperation = true;
+    clearTimeout(syncTimer);
+    storage.freezeAccount(uid);
+  };
+  if (accountChannel) accountChannel.onmessage = event => {
+    const { uid, phase, action } = event.data || {};
+    if (!uid || uid !== storage.activeUid()) return;
+    if (phase === "start") {
+      pauseAccount(uid);
+      document.documentElement.classList.add("account-restoring");
+      const overlay = document.querySelector(".account-restore");
+      if (overlay) {
+        overlay.querySelector("strong").textContent = action === "delete" ? "Deleting account…" : "Resetting account…";
+        overlay.querySelector("p").textContent = "An account change is in progress in another tab.";
+        overlay.querySelectorAll("button").forEach(button => { button.hidden = true; });
+      }
+    } else if (phase === "complete" || phase === "failed") {
+      storage.clearAccountCache(uid);
+      if (phase === "complete" && action === "delete") storage.setAccount(null);
+      location.reload();
+    }
+  };
   let card;
 
   const stateCollection = uid => firestore.collection(db, "users", uid, "state");
@@ -177,11 +205,11 @@ if (!storage.guestSession() && config?.apiKey && config?.authDomain && config?.p
   }
 
   async function flushPending() {
-    if (!verifiedUser) return;
+    if (!verifiedUser || accountOperation) return;
     if (syncRunning) return syncRunning;
     const uid = verifiedUser.uid;
-    syncRunning = (async () => {
-      for (let pass = 0; pass < 10 && storage.pendingKeys(uid).length; pass++) {
+    syncRunning = withCloudLock(uid, async () => {
+      for (let pass = 0; !accountOperation && pass < 10 && storage.pendingKeys(uid).length; pass++) {
         for (const key of storage.pendingKeys(uid)) {
           const value = storage.accountItem(uid, key);
           if (value === null) await firestore.deleteDoc(stateDoc(uid, key));
@@ -189,7 +217,7 @@ if (!storage.guestSession() && config?.apiKey && config?.authDomain && config?.p
           if (storage.accountItem(uid, key) === value) storage.clearPending(uid, key);
         }
       }
-    })();
+    });
     let saved = false;
     try { await syncRunning; saved = true; }
     finally {
@@ -204,6 +232,7 @@ if (!storage.guestSession() && config?.apiKey && config?.authDomain && config?.p
     if (storage.pendingKeys(verifiedUser.uid).length) throw new Error("Sync still pending");
   }
   function scheduleSync(delay = 900) {
+    if (accountOperation) return;
     clearTimeout(syncTimer);
     syncTimer = setTimeout(async () => {
       try {
@@ -224,6 +253,47 @@ if (!storage.guestSession() && config?.apiKey && config?.authDomain && config?.p
   }
   function updateStatus() {
     renderAccountEntry();
+  }
+
+  async function runAccountOperation(user, action) {
+    const uid = user.uid;
+    const idToken = await user.getIdToken(true);
+    pauseAccount(uid);
+    accountChannel?.postMessage({ uid, action, phase: "start" });
+    // Let an in-flight save finish before deletion, and block queued saves in
+    // other tabs. Removed pending writes must never restore deleted records.
+    try {
+      if (syncRunning) await syncRunning.catch(() => {});
+      await withCloudLock(uid, async () => {
+        storage.clearAccountCache(uid);
+        let response;
+        try {
+          response = await fetch("/api/account-lifecycle", {
+            method: "POST",
+            headers: { Authorization: `Bearer ${idToken}`, "Content-Type": "application/json" },
+            body: JSON.stringify({ action })
+          });
+        } catch {
+          throw new Error("Connection lost. Some data may already be removed. Retry to finish the account change.");
+        }
+        const result = await response.json().catch(() => null);
+        if (!response.ok || !result || result.action !== action) {
+          throw new Error(result?.error || "The account change could not be completed. Some data may already be removed. Please retry.");
+        }
+        storage.clearAccountCache(uid);
+        accountChannel?.postMessage({ uid, action, phase: "complete" });
+        if (action === "delete") {
+          signingOut = true;
+          verifiedUser = null;
+          storage.setAccount(null);
+          await authSdk.signOut(auth);
+        }
+        location.reload();
+      });
+    } catch (error) {
+      accountChannel?.postMessage({ uid, action, phase: "failed" });
+      throw error;
+    }
   }
 
   async function loadAccount(user) {
@@ -260,7 +330,7 @@ if (!storage.guestSession() && config?.apiKey && config?.authDomain && config?.p
     const user = auth.currentUser;
     renderAccountEntry();
     if (verifiedUser) {
-      card.innerHTML = `<span class="eyebrow">Account</span><h3>Your account</h3><p>Signed in as <strong data-account-email></strong>. Your deal progress and preferences save automatically to your account.</p><div class="account-avatar-settings settings-subsection"><div class="account-avatar-intro"><span class="account-avatar-preview" data-account-avatar-preview></span><div><h4>Your avatar</h4><p>Choose one of 30 avatars for your sidebar account button.</p></div></div><div class="account-avatar-groups">${avatarChoicesMarkup()}</div></div><div class="account-password-settings settings-subsection"><h4>Change password</h4><p>Enter your current password and a new one. You will review the change before confirming it.</p><form data-password-form><label>Current password<input type="password" name="currentPassword" maxlength="256" autocomplete="current-password" required></label><label>New password<input type="password" name="newPassword" maxlength="256" autocomplete="new-password" minlength="6" required></label><div class="account-password-actions"><button type="submit" data-password-review>Review password change</button><div class="account-password-confirmation" data-password-confirmation role="group" aria-label="Confirm password change" hidden><strong>Change your password?</strong><p>This will replace the password you use to sign in.</p><div><button type="button" data-password-confirm>Confirm password change</button><button type="button" data-password-cancel>Cancel</button></div></div></div></form><p class="account-password-status" data-password-status role="status" aria-live="polite"></p></div><div data-account-import class="settings-subsection"></div><div class="account-security-settings settings-subsection"><div><h4>Session</h4><p>Sign out on this device when you are finished.</p></div><div class="account-actions"><button type="button" data-account-signout>Sign out</button></div></div><p class="account-message" data-account-message role="status" aria-live="polite"></p>`;
+      card.innerHTML = `<span class="eyebrow">Account</span><h3>Your account</h3><p>Signed in as <strong data-account-email></strong>. Your deal progress and preferences save automatically to your account.</p><div class="account-avatar-settings settings-subsection"><div class="account-avatar-intro"><span class="account-avatar-preview" data-account-avatar-preview></span><div><h4>Your avatar</h4><p>Choose one of 30 avatars for your sidebar account button.</p></div></div><div class="account-avatar-groups">${avatarChoicesMarkup()}</div></div><div class="account-password-settings settings-subsection"><h4>Change password</h4><p>Enter your current password and a new one. You will review the change before confirming it.</p><form data-password-form><label>Current password<input type="password" name="currentPassword" maxlength="256" autocomplete="current-password" required></label><label>New password<input type="password" name="newPassword" maxlength="256" autocomplete="new-password" minlength="6" required></label><div class="account-password-actions"><button type="submit" data-password-review>Review password change</button><div class="account-password-confirmation" data-password-confirmation role="group" aria-label="Confirm password change" hidden><strong>Change your password?</strong><p>This will replace the password you use to sign in.</p><div><button type="button" data-password-confirm>Confirm password change</button><button type="button" data-password-cancel>Cancel</button></div></div></div></form><p class="account-password-status" data-password-status role="status" aria-live="polite"></p></div><div data-account-import class="settings-subsection"></div><div class="account-security-settings settings-subsection"><div><h4>Session</h4><p>Sign out on this device when you are finished.</p></div><div class="account-actions"><button type="button" data-account-signout>Sign out</button></div></div>${accountManagementMarkup}<p class="account-message" data-account-message role="status" aria-live="polite"></p>`;
       card.querySelector("[data-account-email]").textContent = verifiedUser.email;
       card.querySelectorAll("[data-avatar-index]").forEach(button => button.onclick = () => {
         storage.setItem(avatarKey, JSON.stringify({ kind: "preset", index: Number(button.dataset.avatarIndex) }));
@@ -269,6 +339,16 @@ if (!storage.guestSession() && config?.apiKey && config?.authDomain && config?.p
       });
       updateAvatarEditor();
       setupPasswordChange();
+      setupAccountManagement({
+        card,
+        getUser: () => auth.currentUser?.uid === verifiedUser?.uid ? verifiedUser : null,
+        reauthenticate: async (user, password) => {
+          try {
+            await authSdk.reauthenticateWithCredential(user, authSdk.EmailAuthProvider.credential(user.email, password));
+          } catch (error) { throw new Error(friendlyError(error)); }
+        },
+        runOperation: runAccountOperation
+      });
       card.querySelector("[data-account-signout]").onclick = async () => {
         try {
           clearTimeout(syncTimer);

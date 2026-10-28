@@ -13,6 +13,7 @@
   let activeUid = window.sessionStorage?.getItem(guestSessionKey) === "true" ? null : provider.getItem(accountKey) || null;
   if (activeUid && typeof document !== "undefined") document.documentElement.classList.add("account-restoring");
   const listeners = new Set();
+  const frozenAccounts = new Set();
   const keys = () => Array.from({ length: provider.length }, (_, index) => provider.key(index));
   const scoped = key => activeUid && key.startsWith("deallogic:") ? accountPrefix(activeUid) + key : key;
   const pending = uid => {
@@ -36,8 +37,9 @@
 
   window.DealLogicStorage = Object.freeze({
     getItem(key) { return provider.getItem(scoped(key)); },
-    setItem(key, value) { provider.setItem(scoped(key), value); markPending(key); },
-    removeItem(key) { provider.removeItem(scoped(key)); markPending(key); },
+    setItem(key, value) { if (activeUid && frozenAccounts.has(activeUid)) return; provider.setItem(scoped(key), value); markPending(key); },
+    removeItem(key) { if (activeUid && frozenAccounts.has(activeUid)) return; provider.removeItem(scoped(key)); markPending(key); },
+    freezeAccount(uid) { frozenAccounts.add(uid); },
     activeUid() { return activeUid; },
     guestSession() { return window.sessionStorage?.getItem(guestSessionKey) === "true"; },
     useGuestForSession() {

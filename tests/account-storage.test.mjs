@@ -50,3 +50,21 @@ test("cloud hydration preserves local edits awaiting sync", () => {
   assert.equal(saved.getItem("deallogic:deal-projects:v1"), "unsynced local edit");
   assert.equal(saved.getItem("deallogic:app-theme"), "grey");
 });
+
+test("account cleanup removes settings, deals, answers and pending writes without touching another account", () => {
+  const window = { localStorage: makeStorage() };
+  vm.runInNewContext(source, { window });
+  const saved = window.DealLogicStorage;
+  saved.setAccount("bob");
+  saved.setItem("deallogic:deal-projects:v1", "bob deal");
+  saved.setAccount("alice");
+  for (const key of ["deallogic:deal-projects:v1", "deallogic:app-theme", "deallogic:account-avatar", "deallogic:answers:issue"]) saved.setItem(key, "saved data");
+  saved.freezeAccount("alice");
+  saved.clearAccountCache("alice");
+  saved.setItem("deallogic:deal-projects:v1", "late stale save");
+  assert.equal(saved.accountEntries("alice").length, 0);
+  assert.equal(saved.pendingKeys("alice").length, 0);
+  assert.equal(saved.activeUid(), "alice");
+  saved.setAccount("bob");
+  assert.equal(saved.getItem("deallogic:deal-projects:v1"), "bob deal");
+});

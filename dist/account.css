@@ -19,3 +19,20 @@ html.account-restoring .account-restore{position:fixed;inset:0;z-index:100;displ
 .account-settings .account-message{margin:12px 0 0;color:#365f49;min-height:20px}
 .account-settings .account-message.account-error{color:#9d3939}
 .account-settings [data-account-import]:empty{display:none}
+
+.account-data-settings{display:flex;align-items:center;justify-content:space-between;gap:24px}
+.account-data-settings>div:first-child{max-width:70ch}
+.account-data-settings .account-actions{flex-shrink:0}
+.account-actions .account-danger-button{border-color:#ba5656;color:#9d3030;background:#fff}
+.account-data-dialog{width:min(480px,calc(100vw - 32px));max-height:calc(100dvh - 48px);overflow:auto;padding:28px;border:1px solid var(--line);border-radius:20px;background:var(--surface,#fff);color:var(--ink);box-shadow:0 20px 70px #0003}
+.account-data-dialog::backdrop{background:#15251c80}
+.account-settings .account-data-dialog h4{font-size:20px;margin:0}
+.account-settings .account-data-dialog p{margin:0;line-height:1.65}
+.account-settings .account-data-dialog form{max-width:none}
+.account-data-dialog .account-actions{justify-content:flex-end;margin:0}
+.account-data-dialog [data-account-data-confirm]{background:#9d3030;border-color:#9d3030;color:#fff}
+.account-data-dialog button{min-height:42px}
+.account-data-dialog button:disabled{cursor:wait;opacity:.6}
+.account-data-dialog .account-operation-status:empty{display:none}
+.account-data-dialog .account-operation-status.account-error{color:#9d3030}
+@media(max-width:700px){.account-data-settings{align-items:flex-start;flex-direction:column;gap:14px}.account-data-dialog{padding:22px}.account-data-dialog .account-actions{justify-content:flex-start}}

@@ -39,6 +39,14 @@ Browser persistence is accessed through `dist/app-storage.js`. `dist/account.js`
 
 Account progress is private to one Firebase user; deal sharing and invitations are not implemented. The Firestore free tier has no managed backups, so arrange exports or upgrade before relying on it as the only copy of live transaction records. The first version stores one Firestore document per browser storage key; a very large single deal record may require a future per-deal data model.
 
+### Reset and delete an account
+
+Below Session in Settings, **Reset account** clears every project, Deal Hub action, saved answer, avatar and preference, keeping the email/password account. **Delete account** clears the same data and then permanently removes the Firebase Authentication user. Each action opens a separate confirmation with a permanent-deletion warning and requires the current password before its confirmation button proceeds.
+
+`POST /api/account-lifecycle` verifies the caller's Firebase ID token against Firebase Authentication, requires verified email and a sign-in within the last five minutes, and derives the UID from that verified account. It deletes all documents in `users/{uid}/state` in batches, including records not loaded on the current device. For deletion, it removes the Authentication user only after Firestore is empty. Failed cleanup preserves authentication for retry and does not report success. The endpoint uses the same public Firebase configuration and owner-only Firestore rules as the app; no service-account secret or new Firebase rule is required.
+
+The browser pauses cloud sync, clears account-scoped caches and pending writes, and coordinates other open tabs before reloading defaults or signing out. Unrelated guest progress and other accounts' data stay separate. All application account data currently resides in the state collection; if another account storage location is added, extend the lifecycle endpoint to erase it too.
+
 ## Company Radar
 
 Company Radar is a deal-specific dashboard of public Companies House register data. Users can add several entities to a deal, review rule-based attention flags, open the original register pages, filter recent filings, download available PDFs on demand, and add a finding to Deal Hub. Individual attention flags can be marked reviewed; the app clears that mark if the flag's underlying detail changes. After a fresh check, it highlights changed register fields compared with the prior successful check. Company selections, review marks, and comparison snapshots are stored in this browser with the rest of the deal. Register data is fetched when the section is opened or refreshed.
