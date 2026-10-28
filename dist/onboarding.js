@@ -32,9 +32,9 @@
   let index = -1, initialView = "deal-map", returnFocus = help, target = null, positioning = false;
 
   const dots = () => `<div class="tour-dots" aria-hidden="true">${steps.map((_, step) => `<span class="${step === index ? "active" : ""}"></span>`).join("")}</div>`;
-  const foot = () => `<div class="tour-actions"><button type="button" class="tour-skip" data-tour-skip>${index === steps.length - 1 ? "Close" : "Skip"}</button><button type="button" class="tour-next" data-tour-next>${index === steps.length - 1 ? "Explore Deal Map" : "Next"}</button></div>`;
+  const foot = () => `<div class="tour-footer">${dots()}<div class="tour-actions"><button type="button" class="tour-back" data-tour-back ${index === 0 ? "disabled" : ""}>Back</button><button type="button" class="tour-next" data-tour-next>${index === steps.length - 1 ? "Explore Deal Map" : "Next"}</button></div></div>`;
   const hero = () => '<div class="tour-hero" aria-hidden="true"><div class="tour-hero-icon"><img src="./deallogic-mark.svg" alt=""></div></div>';
-  const card = step => `<div class="tour-card ${step.kind ? `tour-card-${step.kind}` : "tour-card-tip"}" role="document">${step.kind ? hero() : `<span class="tour-step-label">A tour of Deal Logic · ${index + 1} of ${steps.length}</span>`}<h2 id="tour-title">${step.title}</h2><p>${step.body}</p>${step.kind === "finish" ? '<p class="tour-review">Prototype content is a starting point for professional review, not legal advice.</p>' : ""}${dots()}${foot()}</div>`;
+  const card = step => `<div class="tour-card ${step.kind ? `tour-card-${step.kind}` : "tour-card-tip"}" role="document"><button type="button" class="tour-close" data-tour-close aria-label="Close tour">&times;</button>${step.kind ? hero() : ""}<h2 id="tour-title">${step.title}</h2><p>${step.body}</p>${step.kind === "finish" ? '<p class="tour-review">Prototype content is a starting point for professional review, not legal advice.</p>' : ""}${foot()}</div>`;
   const anchor = step => {
     const wanted = document.querySelector(step.target);
     if (wanted && wanted.getClientRects().length) return wanted;
@@ -53,12 +53,7 @@
       const top = clamp(rect.top - pad, 8, innerHeight - 8);
       const right = clamp(rect.right + pad, 8, innerWidth - 8);
       const bottom = clamp(rect.bottom + pad, 8, innerHeight - 8);
-      const [north, east, south, west] = overlay.querySelectorAll(".tour-shade");
-      Object.assign(north.style, { left: "0px", top: "0px", width: "100vw", height: `${top}px` });
-      Object.assign(south.style, { left: "0px", top: `${bottom}px`, width: "100vw", height: `${Math.max(0, innerHeight - bottom)}px` });
-      Object.assign(west.style, { left: "0px", top: `${top}px`, width: `${left}px`, height: `${Math.max(0, bottom - top)}px` });
-      Object.assign(east.style, { left: `${right}px`, top: `${top}px`, width: `${Math.max(0, innerWidth - right)}px`, height: `${Math.max(0, bottom - top)}px` });
-      Object.assign(overlay.querySelector(".tour-ring").style, { left: `${left}px`, top: `${top}px`, width: `${Math.max(0, right - left)}px`, height: `${Math.max(0, bottom - top)}px` });
+      Object.assign(overlay.querySelector(".tour-spotlight").style, { left: `${left}px`, top: `${top}px`, width: `${Math.max(0, right - left)}px`, height: `${Math.max(0, bottom - top)}px` });
       const popover = overlay.querySelector(".tour-card"), width = popover.offsetWidth, height = popover.offsetHeight, gap = 17;
       let x, y;
       if (right + gap + width <= innerWidth - 12) { x = right + gap; y = clamp(top, 12, innerHeight - height - 12); }
@@ -81,7 +76,7 @@
       overlay.classList.remove("tour-modal");
       window.showDealLogicView(step.view);
       target = anchor(step);
-      overlay.innerHTML = `<div class="tour-shade"></div><div class="tour-shade"></div><div class="tour-shade"></div><div class="tour-shade"></div><div class="tour-ring" aria-hidden="true"></div>${card(step)}`;
+      overlay.innerHTML = `<div class="tour-spotlight" aria-hidden="true"></div>${card(step)}`;
       target?.scrollIntoView({ block: "nearest", behavior: "instant" });
       position();
       setTimeout(position, 200);
@@ -105,7 +100,8 @@
     show(0);
   });
   overlay.addEventListener("click", event => {
-    if (event.target.closest("[data-tour-skip]")) end();
+    if (event.target.closest("[data-tour-close]")) end();
+    if (event.target.closest("[data-tour-back]") && index > 0) show(index - 1);
     if (event.target.closest("[data-tour-next]")) index === steps.length - 1 ? end(true) : show(index + 1);
   });
   overlay.addEventListener("keydown", event => {
