@@ -16,8 +16,8 @@
     { title: "Explore a legal issue", body: "In Deal Map, choose a common legal issue and answer a few questions. You’ll see a risk assessment and recommended actions tailored to the facts you enter.", view: "deal-map", target: ".map:not(.screen-hidden)" },
     { title: "Build an action plan", body: "Save recommended actions to Deal Hub. Use the summary, task board and table to review and track your action items.", view: "deal-hub", target: ".hub-tabs button:first-child", targetEnd: ".hub-tabs button:last-child" },
     { title: "Find more deal actions", body: "In the Action Library view common M&A responses or browse all available actions for each legal issue. Add useful actions to the active deal.", view: "action-library", target: ".library-tabs button:first-child", targetEnd: ".library-tabs button:last-child" },
-    { title: "Check the company record", body: "Company Radar uses public Companies House information. Search for the right legal entity and review the points that need attention.", view: "company-radar", target: ".radar-search" },
-    { title: "Choose how your work is saved", body: "Guest work stays in this browser. In Settings, a verified account can sync saved deals and preferences across devices.", view: "settings", target: ".account-settings h3" },
+    { title: "Check the company record", body: "Search Companies House data in Company Radar to find the right legal entity, review key points and add actions to Deal Hub.", view: "company-radar", target: ".radar-search" },
+    { title: "Choose how your work is saved", body: "Guest work stays in this browser. In Settings, a verified account can sync saved deals and preferences across devices.", view: "settings", target: ".project-rail-account .account-entry", fallbackTarget: ".project-rail-account" },
     { title: "You’re ready to explore", body: "Start with a legal issue, review the result against the transaction documents, and add the actions you want to track in Deal Hub.", kind: "finish" }
   ];
 
@@ -38,6 +38,8 @@
   const anchor = step => {
     const wanted = document.querySelector(step.target);
     if (wanted && wanted.getClientRects().length) return wanted;
+    const fallback = step.fallbackTarget && document.querySelector(step.fallbackTarget);
+    if (fallback && fallback.getClientRects().length) return fallback;
     return document.querySelector(`[data-workspace-view="${step.view}"]`) || navigation;
   };
   const clamp = (value, low, high) => Math.max(low, Math.min(value, high));
