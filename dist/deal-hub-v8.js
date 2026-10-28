@@ -93,7 +93,7 @@
     document.querySelector(".workspace")?.classList.add("screen-hidden");
     let start=document.querySelector(".project-start");
     if(!start){start=document.createElement("section");start.className="project-start";document.querySelector(".workspace")?.insertAdjacentElement("beforebegin",start);}
-    start.innerHTML=`<div class="project-start-card"><span class="eyebrow">Start a workspace</span><h2>Organise this deal from the outset</h2><p>Create a deal to keep its Deal Map answers, risk analysis and Deal Hub actions together. You can also explore first without creating one.</p><form data-start-project><label>Deal name<input name="name" maxlength="80" placeholder="e.g. Deal Redwood" required></label><label>Transaction side<select name="side"><option>Buyer</option><option>Seller</option><option selected>Balanced</option></select></label><div><button class="hub-button primary">Create deal</button><button type="button" class="hub-button" data-continue-quick>Continue without a deal</button></div></form></div>`;
+    start.innerHTML=`<div class="project-start-card"><h2>Organise this deal from the outset</h2><p>Create a deal to keep its Deal Map answers, risk analysis and Deal Hub actions together. You can also explore first without creating one.</p><form data-start-project><label>Deal name<input name="name" maxlength="80" placeholder="e.g. Deal Redwood" required></label><label>Transaction side<select name="side"><option>Buyer</option><option>Seller</option><option selected>Balanced</option></select></label><div><button class="hub-button primary">Create deal</button><button type="button" class="hub-button" data-continue-quick>Continue without a deal</button></div></form></div>`;
     start.addEventListener("submit",event=>{if(!event.target.matches("[data-start-project]"))return;event.preventDefault();createDealProject(event.target.elements.name.value,event.target.elements.side.value);start.remove();document.querySelector(".workspace")?.classList.remove("screen-hidden");renderProjectRail();window.showDealLogicView?.("deal-map");});
     start.querySelector("[data-continue-quick]").onclick=()=>{const next=getDealProjects();next.onboardingSeen=true;next.activeProjectId="quick-workspace";saveDealProjects(next);start.remove();document.querySelector(".workspace")?.classList.remove("screen-hidden");renderProjectRail();switchDealProject("quick-workspace");};
   }
@@ -107,7 +107,9 @@
     event.preventDefault();
     const name=String(event.target.elements.name.value||"").trim();
     if(!name)return;
+    const wasStarting=Boolean(document.querySelector(".project-start"));
     createDealProject(name,event.target.elements.side.value);creatingProject=false;renderProjectRail();
+    if(wasStarting){document.querySelector(".project-start")?.remove();document.querySelector(".workspace")?.classList.remove("screen-hidden");window.showDealLogicView?.("deal-map");}
   });
   document.addEventListener("deal-project-change",()=>{
     state=activeHub();filter="All issues";search="";picks.clear();picking=false;loadAnswers();renderMap();renderPanel();renderHub();renderProjectRail();document.dispatchEvent(new CustomEvent("transaction-side-change"));
