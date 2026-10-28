@@ -10,7 +10,6 @@ const activeScripts = [
   "app-storage.js",
   "app-theme.js",
   "action-recovery.js",
-  "risk-legend.js",
   "action-registry.js",
   "deal-hub-v8.js",
   "workspace-redesign.js",

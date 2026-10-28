@@ -5,7 +5,7 @@ import vm from "node:vm";
 import { createAccountBackup } from "../dist/account-backup.js";
 
 const sandbox = { window: {} };
-for (const file of ["action-recovery.js", "risk-legend.js"]) vm.runInNewContext(readFileSync(new URL(`../dist/${file}`, import.meta.url), "utf8"), sandbox);
+for (const file of ["action-recovery.js"]) vm.runInNewContext(readFileSync(new URL(`../dist/${file}`, import.meta.url), "utf8"), sandbox);
 const recovery = sandbox.window.DealLogicActionRecovery;
 const plain = value => JSON.parse(JSON.stringify(value));
 
@@ -65,14 +65,4 @@ test("backup excludes session markers, other account caches and non-workspace ke
   const backup = createAccountBackup({ user: { uid: "alice" }, cloudEntries: [["firebase:authUser", "token"], ["deallogic:account:bob:deallogic:projects", "other user"], ["deallogic:last-account-uid", "bob"]], localEntries: [], pendingKeys: [] });
   assert.equal(backup.state.length, 0);
   assert.throws(() => createAccountBackup({ user: null }), /Sign in/);
-});
-
-test("risk legend labels all five levels in both inline and expandable forms", () => {
-  const legend = sandbox.window.DealLogicRiskLegend;
-  for (const expanded of [false, true]) {
-    const html = legend.markup(expanded);
-    for (const [index, label] of legend.levels.entries()) assert.ok(html.includes(`${index + 1}/5 · ${label}`));
-    assert.equal((html.match(/aria-hidden="true"/g) || []).length, 5);
-  }
-  assert.match(legend.markup(true), /<summary>Risk colour guide<\/summary>/);
 });

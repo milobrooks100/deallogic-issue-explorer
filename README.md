@@ -49,7 +49,7 @@ The browser pauses cloud sync, clears account-scoped caches and pending writes, 
 
 **Export account backup** appears above Reset account. It downloads a versioned JSON file containing the account's email/UID and all saved workspace state, combining a fresh cloud read with pending local changes. It includes projects, actions, notes, answers, avatars and preferences; Firebase credentials are excluded. If the cloud cannot be read, export shows a retryable error rather than downloading an incomplete backup. This is a data export; a backup import interface is not yet included.
 
-Action removal in Deal Hub and deletion of custom Action Library items offer a persistent **Undo deletion** control. Multiple removals can be undone in reverse order until the notification is dismissed or the page reloads. Deal Hub recovery retains each action's original deal, issue snapshot, notes and status and does not overwrite later edits or duplicate re-added actions. The five-level risk legend appears below each assessment bar and in an expandable guide in Deal Hub; labels supplement the fixed severity colours.
+Action removal in Deal Hub and deletion of custom Action Library items offer a persistent **Undo deletion** control. Multiple removals can be undone in reverse order until the notification is dismissed or the page reloads. Deal Hub recovery retains each action's original deal, issue snapshot, notes and status and does not overwrite later edits or duplicate re-added actions.
 
 ## Company Radar
 
