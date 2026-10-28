@@ -4,6 +4,6 @@
   "type": "module",
   "scripts": {
     "build": "node scripts/build.mjs",
-    "check": "node --check dist/account.js && node --check dist/account-management.js && node --check dist/account-backup.js && node scripts/check-runtime.mjs && node --test tests/*.test.mjs"
+    "check": "node --check dist/account.js && node --check dist/account-management.js && node scripts/check-runtime.mjs && node --test tests/*.test.mjs"
   }
 }

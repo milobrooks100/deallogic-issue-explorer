@@ -299,19 +299,7 @@
     const refresh=event.target.closest("[data-refresh-issue]");if(refresh){refreshIssue(refresh.dataset.refreshIssue);return;}
     const edit=event.target.closest("[data-edit-action]");if(edit){const card=edit.closest(".hub-item");if(card){card.outerHTML=actionMarkup(actionById(edit.dataset.editAction),!card.querySelector(".hub-editor"));}else{const row=edit.closest("tr[data-action-id]");if(row?.closest(".hub-table")){const editor=row.nextElementSibling?.matches(`[data-table-editor-for="${CSS.escape(edit.dataset.editAction)}"]`)?row.nextElementSibling:null;if(editor){editor.remove();}else{row.insertAdjacentHTML("afterend",tableEditorMarkup(actionById(edit.dataset.editAction)));}}}return;}
     const saveButton=event.target.closest("[data-save-action]");if(saveButton){const action=actionById(saveButton.dataset.saveAction),editor=saveButton.closest(".hub-item,.hub-table-editor");if(!action||!editor)return;editor.querySelectorAll("[data-action-field]").forEach(field=>{action[field.dataset.actionField]=field.value;});save();renderHub();toast("Action updated");return;}
-    const remove=event.target.closest("[data-delete-action]");if(remove){if(remove.dataset.confirm!=="yes"){remove.dataset.confirm="yes";remove.textContent="Click again to remove";return;}const projectId=activeDealProjectId();
-      const record=window.DealLogicActionRecovery.removeHubAction(state,remove.dataset.deleteAction);
-      if(!record)return;
-      save();renderHub();renderProjectRail();document.dispatchEvent(new CustomEvent("deal-hub-actions-change"));
-      window.DealLogicActionRecovery.offerUndo("Action removed from Deal Hub.",()=>{
-        const store=getDealProjects(),project=store.projects.find(item=>item.id===projectId);
-        if(!project?.hub)return "The original deal has been deleted; this action cannot be restored.";
-        const restored=window.DealLogicActionRecovery.restoreHubAction(project.hub,record);
-        if(!restored)return "This action is already in its original deal.";
-        saveDealProjects(store);state=activeHub();renderHub();renderProjectRail();
-        document.dispatchEvent(new CustomEvent("deal-hub-actions-change"));
-        return `Action restored to ${project.name}.`;
-      });return;}
+    const remove=event.target.closest("[data-delete-action]");if(remove){if(remove.dataset.confirm!=="yes"){remove.dataset.confirm="yes";remove.textContent="Click again to remove";return;}state.actions=state.actions.filter(action=>action.id!==remove.dataset.deleteAction);state.issues=state.issues.filter(issue=>!String(issue.id).startsWith("company-radar:")||state.actions.some(action=>action.issueId===issue.id));save();renderHub();document.dispatchEvent(new CustomEvent("deal-hub-actions-change"));toast("Action removed from Deal Hub");}
     const deleteProject=event.target.closest("[data-delete-deal-project]");if(deleteProject){
       if(deleteProject.dataset.confirm!=="yes"){deleteProject.dataset.confirm="yes";deleteProject.textContent="Click again to delete";return;}
       const store=getDealProjects(),id=deleteProject.dataset.deleteDealProject;

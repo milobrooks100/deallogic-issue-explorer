@@ -47,10 +47,6 @@ Below Session in Settings, **Reset account** clears every project, Deal Hub acti
 
 The browser pauses cloud sync, clears account-scoped caches and pending writes, and coordinates other open tabs before reloading defaults or signing out. Unrelated guest progress and other accounts' data stay separate. All application account data currently resides in the state collection; if another account storage location is added, extend the lifecycle endpoint to erase it too.
 
-**Export account backup** appears above Reset account. It downloads a versioned JSON file containing the account's email/UID and all saved workspace state, combining a fresh cloud read with pending local changes. It includes projects, actions, notes, answers, avatars and preferences; Firebase credentials are excluded. If the cloud cannot be read, export shows a retryable error rather than downloading an incomplete backup. This is a data export; a backup import interface is not yet included.
-
-Action removal in Deal Hub and deletion of custom Action Library items offer a persistent **Undo deletion** control. Multiple removals can be undone in reverse order until the notification is dismissed or the page reloads. Deal Hub recovery retains each action's original deal, issue snapshot, notes and status and does not overwrite later edits or duplicate re-added actions.
-
 ## Company Radar
 
 Company Radar is a deal-specific dashboard of public Companies House register data. Users can add several entities to a deal, review rule-based attention flags, open the original register pages, filter recent filings, download available PDFs on demand, and add a finding to Deal Hub. Individual attention flags can be marked reviewed; the app clears that mark if the flag's underlying detail changes. After a fresh check, it highlights changed register fields compared with the prior successful check. Company selections, review marks, and comparison snapshots are stored in this browser with the rest of the deal. Register data is fetched when the section is opened or refreshed.
