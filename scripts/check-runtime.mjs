@@ -9,6 +9,8 @@ const indexSource = await readFile(indexPath, "utf8");
 const activeScripts = [
   "app-storage.js",
   "app-theme.js",
+  "action-recovery.js",
+  "risk-legend.js",
   "action-registry.js",
   "deal-hub-v8.js",
   "workspace-redesign.js",
@@ -17,6 +19,10 @@ const activeScripts = [
   "debt-facilities.js",
   "action-playbooks.js"
 ];
+
+for (const [, attributes, source] of indexSource.matchAll(/<script\b([^>]*)>([\s\S]*?)<\/script>/g)) {
+  if (!/\bsrc\s*=/.test(attributes) && !/type=["']module/.test(attributes)) new vm.Script(source, { filename: "index.html inline script" });
+}
 
 for (const filename of activeScripts) {
   const filePath = path.join(distRoot, filename);

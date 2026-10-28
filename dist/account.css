@@ -23,6 +23,10 @@ html.account-restoring .account-restore{position:fixed;inset:0;z-index:100;displ
 .account-data-settings{display:flex;align-items:center;justify-content:space-between;gap:24px}
 .account-data-settings>div:first-child{max-width:70ch}
 .account-data-settings .account-actions{flex-shrink:0}
+.account-data-settings .account-actions button{min-height:44px}
+.account-settings .account-backup-status{margin:8px 0 0!important;font-size:12px}
+.account-backup-status:empty{display:none}
+.account-settings .account-backup-status.account-error{color:#9d3030}
 .account-actions .account-danger-button{border-color:#ba5656;color:#9d3030;background:#fff}
 .account-data-dialog{width:min(480px,calc(100vw - 32px));max-height:calc(100dvh - 48px);overflow:auto;padding:28px;border:1px solid var(--line);border-radius:20px;background:var(--surface,#fff);color:var(--ink);box-shadow:0 20px 70px #0003}
 .account-data-dialog::backdrop{background:#15251c80}

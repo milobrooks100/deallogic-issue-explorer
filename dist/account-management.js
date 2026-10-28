@@ -1,5 +1,9 @@
 export const accountManagementMarkup = `
   <div class="account-data-settings settings-subsection">
+    <div><h4>Account backup</h4><p>Download all projects, Deal Hub actions, saved answers and settings as a JSON file.</p><p class="account-backup-status" data-account-backup-status role="status" aria-live="polite"></p></div>
+    <div class="account-actions"><button type="button" data-account-backup>Export account backup</button></div>
+  </div>
+  <div class="account-data-settings settings-subsection">
     <div><h4>Reset account</h4><p>Permanently delete all projects, Deal Hub actions and saved answers, and restore your avatar and settings to their defaults. Keep your sign-in account.</p></div>
     <div class="account-actions"><button type="button" data-account-manage="reset">Reset account</button></div>
   </div>
@@ -17,7 +21,28 @@ export const accountManagementMarkup = `
     </form>
   </dialog>`;
 
-export function setupAccountManagement({ card, getUser, reauthenticate, runOperation, reload = () => location.reload() }) {
+export function setupAccountManagement({ card, getUser, reauthenticate, runOperation, exportBackup, reload = () => location.reload() }) {
+  const backupButton = card.querySelector("[data-account-backup]");
+  const backupStatus = card.querySelector("[data-account-backup-status]");
+  backupButton.onclick = async () => {
+    const manageButtons = card.querySelectorAll("[data-account-manage]");
+    backupButton.disabled = true;
+    manageButtons.forEach(button => { button.disabled = true; });
+    backupButton.textContent = "Preparing backup…";
+    backupStatus.textContent = "Reading your saved account data…";
+    backupStatus.classList.remove("account-error");
+    try {
+      await exportBackup();
+      backupStatus.textContent = "Backup download started.";
+    } catch (error) {
+      backupStatus.textContent = error?.message || "Backup could not be prepared. Please try again.";
+      backupStatus.classList.add("account-error");
+    } finally {
+      backupButton.disabled = false;
+      manageButtons.forEach(button => { button.disabled = false; });
+      backupButton.textContent = "Export account backup";
+    }
+  };
   const dialog = card.querySelector(".account-data-dialog");
   const form = dialog.querySelector("form");
   const password = form.elements.namedItem("password");

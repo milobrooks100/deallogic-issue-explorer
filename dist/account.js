@@ -1,5 +1,6 @@
 import { prepareBrowserProgressImport } from "./browser-progress-import.js";
 import { accountManagementMarkup, setupAccountManagement } from "./account-management.js";
+import { createAccountBackup, downloadAccountBackup } from "./account-backup.js";
 
 const config = window.DEALLOGIC_FIREBASE_CONFIG;
 const storage = window.DealLogicStorage;
@@ -20,6 +21,7 @@ if (!storage.guestSession() && config?.apiKey && config?.authDomain && config?.p
   let syncRetryMs = 3000;
   let signingOut = false;
   let accountOperation = false;
+  let accountBackupRunning = false;
   const accountChannel = typeof BroadcastChannel === "function" ? new BroadcastChannel("deallogic-account-lifecycle") : null;
   const withCloudLock = (uid, task) => navigator.locks?.request
     ? navigator.locks.request(`deallogic-cloud:${uid}`, task) : task();
@@ -205,7 +207,7 @@ if (!storage.guestSession() && config?.apiKey && config?.authDomain && config?.p
   }
 
   async function flushPending() {
-    if (!verifiedUser || accountOperation) return;
+    if (!verifiedUser || accountOperation || accountBackupRunning) return;
     if (syncRunning) return syncRunning;
     const uid = verifiedUser.uid;
     syncRunning = withCloudLock(uid, async () => {
@@ -232,7 +234,7 @@ if (!storage.guestSession() && config?.apiKey && config?.authDomain && config?.p
     if (storage.pendingKeys(verifiedUser.uid).length) throw new Error("Sync still pending");
   }
   function scheduleSync(delay = 900) {
-    if (accountOperation) return;
+    if (accountOperation || accountBackupRunning) return;
     clearTimeout(syncTimer);
     syncTimer = setTimeout(async () => {
       try {
@@ -347,7 +349,33 @@ if (!storage.guestSession() && config?.apiKey && config?.authDomain && config?.p
             await authSdk.reauthenticateWithCredential(user, authSdk.EmailAuthProvider.credential(user.email, password));
           } catch (error) { throw new Error(friendlyError(error)); }
         },
-        runOperation: runAccountOperation
+        runOperation: runAccountOperation,
+        exportBackup: async () => {
+          const user = verifiedUser;
+          if (!user || accountOperation) throw new Error("Sign in before exporting your account.");
+          accountBackupRunning = true;
+          try {
+            if (syncRunning) await syncRunning.catch(() => {});
+            await withCloudLock(user.uid, async () => {
+              let snapshot;
+              try { snapshot = await firestore.getDocsFromServer(stateCollection(user.uid)); }
+              catch { throw new Error("Your cloud data could not be read. Check your connection and retry to export a complete backup."); }
+              if (accountOperation || verifiedUser?.uid !== user.uid || storage.activeUid() !== user.uid) {
+                throw new Error("Your account changed. Reload and try again.");
+              }
+              const backup = createAccountBackup({
+                user,
+                cloudEntries: snapshot.docs.map(doc => [doc.data().key, doc.data().value]),
+                localEntries: storage.accountEntries(user.uid),
+                pendingKeys: storage.pendingKeys(user.uid)
+              });
+              downloadAccountBackup(backup);
+            });
+          } finally {
+            accountBackupRunning = false;
+            if (verifiedUser && storage.pendingKeys(verifiedUser.uid).length) scheduleSync();
+          }
+        }
       });
       card.querySelector("[data-account-signout]").onclick = async () => {
         try {
