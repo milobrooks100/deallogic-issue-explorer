@@ -129,8 +129,6 @@
   const originalShow = window.showDealLogicView;
   window.showDealLogicView = view => {
     originalShow?.(view); currentView=view;
-    document.querySelector('.project-start')?.classList.toggle('screen-hidden', view!=='deal-map');
-    if(document.querySelector('.project-start') && view==='deal-map') document.querySelector('.workspace')?.classList.add('screen-hidden');
     updateContext();
   };
   function polish() {

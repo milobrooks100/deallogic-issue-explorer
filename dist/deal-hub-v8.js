@@ -88,15 +88,6 @@
     rail.innerHTML=`<div class="project-rail-head"><div><span class="eyebrow">Workspace</span><h3>Deals</h3></div><button type="button" class="project-new" data-new-deal-project aria-label="Create a new deal"><i data-lucide="plus" aria-hidden="true"></i></button></div>${creatingProject?`<form class="project-rail-create" data-create-deal-project><label>Deal name<input name="name" maxlength="80" placeholder="e.g. Deal Redwood" required autofocus></label><label>Transaction side<select name="side"><option>Buyer</option><option>Seller</option><option selected>Balanced</option></select></label><div><button class="hub-button primary">Create deal</button><button type="button" class="hub-button" data-cancel-deal-project>Cancel</button></div></form>`:""}<button class="project-rail-item ${active.isQuick?"active":""}" data-switch-deal-project="quick-workspace"><span class="project-dot"></span><span><strong>Quick workspace</strong><small>Unassigned work</small></span></button><div class="project-rail-list">${store.projects.filter(project=>!project.isQuick).map(project=>`<button class="project-rail-item ${project.id===active.id?"active":""}" data-switch-deal-project="${esc(project.id)}"><span class="project-dot"></span><span><strong>${esc(project.name)}</strong><small>${esc(project.side)} · ${project.hub?.actions?.length||0} actions</small></span></button>`).join("")}</div><div class="project-rail-note project-rail-account" data-account-slot></div>`;
     document.dispatchEvent(new Event("deal-project-rail-rendered"));
   }
-  function showProjectStart(){
-    const store=getDealProjects();if(store.onboardingSeen)return;
-    document.querySelector(".workspace")?.classList.add("screen-hidden");
-    let start=document.querySelector(".project-start");
-    if(!start){start=document.createElement("section");start.className="project-start";document.querySelector(".workspace")?.insertAdjacentElement("beforebegin",start);}
-    start.innerHTML=`<div class="project-start-card"><h2>Organise this deal from the outset</h2><p>Create a deal to keep its Deal Map answers, risk analysis and Deal Hub actions together. You can also explore first without creating one.</p><form data-start-project><label>Deal name<input name="name" maxlength="80" placeholder="e.g. Deal Redwood" required></label><label>Transaction side<select name="side"><option>Buyer</option><option>Seller</option><option selected>Balanced</option></select></label><div><button class="hub-button primary">Create deal</button><button type="button" class="hub-button" data-continue-quick>Continue without a deal</button></div></form></div>`;
-    start.addEventListener("submit",event=>{if(!event.target.matches("[data-start-project]"))return;event.preventDefault();createDealProject(event.target.elements.name.value,event.target.elements.side.value);start.remove();document.querySelector(".workspace")?.classList.remove("screen-hidden");renderProjectRail();window.showDealLogicView?.("deal-map");});
-    start.querySelector("[data-continue-quick]").onclick=()=>{const next=getDealProjects();next.onboardingSeen=true;next.activeProjectId="quick-workspace";saveDealProjects(next);start.remove();document.querySelector(".workspace")?.classList.remove("screen-hidden");renderProjectRail();switchDealProject("quick-workspace");};
-  }
   document.addEventListener("click",event=>{
     const change=event.target.closest("[data-switch-deal-project]");if(change){switchDealProject(change.dataset.switchDealProject);return;}
     if(event.target.closest("[data-new-deal-project]")){creatingProject=true;renderProjectRail();document.querySelector("[data-create-deal-project] [name=name]")?.focus();return;}
@@ -107,9 +98,7 @@
     event.preventDefault();
     const name=String(event.target.elements.name.value||"").trim();
     if(!name)return;
-    const wasStarting=Boolean(document.querySelector(".project-start"));
     createDealProject(name,event.target.elements.side.value);creatingProject=false;renderProjectRail();
-    if(wasStarting){document.querySelector(".project-start")?.remove();document.querySelector(".workspace")?.classList.remove("screen-hidden");window.showDealLogicView?.("deal-map");}
   });
   document.addEventListener("deal-project-change",()=>{
     state=activeHub();filter="All issues";search="";picks.clear();picking=false;loadAnswers();renderMap();renderPanel();renderHub();renderProjectRail();document.dispatchEvent(new CustomEvent("transaction-side-change"));
@@ -340,7 +329,6 @@
   document.addEventListener("threatened-litigation-logic-rendered",decorateRecommendations);
   document.addEventListener("debt-facilities-logic-rendered",decorateRecommendations);
   renderProjectRail();
-  showProjectStart();
   renderHub();
   if(currentIssue())decorateRecommendations();
 })();
