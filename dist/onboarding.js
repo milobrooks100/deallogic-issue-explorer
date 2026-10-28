@@ -15,7 +15,7 @@
     { title: "Keep each deal together", body: "Create a deal here to keep its answers and actions separate. The quick workspace is available when you want to explore first.", view: "deal-map", target: ".project-rail-head" },
     { title: "Explore a legal issue", body: "In Deal Map, choose a common legal issue and answer a few questions. You’ll see a risk assessment and recommended actions tailored to the facts you enter.", view: "deal-map", target: ".map:not(.screen-hidden)" },
     { title: "Build an action plan", body: "Save recommended actions to Deal Hub. Use the summary, task board and table to review and track your action items.", view: "deal-hub", target: ".hub-tabs button:first-child", targetEnd: ".hub-tabs button:last-child" },
-    { title: "Find more deal actions", body: "In the Action Library view common M&A responses or browse all available actions for a specific issue. Add useful actions to the active deal.", view: "action-library", target: ".library-tabs button:first-child", targetEnd: ".library-tabs button:last-child" },
+    { title: "Find more deal actions", body: "In the Action Library view common M&A responses or browse all available actions for each legal issue. Add useful actions to the active deal.", view: "action-library", target: ".library-tabs button:first-child", targetEnd: ".library-tabs button:last-child" },
     { title: "Check the company record", body: "Company Radar uses public Companies House information. Search for the right legal entity and review the points that need attention.", view: "company-radar", target: ".radar-search" },
     { title: "Choose how your work is saved", body: "Guest work stays in this browser. In Settings, a verified account can sync saved deals and preferences across devices.", view: "settings", target: ".account-settings h3" },
     { title: "You’re ready to explore", body: "Start with a legal issue, review the result against the transaction documents, and add the actions you want to track in Deal Hub.", kind: "finish" }
@@ -32,9 +32,9 @@
   let index = -1, initialView = "deal-map", returnFocus = help, target = null, targetEnd = null, positioning = false;
 
   const dots = () => `<div class="tour-dots" aria-hidden="true">${steps.map((_, step) => `<span class="${step === index ? "active" : ""}"></span>`).join("")}</div>`;
-  const foot = () => `<div class="tour-footer">${dots()}<div class="tour-actions"><button type="button" class="tour-back" data-tour-back ${index === 0 ? "disabled" : ""}>Back</button><button type="button" class="tour-next" data-tour-next>${index === steps.length - 1 ? "Explore Deal Map" : "Next"}</button></div></div>`;
+  const foot = () => `<div class="tour-footer">${dots()}<div class="tour-actions">${index === 0 ? '<button type="button" class="tour-back" data-tour-skip>Skip</button>' : '<button type="button" class="tour-back" data-tour-back>Back</button>'}<button type="button" class="tour-next" data-tour-next>${index === steps.length - 1 ? "Explore Deal Map" : "Next"}</button></div></div>`;
   const hero = () => '<div class="tour-hero" aria-hidden="true"><div class="tour-hero-icon"><img src="./deallogic-mark.svg" alt=""></div></div>';
-  const card = step => `<div class="tour-card ${step.kind ? `tour-card-${step.kind}` : "tour-card-tip"}" role="document"><button type="button" class="tour-close" data-tour-close aria-label="Close tour">&times;</button>${step.kind ? hero() : ""}<h2 id="tour-title">${step.title}</h2><p>${step.body}</p>${step.kind === "finish" ? '<p class="tour-review">Prototype content is a starting point for professional review, not legal advice.</p>' : ""}${foot()}</div>`;
+  const card = step => `<div class="tour-card ${step.kind ? `tour-card-${step.kind}` : "tour-card-tip"}" role="document">${index === 0 ? "" : '<button type="button" class="tour-close" data-tour-close aria-label="Close tour">&times;</button>'}${step.kind ? hero() : ""}<h2 id="tour-title">${step.title}</h2><p>${step.body}</p>${step.kind === "finish" ? '<p class="tour-review">Prototype content is a starting point for professional review, not legal advice.</p>' : ""}${foot()}</div>`;
   const anchor = step => {
     const wanted = document.querySelector(step.target);
     if (wanted && wanted.getClientRects().length) return wanted;
@@ -106,6 +106,7 @@
   });
   overlay.addEventListener("click", event => {
     if (event.target.closest("[data-tour-close]")) end();
+    if (event.target.closest("[data-tour-skip]")) end();
     if (event.target.closest("[data-tour-back]") && index > 0) show(index - 1);
     if (event.target.closest("[data-tour-next]")) index === steps.length - 1 ? end(true) : show(index + 1);
   });
