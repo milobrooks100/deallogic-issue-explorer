@@ -1,105 +1,121 @@
-/* First-use guidance. The example is a preview and never writes deal data. */
+/* An on-demand tour of the real workspace. It does not change deal data. */
 (() => {
-  const seenKey = view => `deallogic:guide-seen:${view}:v1`;
-  const views = {
-    "deal-map": ["Deal Map", "Choose an issue, record the diligence facts, then review the changing risk assessment and proposed deal response."],
-    "deal-hub": ["Deal Hub", "Bring actions here from an issue or the Action Library. Use the task board to track each action through negotiation and completion."],
-    "action-library": ["Action Library", "Browse transaction tools and issue playbooks, then add relevant actions to the active deal."],
-    "company-radar": ["Company Radar", "Look up the correct legal entity on Companies House and review public register facts alongside your deal work."],
-    settings: ["Settings", "Manage your account and workspace appearance here. A signed-in account saves your deal progress across devices."]
-  };
-  const main = document.querySelector("main");
-  if (!main || !window.showDealLogicView || !window.DealLogicStorage) return;
+  const navigation = document.querySelector(".workspace-navigation");
+  if (!navigation || !window.showDealLogicView) return;
 
-  const tip = document.createElement("aside");
-  tip.className = "guide-tip screen-hidden";
-  tip.setAttribute("aria-label", "Getting started tip");
-  main.querySelector(".workspace-context")?.insertAdjacentElement("afterend", tip);
-
-  const railNav = document.querySelector(".workspace-navigation");
   const help = document.createElement("button");
   help.type = "button";
-  help.className = "guide-help";
+  help.className = "tour-help";
   help.innerHTML = '<i data-lucide="circle-help" aria-hidden="true"></i><span>Getting started</span>';
-  railNav?.append(help);
+  navigation.append(help);
   window.lucide?.createIcons({ attrs: { "stroke-width": 1.75 } });
 
-  const dialog = document.createElement("dialog");
-  dialog.className = "guide-dialog";
-  dialog.setAttribute("aria-labelledby", "guide-title");
-  document.body.append(dialog);
-  let returnFocus = null;
-  let sample = { step: 0, clause: null, trigger: null };
-  const close = () => dialog.close();
-  dialog.addEventListener("close", () => returnFocus?.focus());
+  const steps = [
+    { title: "Welcome to Deal Logic", body: "A quick tour of how to explore a legal issue, assess the facts and turn recommendations into a deal action plan.", kind: "welcome" },
+    { title: "Keep each deal together", body: "Create a deal here to keep its answers and actions separate. The quick workspace is available when you want to explore first.", view: "deal-map", target: ".project-rail-head" },
+    { title: "Explore a legal issue", body: "In Deal Map, choose an issue and record what the diligence tells you. The risk assessment and proposed protections respond to the facts.", view: "deal-map", target: ".map:not(.screen-hidden)" },
+    { title: "Build an action plan", body: "Save relevant recommendations to Deal Hub. Switch between the summary, task board and table to track what happens next.", view: "deal-hub", target: ".hub-tabs" },
+    { title: "Find more deal actions", body: "Action Library has core M&A responses and full issue playbooks. Add useful actions to the active deal.", view: "action-library", target: ".library-tabs" },
+    { title: "Check the company record", body: "Company Radar uses public Companies House information. Search for the right legal entity and review the points that need attention.", view: "company-radar", target: ".radar-search" },
+    { title: "Choose how your work is saved", body: "Guest work stays in this browser. In Settings, a verified account can sync saved deals and preferences across devices.", view: "settings", target: ".account-settings h3" },
+    { title: "You’re ready to explore", body: "Start with a legal issue, review the result against the transaction documents, and add the actions you want to track in Deal Hub.", kind: "finish" }
+  ];
 
-  const guideOverview = () => {
-    dialog.innerHTML = `<div class="guide-dialog-head"><span class="eyebrow">Getting started</span><button type="button" class="guide-close" data-guide-close aria-label="Close getting started">×</button></div>
-      <h2 id="guide-title">From issue to action plan</h2>
-      <p class="guide-lede">Deal Logic helps you record a diligence finding, consider its risk and turn it into work for a transaction.</p>
-      <ol class="guide-overview-steps"><li><strong>Explore</strong><span>Open a legal issue in Deal Map.</span></li><li><strong>Assess</strong><span>Record facts and review the risk assessment and suggested response.</span></li><li><strong>Act</strong><span>Save relevant actions to Deal Hub and track their status.</span></li></ol>
-      <div class="guide-details"><p><strong>Transaction side:</strong> Choose Buyer, Seller or Balanced to shape the proposed response.</p><p><strong>Saving work:</strong> Guest progress stays in this browser. A verified account syncs saved deals and settings across devices. The quick workspace holds unassigned work.</p><p><strong>Professional review:</strong> The content is a starting point for analysis, not legal advice. Check it against the deal, documents and jurisdiction.</p></div>
-      <div class="guide-dialog-actions"><button type="button" class="guide-primary" data-guide-example>Try the example</button><button type="button" class="guide-secondary" data-guide-go>Go to Deal Map</button></div>`;
-  };
+  const overlay = document.createElement("div");
+  overlay.className = "tour-overlay";
+  overlay.hidden = true;
+  overlay.setAttribute("role", "dialog");
+  overlay.setAttribute("aria-modal", "true");
+  overlay.setAttribute("aria-labelledby", "tour-title");
+  document.body.append(overlay);
+  const workspace = document.querySelector("main");
+  let index = -1, initialView = "deal-map", returnFocus = help, target = null, positioning = false;
 
-  const sampleRisk = () => {
-    if (sample.clause === "no" || sample.trigger === "no") return { label: "No risk indicated for this clause", level: 1, action: "Record why consent is not needed" };
-    return { label: "Consent position needs review", level: 3, action: "Review the consent requirement" };
+  const dots = () => `<div class="tour-dots" aria-hidden="true">${steps.map((_, step) => `<span class="${step === index ? "active" : ""}"></span>`).join("")}</div>`;
+  const foot = () => `<div class="tour-actions"><button type="button" class="tour-skip" data-tour-skip>${index === steps.length - 1 ? "Close" : "Skip"}</button><button type="button" class="tour-next" data-tour-next>${index === steps.length - 1 ? "Explore Deal Map" : "Next"}</button></div>`;
+  const hero = () => '<div class="tour-hero" aria-hidden="true"><div class="tour-hero-icon"><img src="./deallogic-mark.svg" alt=""></div></div>';
+  const card = step => `<div class="tour-card ${step.kind ? `tour-card-${step.kind}` : "tour-card-tip"}" role="document">${step.kind ? hero() : `<span class="tour-step-label">A tour of Deal Logic · ${index + 1} of ${steps.length}</span>`}<h2 id="tour-title">${step.title}</h2><p>${step.body}</p>${step.kind === "finish" ? '<p class="tour-review">Prototype content is a starting point for professional review, not legal advice.</p>' : ""}${dots()}${foot()}</div>`;
+  const anchor = step => {
+    const wanted = document.querySelector(step.target);
+    if (wanted && wanted.getClientRects().length) return wanted;
+    return document.querySelector(`[data-workspace-view="${step.view}"]`) || navigation;
   };
-  const example = () => {
-    const { step } = sample;
-    const result = sampleRisk();
-    const progress = `<span class="guide-progress">Example · ${Math.min(step + 1, 4)} of 4</span>`;
-    const heading = step === 0 ? "A change-of-control clause" : step === 1 ? "Would this deal trigger it?" : step === 2 ? "See how the facts shape the response" : "An action in the task board";
-    const content = step === 0
-      ? `<p class="guide-lede">Imagine you are reviewing a customer agreement in an acquisition. Does it contain a change-of-control provision?</p><fieldset class="guide-choices"><legend>Clause present?</legend><label><input type="radio" name="guide-clause" value="yes" ${sample.clause === "yes" ? "checked" : ""}> Yes</label><label><input type="radio" name="guide-clause" value="no" ${sample.clause === "no" ? "checked" : ""}> No</label></fieldset>`
-      : step === 1
-        ? `<p class="guide-lede">The agreement has a clause. Does the proposed transaction trigger it?</p><fieldset class="guide-choices"><legend>Transaction triggers the clause?</legend><label><input type="radio" name="guide-trigger" value="yes" ${sample.trigger === "yes" ? "checked" : ""}> Yes</label><label><input type="radio" name="guide-trigger" value="no" ${sample.trigger === "no" ? "checked" : ""}> No</label><label><input type="radio" name="guide-trigger" value="unclear" ${sample.trigger === "unclear" ? "checked" : ""}> Not yet clear</label></fieldset>`
-        : step === 2
-          ? `<p class="guide-lede">The Deal Map uses answers like these to update its risk assessment and suggested protections.</p><div class="guide-assessment"><span>Illustrative assessment</span><strong>${result.label}</strong><div class="guide-risk-bar" aria-label="Illustrative risk level ${result.level} of 5">${[1,2,3,4,5].map(n => `<span class="s${n}${n <= result.level ? " active" : ""}"></span>`).join("")}</div><p>In the live issue, answer the remaining questions and review the full reasoning before choosing an action.</p></div>`
-          : `<p class="guide-lede">Save a relevant action to Deal Hub, then assign its status as the deal progresses.</p><div class="guide-sample-board"><div class="guide-sample-column"><span>To Review <b>1</b></span><div class="guide-sample-action"><strong>${result.action}</strong><small>Change-of-Control Clause</small></div></div><div class="guide-sample-column muted"><span>In Negotiation <b>0</b></span></div></div><p class="guide-sample-note">This is a preview. Your deal and account data have not changed.</p>`;
-    dialog.innerHTML = `<div class="guide-dialog-head">${progress}<button type="button" class="guide-close" data-guide-close aria-label="Close example">×</button></div><h2 id="guide-title">${heading}</h2>${content}<div class="guide-dialog-actions">${step > 0 ? '<button type="button" class="guide-secondary" data-guide-back>Back</button>' : ""}<button type="button" class="guide-primary" data-guide-next ${step === 0 && !sample.clause || step === 1 && !sample.trigger ? "disabled" : ""}>${step === 2 ? "Add sample action" : step === 3 ? "Explore Deal Map" : "Continue"}</button></div>`;
-  };
-  const open = mode => {
-    if (!dialog.open) returnFocus = document.activeElement;
-    if (mode === "example") { sample = { step: 0, clause: null, trigger: null }; example(); }
-    else guideOverview();
-    if (!dialog.open) dialog.showModal();
-  };
-  const showTip = view => {
-    if (!views[view] || document.querySelector(".project-start:not(.screen-hidden)")) { tip.classList.add("screen-hidden"); return; }
-    if (DealLogicStorage.getItem(seenKey(view))) { tip.classList.add("screen-hidden"); return; }
-    const [title, description] = views[view];
-    tip.innerHTML = `<div><span class="guide-tip-label">First time here</span><strong>${title}</strong><p>${description}</p></div><div class="guide-tip-actions"><button type="button" data-guide-open>See the guide</button><button type="button" data-guide-dismiss aria-label="Dismiss ${title} tip">Dismiss</button></div>`;
-    tip.dataset.view = view;
-    tip.classList.remove("screen-hidden");
-  };
+  const clamp = (value, low, high) => Math.max(low, Math.min(value, high));
 
-  document.addEventListener("click", event => {
-    if (event.target.closest("[data-guide-example]")) open("example");
-    if (event.target.closest("[data-guide-start]")) document.querySelector("[data-start-project] [name=name]")?.focus();
-    if (event.target.closest("[data-guide-open]")) open("overview");
-    if (event.target.closest("[data-guide-dismiss]")) {
-      DealLogicStorage.setItem(seenKey(tip.dataset.view), "true");
-      tip.classList.add("screen-hidden");
+  function position() {
+    if (index < 0 || steps[index].kind || !target || positioning) return;
+    positioning = true;
+    requestAnimationFrame(() => {
+      positioning = false;
+      if (index < 0 || !target?.isConnected) return;
+      const rect = target.getBoundingClientRect(), pad = 7;
+      const left = clamp(rect.left - pad, 8, innerWidth - 8);
+      const top = clamp(rect.top - pad, 8, innerHeight - 8);
+      const right = clamp(rect.right + pad, 8, innerWidth - 8);
+      const bottom = clamp(rect.bottom + pad, 8, innerHeight - 8);
+      const [north, east, south, west] = overlay.querySelectorAll(".tour-shade");
+      Object.assign(north.style, { left: "0px", top: "0px", width: "100vw", height: `${top}px` });
+      Object.assign(south.style, { left: "0px", top: `${bottom}px`, width: "100vw", height: `${Math.max(0, innerHeight - bottom)}px` });
+      Object.assign(west.style, { left: "0px", top: `${top}px`, width: `${left}px`, height: `${Math.max(0, bottom - top)}px` });
+      Object.assign(east.style, { left: `${right}px`, top: `${top}px`, width: `${Math.max(0, innerWidth - right)}px`, height: `${Math.max(0, bottom - top)}px` });
+      Object.assign(overlay.querySelector(".tour-ring").style, { left: `${left}px`, top: `${top}px`, width: `${Math.max(0, right - left)}px`, height: `${Math.max(0, bottom - top)}px` });
+      const popover = overlay.querySelector(".tour-card"), width = popover.offsetWidth, height = popover.offsetHeight, gap = 17;
+      let x, y;
+      if (right + gap + width <= innerWidth - 12) { x = right + gap; y = clamp(top, 12, innerHeight - height - 12); }
+      else if (left - gap - width >= 12) { x = left - gap - width; y = clamp(top, 12, innerHeight - height - 12); }
+      else if (bottom + gap + height <= innerHeight - 12) { x = clamp(left, 12, innerWidth - width - 12); y = bottom + gap; }
+      else { x = clamp(left, 12, innerWidth - width - 12); y = clamp(top - gap - height, 12, innerHeight - height - 12); }
+      Object.assign(popover.style, { left: `${x}px`, top: `${y}px` });
+    });
+  }
+
+  function show(next) {
+    index = next;
+    const step = steps[index];
+    overlay.hidden = false;
+    target = null;
+    if (step.kind) {
+      overlay.classList.add("tour-modal");
+      overlay.innerHTML = `<div class="tour-full-shade"></div>${card(step)}`;
+    } else {
+      overlay.classList.remove("tour-modal");
+      window.showDealLogicView(step.view);
+      target = anchor(step);
+      overlay.innerHTML = `<div class="tour-shade"></div><div class="tour-shade"></div><div class="tour-shade"></div><div class="tour-shade"></div><div class="tour-ring" aria-hidden="true"></div>${card(step)}`;
+      target?.scrollIntoView({ block: "nearest", behavior: "instant" });
+      position();
+      setTimeout(position, 200);
     }
+    overlay.querySelector("[data-tour-next]")?.focus();
+  }
+  function end(goToMap = false) {
+    overlay.hidden = true;
+    overlay.innerHTML = "";
+    index = -1;
+    target = null;
+    window.showDealLogicView(goToMap ? "deal-map" : initialView);
+    workspace.inert = false;
+    returnFocus?.focus();
+  }
+  help.addEventListener("click", () => {
+    if (index >= 0) return;
+    initialView = document.querySelector("[data-workspace-view].active")?.dataset.workspaceView || "deal-map";
+    returnFocus = document.activeElement;
+    workspace.inert = true;
+    show(0);
   });
-  help.addEventListener("click", () => open("overview"));
-  dialog.addEventListener("change", event => {
-    if (event.target.name === "guide-clause") { sample.clause = event.target.value; dialog.querySelector("[data-guide-next]").disabled = false; }
-    if (event.target.name === "guide-trigger") { sample.trigger = event.target.value; dialog.querySelector("[data-guide-next]").disabled = false; }
+  overlay.addEventListener("click", event => {
+    if (event.target.closest("[data-tour-skip]")) end();
+    if (event.target.closest("[data-tour-next]")) index === steps.length - 1 ? end(true) : show(index + 1);
   });
-  dialog.addEventListener("click", event => {
-    if (event.target.closest("[data-guide-close]")) close();
-    if (event.target.closest("[data-guide-back]")) { sample.step = sample.step === 2 && sample.clause === "no" ? 0 : sample.step - 1; example(); }
-    if (event.target.closest("[data-guide-next]")) {
-      if (sample.step === 3) { if (document.querySelector(".project-start")) returnFocus = document.querySelector("[data-start-project] [name=name]"); close(); window.showDealLogicView("deal-map"); return; }
-      sample.step = sample.step === 0 && sample.clause === "no" ? 2 : sample.step + 1;
-      example();
-    }
-    if (event.target.closest("[data-guide-go]")) { if (document.querySelector(".project-start")) returnFocus = document.querySelector("[data-start-project] [name=name]"); close(); window.showDealLogicView("deal-map"); }
+  overlay.addEventListener("keydown", event => {
+    if (event.key === "Escape") { event.preventDefault(); end(); return; }
+    if (event.key !== "Tab") return;
+    const buttons = [...overlay.querySelectorAll("button:not(:disabled)")];
+    if (!buttons.length) return;
+    if (event.shiftKey && document.activeElement === buttons[0]) { event.preventDefault(); buttons.at(-1).focus(); }
+    else if (!event.shiftKey && document.activeElement === buttons.at(-1)) { event.preventDefault(); buttons[0].focus(); }
   });
-  const originalShow = window.showDealLogicView;
-  window.showDealLogicView = view => { originalShow(view); showTip(view); };
-  if (getDealProjects().onboardingSeen) showTip("deal-map");
+  window.addEventListener("resize", position);
+  window.addEventListener("scroll", position, true);
 })();

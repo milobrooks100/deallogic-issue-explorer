@@ -4,7 +4,7 @@ DealLogic is a prototype M&A issue-analysis workspace. It combines a structured 
 
 ## Getting started
 
-The first visit explains the flow from a legal issue to a deal action plan, then offers a short interactive change-of-control example. The example is illustrative and saves no deal data. Users can create a deal or continue in the quick workspace. A permanent **Getting started** button in the workspace navigation reopens the guide, and each main section shows a dismissible first-use tip. The guide explains transaction side, browser versus account saving, and the need for professional review.
+The **Getting started** button opens an on-demand tour of the live workspace. A welcome card leads to spotlighted steps for deals, Deal Map, Deal Hub, Action Library, Company Radar and Settings, followed by a completion card. Users can skip at any point. The tour does not change saved deal data and never opens automatically.
 
 ## Current checkpoint
 
