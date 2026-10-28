@@ -90,8 +90,8 @@
    and Company Radar attention colours stay semantic across every palette. */
 :root[data-app-theme="navy"] :is(.logic, .logic.coc-deal-logic, .hub-new-action, .hub-editor, .custom-action, .hub-summary-tile .hub-issue),
 :root[data-app-theme="forest"] :is(.logic, .logic.coc-deal-logic, .hub-new-action, .hub-editor, .custom-action, .hub-summary-tile .hub-issue) { background: var(--theme-hover); border-color: var(--line); }
-:root[data-app-theme="navy"] :is(.hub-tabs button.active, .hub-table th, .hub-table tbody tr:hover, .risk-score),
-:root[data-app-theme="forest"] :is(.hub-tabs button.active, .hub-table th, .hub-table tbody tr:hover, .risk-score) { background: var(--theme-hover); color: var(--ink); }
+:root[data-app-theme="navy"] :is(.hub-tabs button.active, .hub-table th, .hub-table tbody tr:hover),
+:root[data-app-theme="forest"] :is(.hub-tabs button.active, .hub-table th, .hub-table tbody tr:hover) { background: var(--theme-hover); color: var(--ink); }
 :root[data-app-theme="navy"] .radar-overview,
 :root[data-app-theme="forest"] .radar-overview { background: var(--workflow-summary-gradient); }
 :root[data-app-theme="navy"] :is(.metric, .radar-overview > div),
@@ -114,6 +114,20 @@
 :root:is([data-app-theme="navy"], [data-app-theme="forest"]) :is(.logic-action[data-action-icon="circleCheck"], .logic-action[data-action-icon="fileSearch"], .logic-action[data-action-icon="calendarCheck"], .logic-action[data-action-icon="ellipsisCircle"]) .logic-icon { background: var(--theme-stage-4); color: var(--theme-icon-4); }
 :root[data-app-theme="navy"] :is(.hub-stage, .hub-tag),
 :root[data-app-theme="forest"] :is(.hub-stage, .hub-tag) { border-color: var(--line); }
+/* Risk meaning and severity colours stay on the grey-theme palette. */
+:root:is([data-app-theme="navy"], [data-app-theme="forest"]) .risk-score { background: #f3f5f1; color: #15251c; }
+:root:is([data-app-theme="navy"], [data-app-theme="forest"]) .risk-pointer { border-top-color: #15251c; }
+:root:is([data-app-theme="navy"], [data-app-theme="forest"]) .risk-step.s1 { background: #4d9d64; }
+:root:is([data-app-theme="navy"], [data-app-theme="forest"]) .risk-step.s2 { background: #c3c34c; }
+:root:is([data-app-theme="navy"], [data-app-theme="forest"]) .risk-step.s3 { background: #ee773b; }
+:root:is([data-app-theme="navy"], [data-app-theme="forest"]) .risk-step.s4 { background: #b73138; }
+:root:is([data-app-theme="navy"], [data-app-theme="forest"]) .risk-step.s5 { background: #54203f; }
+:root:is([data-app-theme="navy"], [data-app-theme="forest"]) .hub-risk-1 { color: #4d9d64; }
+:root:is([data-app-theme="navy"], [data-app-theme="forest"]) .hub-risk-2 { color: #c3c34c; }
+:root:is([data-app-theme="navy"], [data-app-theme="forest"]) .hub-risk-3 { color: #ee773b; }
+:root:is([data-app-theme="navy"], [data-app-theme="forest"]) .hub-risk-4 { color: #b73138; }
+:root:is([data-app-theme="navy"], [data-app-theme="forest"]) .hub-risk-5 { color: #54203f; }
+
 
 /* Company Radar's neutral controls follow the palette; red/amber/green flags
    continue to describe source facts rather than the selected app colour. */
