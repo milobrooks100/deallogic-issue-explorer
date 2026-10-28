@@ -98,14 +98,6 @@
 :root[data-app-theme="forest"] :is(.metric, .radar-overview > div) { background: #ffffffdc; border-color: #fff; }
 :root[data-app-theme="navy"] .metric-label,
 :root[data-app-theme="forest"] .metric-label { color: var(--muted); }
-:root[data-app-theme="navy"] .hub-column,
-:root[data-app-theme="forest"] .hub-column { background: var(--theme-stage-1); }
-:root[data-app-theme="navy"] .hub-column:nth-child(2),
-:root[data-app-theme="forest"] .hub-column:nth-child(2) { background: var(--theme-stage-2); }
-:root[data-app-theme="navy"] .hub-column:nth-child(3),
-:root[data-app-theme="forest"] .hub-column:nth-child(3) { background: var(--theme-stage-3); }
-:root[data-app-theme="navy"] .hub-column:nth-child(4),
-:root[data-app-theme="forest"] .hub-column:nth-child(4) { background: var(--theme-stage-4); }
 :root[data-app-theme="navy"] .hub-column[data-drop-status="To Review"] h3,
 :root[data-app-theme="forest"] .hub-column[data-drop-status="To Review"] h3 { color: var(--theme-icon-1); }
 :root[data-app-theme="navy"] .hub-column[data-drop-status="In Negotiation"] h3,
@@ -114,16 +106,12 @@
 :root[data-app-theme="forest"] .hub-column[data-drop-status="Drafted in SPA"] h3 { color: var(--theme-icon-3); }
 :root[data-app-theme="navy"] .hub-column[data-drop-status="Satisfied/Closed"] h3,
 :root[data-app-theme="forest"] .hub-column[data-drop-status="Satisfied/Closed"] h3 { color: var(--theme-icon-4); }
-:root[data-app-theme="navy"] :is(.category-symbol, .logic-action .logic-icon, .info, .hub-count),
-:root[data-app-theme="forest"] :is(.category-symbol, .logic-action .logic-icon, .info, .hub-count) { background: var(--theme-selected); color: var(--theme-accent); }
-:root:is([data-app-theme="navy"], [data-app-theme="forest"]) :is(.logic-action[data-action-icon="search"], .logic-action[data-action-icon="filePenLine"], .logic-action[data-action-icon="arrowCircle"]) .logic-icon,
-:root:is([data-app-theme="navy"], [data-app-theme="forest"]) .explore-categories button:nth-child(4n + 1) .category-symbol { background: var(--theme-stage-1); color: var(--theme-icon-1); }
-:root:is([data-app-theme="navy"], [data-app-theme="forest"]) :is(.logic-action[data-action-icon="wrench"], .logic-action[data-action-icon="shieldCheck"], .logic-action[data-action-icon="lockKeyhole"]) .logic-icon,
-:root:is([data-app-theme="navy"], [data-app-theme="forest"]) .explore-categories button:nth-child(4n + 2) .category-symbol { background: var(--theme-stage-2); color: var(--theme-icon-2); }
-:root:is([data-app-theme="navy"], [data-app-theme="forest"]) :is(.logic-action[data-action-icon="handshake"], .logic-action[data-action-icon="banknote"], .logic-action[data-action-icon="arrowDownUp"], .logic-action[data-action-icon="arrowLeftRight"]) .logic-icon,
-:root:is([data-app-theme="navy"], [data-app-theme="forest"]) .explore-categories button:nth-child(4n + 3) .category-symbol { background: var(--theme-stage-3); color: var(--theme-icon-3); }
-:root:is([data-app-theme="navy"], [data-app-theme="forest"]) :is(.logic-action[data-action-icon="circleCheck"], .logic-action[data-action-icon="fileSearch"], .logic-action[data-action-icon="calendarCheck"], .logic-action[data-action-icon="ellipsisCircle"]) .logic-icon,
-:root:is([data-app-theme="navy"], [data-app-theme="forest"]) .explore-categories button:nth-child(4n) .category-symbol { background: var(--theme-stage-4); color: var(--theme-icon-4); }
+:root[data-app-theme="navy"] :is(.logic-action .logic-icon, .info, .hub-count),
+:root[data-app-theme="forest"] :is(.logic-action .logic-icon, .info, .hub-count) { background: var(--theme-selected); color: var(--theme-accent); }
+:root:is([data-app-theme="navy"], [data-app-theme="forest"]) :is(.logic-action[data-action-icon="search"], .logic-action[data-action-icon="filePenLine"], .logic-action[data-action-icon="arrowCircle"]) .logic-icon { background: var(--theme-stage-1); color: var(--theme-icon-1); }
+:root:is([data-app-theme="navy"], [data-app-theme="forest"]) :is(.logic-action[data-action-icon="wrench"], .logic-action[data-action-icon="shieldCheck"], .logic-action[data-action-icon="lockKeyhole"]) .logic-icon { background: var(--theme-stage-2); color: var(--theme-icon-2); }
+:root:is([data-app-theme="navy"], [data-app-theme="forest"]) :is(.logic-action[data-action-icon="handshake"], .logic-action[data-action-icon="banknote"], .logic-action[data-action-icon="arrowDownUp"], .logic-action[data-action-icon="arrowLeftRight"]) .logic-icon { background: var(--theme-stage-3); color: var(--theme-icon-3); }
+:root:is([data-app-theme="navy"], [data-app-theme="forest"]) :is(.logic-action[data-action-icon="circleCheck"], .logic-action[data-action-icon="fileSearch"], .logic-action[data-action-icon="calendarCheck"], .logic-action[data-action-icon="ellipsisCircle"]) .logic-icon { background: var(--theme-stage-4); color: var(--theme-icon-4); }
 :root[data-app-theme="navy"] :is(.hub-stage, .hub-tag),
 :root[data-app-theme="forest"] :is(.hub-stage, .hub-tag) { border-color: var(--line); }
 
