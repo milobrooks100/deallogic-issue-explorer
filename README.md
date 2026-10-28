@@ -2,6 +2,10 @@
 
 DealLogic is a prototype M&A issue-analysis workspace. It combines a structured Deal Map with rule-based deal logic, recommended actions, and a deal-specific Deal Hub.
 
+## Getting started
+
+The first visit explains the flow from a legal issue to a deal action plan, then offers a short interactive change-of-control example. The example is illustrative and saves no deal data. Users can create a deal or continue in the quick workspace. A permanent **Getting started** button in the workspace navigation reopens the guide, and each main section shows a dismissible first-use tip. The guide explains transaction side, browser versus account saving, and the need for professional review.
+
 ## Current checkpoint
 
 This repository captures the `v0.2-project-workspaces` version, including:

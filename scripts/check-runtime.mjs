@@ -15,7 +15,8 @@ const activeScripts = [
   "company-radar.js",
   "deal-logic-templates.js",
   "debt-facilities.js",
-  "action-playbooks.js"
+  "action-playbooks.js",
+  "onboarding.js"
 ];
 
 for (const filename of activeScripts) {
@@ -34,8 +35,9 @@ const actionRegistryIndex = indexSource.indexOf("./action-registry.js");
 const hubIndex = indexSource.indexOf("./deal-hub-v8.js");
 const templatesIndex = indexSource.indexOf("./deal-logic-templates.js");
 const playbooksIndex = indexSource.indexOf("./action-playbooks.js");
+const onboardingIndex = indexSource.indexOf("./onboarding.js");
 const debtIndex = indexSource.indexOf("./debt-facilities.js");
-if (!(storageIndex >= 0 && storageIndex < themeIndex && themeIndex < actionRegistryIndex && actionRegistryIndex < hubIndex && hubIndex < templatesIndex && templatesIndex < debtIndex && debtIndex < playbooksIndex)) {
+if (!(storageIndex >= 0 && storageIndex < themeIndex && themeIndex < actionRegistryIndex && actionRegistryIndex < hubIndex && hubIndex < templatesIndex && templatesIndex < debtIndex && debtIndex < playbooksIndex && playbooksIndex < onboardingIndex)) {
   throw new Error("Runtime scripts are not loaded in their required order.");
 }
 
@@ -57,7 +59,8 @@ const storageConsumers = [
   path.join(distRoot, "workspace-redesign.js"),
   path.join(distRoot, "deal-logic-templates.js"),
   path.join(distRoot, "debt-facilities.js"),
-  path.join(distRoot, "action-playbooks.js")
+  path.join(distRoot, "action-playbooks.js"),
+  path.join(distRoot, "onboarding.js")
 ];
 for (const filePath of storageConsumers) {
   const source = await readFile(filePath, "utf8");
