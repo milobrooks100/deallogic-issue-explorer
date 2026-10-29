@@ -138,3 +138,10 @@
   main:has(.project-rail), .workspace, .radar-layout { transition: none; }
   .sidebar-collapse-toggle::before { transition: none; }
 }
+
+/* Keep the icon and label positions while shortening the narrow navigation tiles. */
+@media (max-width: 980px) {
+  .workspace-navigation nav { margin-bottom: 0; }
+  .workspace-navigation nav button { min-height: 65px; padding-bottom: 4px; }
+  .project-rail-head { margin-top: 10px; }
+}
