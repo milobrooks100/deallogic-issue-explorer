@@ -1,8 +1,8 @@
 .tour-launcher { min-width:0; height:56px; margin:auto 2px 0; overflow:hidden; }
 .project-rail:has(.tour-launcher) .project-rail-account { margin-top:0; }
 .tour-launcher-row { position:relative; display:grid; grid-template-columns:minmax(0, 1fr) 38px; align-items:center; gap:2px; padding:2px; overflow:hidden; border:1px solid var(--line); border-radius:12px; background:linear-gradient(110deg,#d9e8f7 0%,#e5dcf2 50%,#f7ddc9 100%); }
-.tour-launcher-row::before { content:""; position:absolute; inset:0; pointer-events:none; background:linear-gradient(110deg,#d9e8f7 0%,#e5dcf2 50%,#f7ddc9 100%); animation:tour-pastel-right 14s linear infinite; }
-@keyframes tour-pastel-right { 0% { transform:translateX(-12%); opacity:0; } 20%,80% { opacity:.7; } 100% { transform:translateX(12%); opacity:0; } }
+.tour-launcher-row::before { content:""; position:absolute; inset:0 auto 0 0; width:240%; pointer-events:none; background:linear-gradient(90deg,#d9e8f7 0%,#e5dcf2 16.6667%,#f7ddc9 33.3333%,#d9e8f7 50%,#e5dcf2 66.6667%,#f7ddc9 83.3333%,#d9e8f7 100%); animation:tour-pastel-loop 24s linear infinite; }
+@keyframes tour-pastel-loop { to { transform:translateX(-50%); } }
 .tour-help { position:relative; display:flex; align-items:center; gap:12px; width:100%; min-height:38px; padding:8px 9px; border:0; border-radius:9px; background:transparent; color:var(--ink); font-size:12px; font-weight:600; text-align:left; cursor:pointer; }
 .tour-help svg { width:17px; height:17px; }
 .tour-help:hover { background:#ffffff66; }
