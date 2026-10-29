@@ -36,7 +36,7 @@
   document.addEventListener("deal-project-rail-rendered", mountSidebarHelp);
 
   const steps = [
-    { title: "Welcome to Deal Logic", body: "A quick tour of how to explore a legal issue, assess the facts and turn recommendations into a deal action plan.", kind: "welcome" },
+    { title: "Welcome to Deal Logic", body: "Built for lawyers, advisers and dealmakers, Deal Logic brings the moving parts of an M&A deal into focus. Explore legal issues, uncover company insights and turn what you find into a clear plan of action.", kind: "welcome" },
     { title: "Keep each deal together", body: "Create a deal here to keep its answers and actions separate. The quick workspace is available when you want to explore first.", view: "deal-map", target: ".project-rail-head" },
     { title: "Explore a legal issue", body: "In Deal Map, choose a common legal issue and answer a few questions. You’ll see a risk assessment and recommended actions tailored to the facts you enter.", view: "deal-map", target: ".map:not(.screen-hidden)" },
     { title: "Choose a transaction perspective", body: "Switch transaction perspective at any time to tailor the recommended actions.", view: "deal-map", target: ".transaction-side-options button:first-child", fallbackTarget: ".transaction-side" },
