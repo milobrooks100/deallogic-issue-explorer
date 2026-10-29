@@ -6,6 +6,8 @@ const siteRoot = process.cwd();
 const distRoot = path.join(siteRoot, "dist");
 const indexPath = path.join(distRoot, "index.html");
 const indexSource = await readFile(indexPath, "utf8");
+const localAssets = [...indexSource.matchAll(/(?:src|href)="\.\/([^"?]+)(?:\?[^\"]*)?"/g)].map(match => match[1]);
+for (const asset of localAssets) await access(path.join(distRoot, asset));
 const activeScripts = [
   "app-storage.js",
   "app-theme.js",

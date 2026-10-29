@@ -6,14 +6,11 @@ DealLogic is a prototype M&A issue-analysis workspace. It combines a structured 
 
 The **Getting started** button opens an on-demand tour of the live workspace. A welcome card leads to spotlighted steps for deals, Deal Map, Deal Hub, Action Library, Company Radar and Settings, followed by a completion card. Users can skip at any point. The tour does not change saved deal data and never opens automatically.
 
-## Current checkpoint
+## Current features
 
-This repository captures the `v0.2-project-workspaces` version, including:
-
-- deal-specific Deal Map answers and transaction-side settings;
-- a Deal Hub with summary, task-board, table, and deal-settings views;
-- recommended-action selection and custom action items; and
-- a structural deal sidebar for switching between saved deal workspaces.
+- Five issue-specific diligence flows: change-of-control clauses, option holders, missing IP assignments, debt facilities and threatened litigation.
+- Deal-specific answers, transaction-side settings, recommended actions and a Deal Hub with summary, task board, table and deal settings.
+- An Action Library, Company Radar and optional account sync.
 
 ## Local development
 
@@ -61,10 +58,10 @@ The document route verifies that the document belongs to the selected company an
 
 ## Runtime structure
 
-- `dist/index.html` contains the core issue explorer and the issue explorer and tailored diligence flows.
+- `dist/index.html` contains the Deal Map and tailored diligence flows.
 - `dist/deal-hub.js` owns Deal Hub state and interaction.
 - `dist/workspace-redesign.js` is presentation-only decoration for navigation, icons and workspace summaries.
-- `dist/issues.json` is the canonical issue data shipped with the app. `npm run build` validates it and prepares the Firebase configuration. The active Deal Hub assets are `dist/deal-hub.js` and `dist/deal-hub.css`; older designs are preserved in Git history.
+- `dist/issues.json` contains only issue data used by the current flows. `npm run build` validates it and prepares the Firebase configuration. Earlier designs and legal drafts remain in Git history.
 
 ## Status
 
