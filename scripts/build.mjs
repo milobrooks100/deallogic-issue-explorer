@@ -30,6 +30,15 @@ if (!Array.isArray(issues) || !issues.length || issues.some(issue => !issue.id |
   throw new Error("Expected a non-empty collection of valid DealLogic issues.");
 }
 
+// Keep this authored issue available in both standalone and external-data builds.
+const shareOwnership = JSON.parse(await readFile(path.join(siteRoot, "lib/issues/share-ownership-transfer-restrictions.json"), "utf8"));
+const shareIndex = issues.findIndex(issue => issue.id === shareOwnership.id);
+if (shareIndex >= 0) issues[shareIndex] = shareOwnership;
+else {
+  const optionIndex = issues.findIndex(issue => issue.id === "option-holders");
+  issues.splice(optionIndex < 0 ? issues.length : optionIndex, 0, shareOwnership);
+}
+
 // The Option Holders questionnaire uses its tailored action registry. Remove
 // the retired warranty from legacy issue data too, including on future builds.
 const optionHolders = issues.find(issue => issue.id === "option-holders");

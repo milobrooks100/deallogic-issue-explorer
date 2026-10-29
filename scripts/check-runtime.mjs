@@ -15,6 +15,7 @@ const activeScripts = [
   "company-radar.js",
   "deal-logic-templates.js",
   "debt-facilities.js",
+  "share-ownership.js",
   "action-playbooks.js",
   "onboarding.js"
 ];
@@ -37,7 +38,8 @@ const templatesIndex = indexSource.indexOf("./deal-logic-templates.js");
 const playbooksIndex = indexSource.indexOf("./action-playbooks.js");
 const onboardingIndex = indexSource.indexOf("./onboarding.js");
 const debtIndex = indexSource.indexOf("./debt-facilities.js");
-if (!(storageIndex >= 0 && storageIndex < themeIndex && themeIndex < actionRegistryIndex && actionRegistryIndex < hubIndex && hubIndex < templatesIndex && templatesIndex < debtIndex && debtIndex < playbooksIndex && playbooksIndex < onboardingIndex)) {
+const shareIndex = indexSource.indexOf("./share-ownership.js");
+if (!(storageIndex >= 0 && storageIndex < themeIndex && themeIndex < actionRegistryIndex && actionRegistryIndex < hubIndex && hubIndex < templatesIndex && templatesIndex < debtIndex && debtIndex < shareIndex && shareIndex < playbooksIndex && playbooksIndex < onboardingIndex)) {
   throw new Error("Runtime scripts are not loaded in their required order.");
 }
 
@@ -45,12 +47,12 @@ const registrySource = await readFile(path.join(distRoot, "action-registry.js"),
 const registrySandbox = { window: {} };
 vm.runInNewContext(registrySource, registrySandbox, { filename: "action-registry.js" });
 const playbookTopics = registrySandbox.window.DealLogicActionRegistry?.topics || [];
-const expectedCounts = new Map([["customer-change-of-control",9],["missing-ip-assignment",11],["option-holders",9],["threatened-litigation",14],["debt-facilities-repayment",14]]);
+const expectedCounts = new Map([["customer-change-of-control",9],["missing-ip-assignment",11],["option-holders",9],["threatened-litigation",14],["debt-facilities-repayment",14],["share-ownership-transfer-restrictions",12]]);
 for (const [topicId, expectedCount] of expectedCounts) {
   const topic = playbookTopics.find(item => item.id === topicId);
   if (!topic || topic.actions.length !== expectedCount) throw new Error(`Expected ${expectedCount} actions for ${topicId}.`);
 }
-if (playbookTopics.flatMap(topic => topic.actions).length !== 57) throw new Error("Expected 57 issue-playbook actions.");
+if (playbookTopics.flatMap(topic => topic.actions).length !== 69) throw new Error("Expected 69 issue-playbook actions.");
 
 const storageConsumers = [
   indexPath,
@@ -59,6 +61,7 @@ const storageConsumers = [
   path.join(distRoot, "workspace-redesign.js"),
   path.join(distRoot, "deal-logic-templates.js"),
   path.join(distRoot, "debt-facilities.js"),
+  path.join(distRoot, "share-ownership.js"),
   path.join(distRoot, "action-playbooks.js"),
   path.join(distRoot, "onboarding.js")
 ];
