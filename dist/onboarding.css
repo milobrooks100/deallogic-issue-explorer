@@ -42,6 +42,6 @@
 .tour-next { border:1px solid #202823; background:#202823; color:#fff; }
 .tour-next:hover { border-color:#3a5142; background:#3a5142; box-shadow:0 3px 10px #11181630; transform:translateY(-1px); }
 .tour-card button:focus-visible { outline:3px solid #8aa9a0; outline-offset:2px; }
-@media(max-width:980px) { .tour-launcher { grid-column:1 / -1; margin:12px 2px 0; } }
+@media(max-width:980px) { .tour-launcher { grid-column:1 / -1; margin:6px 2px 0; } }
 @media(max-width:600px) { .tour-card { padding:17px; } .tour-card-welcome, .tour-card-finish { padding:19px; } .tour-hero { height:145px; margin-bottom:18px; } .tour-footer { margin-top:20px; } .tour-dots { gap:5px; } .tour-dots span { width:7px; height:7px; } .tour-actions button { padding:0 11px; } }
 @media(prefers-reduced-motion:reduce) { .tour-overlay * { transition:none!important; animation:none!important; } .tour-launcher-row::before { animation:none!important; opacity:0; } }
