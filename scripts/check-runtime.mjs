@@ -10,10 +10,9 @@ const activeScripts = [
   "app-storage.js",
   "app-theme.js",
   "action-registry.js",
-  "deal-hub-v8.js",
+  "deal-hub.js",
   "workspace-redesign.js",
   "company-radar.js",
-  "deal-logic-templates.js",
   "debt-facilities.js",
   "action-playbooks.js",
   "onboarding.js"
@@ -32,12 +31,11 @@ for (const filename of activeScripts) {
 const storageIndex = indexSource.indexOf("./app-storage.js");
 const themeIndex = indexSource.indexOf("./app-theme.js");
 const actionRegistryIndex = indexSource.indexOf("./action-registry.js");
-const hubIndex = indexSource.indexOf("./deal-hub-v8.js");
-const templatesIndex = indexSource.indexOf("./deal-logic-templates.js");
+const hubIndex = indexSource.indexOf("./deal-hub.js");
 const playbooksIndex = indexSource.indexOf("./action-playbooks.js");
 const onboardingIndex = indexSource.indexOf("./onboarding.js");
 const debtIndex = indexSource.indexOf("./debt-facilities.js");
-if (!(storageIndex >= 0 && storageIndex < themeIndex && themeIndex < actionRegistryIndex && actionRegistryIndex < hubIndex && hubIndex < templatesIndex && templatesIndex < debtIndex && debtIndex < playbooksIndex && playbooksIndex < onboardingIndex)) {
+if (!(storageIndex >= 0 && storageIndex < themeIndex && themeIndex < actionRegistryIndex && actionRegistryIndex < hubIndex && hubIndex < debtIndex && debtIndex < playbooksIndex && playbooksIndex < onboardingIndex)) {
   throw new Error("Runtime scripts are not loaded in their required order.");
 }
 
@@ -55,9 +53,8 @@ if (playbookTopics.flatMap(topic => topic.actions).length !== 57) throw new Erro
 const storageConsumers = [
   indexPath,
   path.join(distRoot, "app-theme.js"),
-  path.join(distRoot, "deal-hub-v8.js"),
+  path.join(distRoot, "deal-hub.js"),
   path.join(distRoot, "workspace-redesign.js"),
-  path.join(distRoot, "deal-logic-templates.js"),
   path.join(distRoot, "debt-facilities.js"),
   path.join(distRoot, "action-playbooks.js"),
   path.join(distRoot, "onboarding.js")

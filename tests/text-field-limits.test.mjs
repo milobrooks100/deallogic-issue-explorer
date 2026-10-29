@@ -3,7 +3,7 @@ import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 
 test("every active editable text field declares a character limit", () => {
-  for (const file of ["index.html", "account.js", "deal-hub-v8.js", "company-radar.js", "workspace-redesign.js", "action-playbooks.js", "debt-facilities.js", "deal-logic-templates.js"]) {
+  for (const file of ["index.html", "account.js", "deal-hub.js", "company-radar.js", "workspace-redesign.js", "action-playbooks.js", "debt-facilities.js"]) {
     const source = readFileSync(new URL(`../dist/${file}`, import.meta.url), "utf8");
     const tags = source.match(/<(?:input|textarea)\b[^>]*>/g) || [];
     for (const tag of tags) {

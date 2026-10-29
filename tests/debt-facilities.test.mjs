@@ -202,11 +202,11 @@ test("APA action appears with an asset-sale qualification and no sale-type selec
   context.answers = { "debt-obligations": "Yes — finance obligations or security exist", "debt-transaction-effect": "None — no repayment, consent or waiver required" };
   side = "Seller";
   context.renderLogic(issue);
-  assert.match(actionSection.innerHTML, /data-action-id="D12"/);
-  assert.match(actionSection.innerHTML, /data-level="required"/);
-  assert.match(actionSection.innerHTML, /data-action-id="D14"/);
-  assert.match(actionSection.innerHTML, /In cases of asset sales/);
-  assert.doesNotMatch(actionSection.innerHTML, /data-debt-structure|Share sale|Asset sale/);
+  assert.match(logicCard.innerHTML, /data-action-id="D12"/);
+  assert.match(logicCard.innerHTML, /data-level="required"/);
+  assert.match(logicCard.innerHTML, /data-action-id="D14"/);
+  assert.match(logicCard.innerHTML, /In cases of asset sales/);
+  assert.doesNotMatch(logicCard.innerHTML, /data-debt-structure|Share sale|Asset sale/);
 });
 
 test("deal logic waits for all visible answers on each question route", () => {

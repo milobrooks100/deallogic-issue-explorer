@@ -427,37 +427,44 @@
     ],
     "key_questions": [
       {
-        "id": "reconcile-awards-and-cap-table",
-        "question": "What options, warrants and other share rights are outstanding, and does the award register reconcile to the cap table, constitutional documents and statutory records?",
-        "purpose": "Establish the fully diluted capital structure and identify omissions, inconsistencies or unauthorised awards.",
+        "id": "option-rights-exist",
+        "question": "Are there any outstanding options, warrants or other rights to acquire shares?",
+        "purpose": "Capture the current diligence position for the transaction.",
         "priority": "critical",
         "answer_status": "unanswered"
       },
       {
-        "id": "review-award-terms",
-        "question": "What do the plan rules and individual award documents provide on vesting, exercise, lapse, acceleration, cancellation, variation, drag rights and an exit?",
-        "purpose": "Determine the legally and contractually available treatment for each award class and holder.",
+        "id": "award-register-reconciliation",
+        "question": "Does the award register reconcile with the fully diluted cap table and supporting documents?",
+        "purpose": "Capture the current diligence position for the transaction.",
         "priority": "critical",
         "answer_status": "unanswered"
       },
       {
-        "id": "select-award-treatment",
-        "question": "Will awards be exercised and sold, cashed out, cancelled, rolled over, replaced, or treated differently by holder or award class?",
-        "purpose": "Set the completion mechanics and proceeds allocation needed to deliver the agreed transaction structure.",
-        "priority": "critical",
+        "id": "award-transaction-treatment",
+        "question": "How will the outstanding awards be treated in the transaction? (select all that apply)",
+        "purpose": "Capture the current diligence position for the transaction.",
+        "priority": "high",
         "answer_status": "unanswered"
       },
       {
-        "id": "assess-consents-and-approvals",
-        "question": "Which holder consents, board approvals, shareholder approvals, waivers or elections are required, and can they be obtained before completion?",
-        "purpose": "Identify execution dependencies and the risk of a holder retaining rights after closing.",
-        "priority": "critical",
+        "id": "award-treatment-implementation",
+        "question": "Can the proposed treatment be validly implemented by completion?",
+        "purpose": "Capture the current diligence position for the transaction.",
+        "priority": "high",
         "answer_status": "unanswered"
       },
       {
-        "id": "assess-tax-treatment",
-        "question": "Do any awards have a tax-advantaged status or a transaction-specific tax consequence that changes the proposed treatment?",
-        "purpose": "Avoid implementing award mechanics without considering applicable employee tax, withholding and scheme rules.",
+        "id": "award-dilution-percentage",
+        "question": "What proportion of the fully diluted share capital is represented by the outstanding awards?",
+        "purpose": "Capture the current diligence position for the transaction.",
+        "priority": "high",
+        "answer_status": "unanswered"
+      },
+      {
+        "id": "award-tax-payroll-position",
+        "question": "What is the tax and payroll position for the proposed treatment?",
+        "purpose": "Capture the current diligence position for the transaction.",
         "priority": "high",
         "answer_status": "unanswered"
       }
@@ -1200,37 +1207,44 @@
     ],
     "key_questions": [
       {
-        "id": "identify-ip-and-creator",
-        "question": "What IP is affected, who created it, and in what capacity was it created?",
-        "purpose": "Establish the relevant asset, apparent owner and the contractual or statutory route by which title may have passed.",
+        "id": "ip-assignment-gap",
+        "question": "Is there a potentially missing IP assignment?",
+        "purpose": "Capture the current diligence position for the transaction.",
         "priority": "critical",
         "answer_status": "unanswered"
       },
       {
-        "id": "verify-chain-of-title",
+        "id": "ip-ownership-evidence",
         "question": "Does the target have complete, executed and enforceable documents evidencing ownership or a sufficient right to use the IP?",
-        "purpose": "Test whether the target owns the IP or is exposed to a title gap.",
+        "purpose": "Capture the current diligence position for the transaction.",
         "priority": "critical",
         "answer_status": "unanswered"
       },
       {
-        "id": "assess-asset-materiality",
-        "question": "How important is the affected IP to the target's products, operations, customers and value?",
-        "purpose": "Determine whether correction should be a completion dependency and how risk should be allocated.",
+        "id": "ip-importance",
+        "question": "How important is the affected IP to the target's operations and value?",
+        "purpose": "Capture the current diligence position for the transaction.",
         "priority": "high",
         "answer_status": "unanswered"
       },
       {
-        "id": "assess-remediation",
-        "question": "Can the apparent owner give a full, written assignment and ancillary consents, and are any registry recordals needed?",
-        "purpose": "Assess whether the title gap can be cured before completion.",
-        "priority": "critical",
+        "id": "ip-redesign-difficulty",
+        "question": "How difficult would it be to rewrite or redesign the affected asset from scratch?",
+        "purpose": "Capture the current diligence position for the transaction.",
+        "priority": "high",
         "answer_status": "unanswered"
       },
       {
-        "id": "assess-third-party-exposure",
-        "question": "Has the apparent owner asserted rights, licensed the IP, imposed restrictions, or created any security interest or other encumbrance?",
-        "purpose": "Identify residual use, infringement, enforcement and commercial risks after a corrective assignment.",
+        "id": "ip-owner-relationship",
+        "question": "What is the relationship between the target and the current IP owner? i.e. the current IP owner is in relation to the target…",
+        "purpose": "Capture the current diligence position for the transaction.",
+        "priority": "high",
+        "answer_status": "unanswered"
+      },
+      {
+        "id": "ip-owner-claim",
+        "question": "Has the IP owner ever asserted an ownership claim, royalty demand, or threat of litigation?",
+        "purpose": "Capture the current diligence position for the transaction.",
         "priority": "high",
         "answer_status": "unanswered"
       }
@@ -1528,146 +1542,48 @@
       "signing_to_completion": true,
       "materiality_basis": "Materiality should be assessed by the legal merits, remedies sought or likely, loss estimate, costs, insurance, operational impact, regulatory and reputational consequences, likelihood of escalation, and ability to settle or otherwise resolve the matter."
     },
-    "facts": [
-      {
-        "id": "credible-claim-threat-exists",
-        "statement": "A third party has asserted, threatened or otherwise credibly indicated a potential claim against the target.",
-        "value": "unknown",
-        "verification_status": "unknown"
-      },
-      {
-        "id": "formal-claim-document-received",
-        "statement": "The target has received a letter before claim, demand, protocol correspondence, draft pleading or other formal claim document.",
-        "value": "unknown",
-        "verification_status": "unknown"
-      },
-      {
-        "id": "proceedings-issued",
-        "statement": "Court, tribunal, arbitration or other formal proceedings have been commenced against the target.",
-        "value": "unknown",
-        "verification_status": "unknown"
-      },
-      {
-        "id": "claim-material-to-target",
-        "statement": "The claim or threatened claim is material to the target's business or the transaction.",
-        "value": "unknown",
-        "verification_status": "unknown"
-      },
-      {
-        "id": "claim-merits-adverse",
-        "statement": "Contentious legal advice or a documented assessment indicates a material adverse merits risk.",
-        "value": "unknown",
-        "verification_status": "unknown"
-      },
-      {
-        "id": "financial-exposure-quantified",
-        "statement": "The target has a supportable estimate of likely damages, settlement amount, defence costs and other exposure.",
-        "value": "unknown",
-        "verification_status": "unknown"
-      },
-      {
-        "id": "insurance-notified",
-        "statement": "Relevant insurers have been notified in accordance with policy terms and coverage has been assessed.",
-        "value": "unknown",
-        "verification_status": "unknown"
-      },
-      {
-        "id": "claim-settled-or-resolved",
-        "statement": "The matter has been resolved on documented terms that fully address the identified transaction risk.",
-        "value": "unknown",
-        "verification_status": "unknown"
-      }
-    ],
     "key_questions": [
       {
-        "id": "identify-claim-and-status",
-        "question": "Who is the potential claimant, what is the alleged cause of action, and what correspondence, notices or proceedings exist?",
-        "purpose": "Establish the actual status of the threat and distinguish an allegation from issued proceedings.",
+        "id": "litigation-threat-exists",
+        "question": "Has the target received, or is it aware of, a credible threat of legal action?",
+        "purpose": "Capture the current diligence position for the transaction.",
         "priority": "critical",
         "answer_status": "unanswered"
       },
       {
-        "id": "assess-merits-and-defences",
-        "question": "What is the preliminary assessment of the claim's merits, available defences, jurisdiction, limitation and procedural posture?",
-        "purpose": "Assess the likelihood that the target will incur liability or be constrained in its operations.",
+        "id": "litigation-stage-deadlines",
+        "question": "What stage has the matter reached and are the relevant procedural deadlines understood?",
+        "purpose": "Capture the current diligence position for the transaction.",
         "priority": "critical",
         "answer_status": "unanswered"
       },
       {
-        "id": "quantify-exposure",
-        "question": "What remedies, damages, legal costs, business interruption and other liabilities could arise, and what is the basis for each estimate?",
-        "purpose": "Determine the financial and commercial significance of the dispute.",
+        "id": "litigation-merits",
+        "question": "Has the claim and the target's available defences been assessed?",
+        "purpose": "Capture the current diligence position for the transaction.",
+        "priority": "critical",
+        "answer_status": "unanswered"
+      },
+      {
+        "id": "litigation-impact",
+        "question": "What is the likely impact on the target and the transaction?",
+        "purpose": "Capture the current diligence position for the transaction.",
         "priority": "high",
         "answer_status": "unanswered"
       },
       {
-        "id": "review-insurance-and-indemnities",
-        "question": "Is insurance available, has the insurer been notified, and are there contractual indemnities, limitations or contribution claims?",
-        "purpose": "Identify potential recovery and compliance steps that may affect the net exposure.",
+        "id": "litigation-risk-transfer",
+        "question": "Is the target's exposure reduced by insurance, indemnities, limitations or contribution rights?",
+        "purpose": "Capture the current diligence position for the transaction.",
         "priority": "high",
         "answer_status": "unanswered"
       },
       {
-        "id": "assess-resolution-route",
-        "question": "Can the matter be settled, withdrawn, stayed or otherwise resolved before completion, and what approvals or releases would be required?",
-        "purpose": "Decide whether the risk can be removed or must be allocated in the transaction documents.",
+        "id": "litigation-resolution",
+        "question": "Can the matter be fully and durably resolved before completion?",
+        "purpose": "Capture the current diligence position for the transaction.",
         "priority": "high",
         "answer_status": "unanswered"
-      }
-    ],
-    "risk_assessment": {
-      "level": "high",
-      "likelihood": "unknown",
-      "impact": "high",
-      "rationale": "A credible unresolved claim can affect value and completion even if proceedings have not begun. The level should be revised after privileged legal assessment, evidence review, exposure analysis and insurance review."
-    },
-    "risk_factors": [
-      {
-        "id": "formal-document-risk",
-        "description": "A formal pre-action or claim document has been received, or proceedings have been issued.",
-        "effect": "increases-risk",
-        "weight": "high",
-        "related_fact_ids": [
-          "formal-claim-document-received",
-          "proceedings-issued"
-        ]
-      },
-      {
-        "id": "material-claim-risk",
-        "description": "The threatened claim could materially affect the target's finances, operations, licences, contracts or reputation.",
-        "effect": "increases-risk",
-        "weight": "high",
-        "related_fact_ids": [
-          "claim-material-to-target"
-        ]
-      },
-      {
-        "id": "adverse-merits-risk",
-        "description": "The claim has a material adverse merits assessment or an uncertain defence position.",
-        "effect": "increases-risk",
-        "weight": "high",
-        "related_fact_ids": [
-          "claim-merits-adverse"
-        ]
-      },
-      {
-        "id": "unquantified-exposure-risk",
-        "description": "Likely damages, costs, business impact or insurance recovery cannot yet be reasonably assessed.",
-        "effect": "increases-risk",
-        "weight": "medium",
-        "related_fact_ids": [
-          "financial-exposure-quantified",
-          "insurance-notified"
-        ]
-      },
-      {
-        "id": "documented-resolution-mitigation",
-        "description": "The matter has been resolved on documented terms that protect the target against the identified claim.",
-        "effect": "reduces-risk",
-        "weight": "high",
-        "related_fact_ids": [
-          "claim-settled-or-resolved"
-        ]
       }
     ],
     "recommended_actions": [
@@ -1798,124 +1714,6 @@
         "timing": "signing"
       }
     ],
-    "decision_rules": [
-      {
-        "id": "investigate-credible-threat",
-        "when": {
-          "fact_id": "credible-claim-threat-exists",
-          "operator": "equals",
-          "value": true
-        },
-        "then": {
-          "action_ids": [
-            "conduct-dispute-diligence",
-            "specific-litigation-disclosure"
-          ],
-          "explanation": "A credible threat should be investigated and specifically disclosed even where proceedings have not been issued."
-        }
-      },
-      {
-        "id": "obtain-advice-for-material-or-advanced-claim",
-        "when": {
-          "any": [
-            {
-              "fact_id": "proceedings-issued",
-              "operator": "equals",
-              "value": true
-            },
-            {
-              "fact_id": "claim-material-to-target",
-              "operator": "equals",
-              "value": true
-            }
-          ]
-        },
-        "then": {
-          "action_ids": [
-            "obtain-contentious-advice",
-            "confirm-insurance-and-recovery-rights",
-            "litigation-warranty"
-          ],
-          "explanation": "An issued or material claim warrants legal and insurance analysis before the transaction risk allocation is agreed."
-        }
-      },
-      {
-        "id": "protect-unresolved-material-claim",
-        "when": {
-          "all": [
-            {
-              "fact_id": "claim-material-to-target",
-              "operator": "equals",
-              "value": true
-            },
-            {
-              "fact_id": "claim-settled-or-resolved",
-              "operator": "not-equals",
-              "value": true
-            }
-          ]
-        },
-        "then": {
-          "action_ids": [
-            "resolve-claim-before-completion",
-            "litigation-resolution-condition-precedent",
-            "specific-litigation-indemnity",
-            "litigation-ring-fencing-retention",
-            "litigation-purchase-price-adjustment",
-            "specific-litigation-disclosure"
-          ],
-          "explanation": "An unresolved material claim requires a deliberate decision whether to resolve it before completion or proceed with contractual and economic protection."
-        }
-      }
-    ],
-    "positions": [
-      {
-        "party": "buyer",
-        "position": "The buyer will generally seek full, specific disclosure, a supported merits and exposure assessment, and resolution or deal-specific protection where a claim remains material at completion.",
-        "action_ids": [
-          "conduct-dispute-diligence",
-          "obtain-contentious-advice",
-          "litigation-resolution-condition-precedent",
-          "specific-litigation-indemnity",
-          "litigation-ring-fencing-retention",
-          "specific-mae-mac-walk-right"
-        ]
-      },
-      {
-        "party": "seller",
-        "position": "The seller may characterise an early allegation as speculative, resist disclosure of privileged analysis, seek control over defence and settlement, and prefer a capped or time-limited remedy to a completion condition.",
-        "action_ids": [
-          "specific-litigation-disclosure",
-          "resolve-claim-before-completion",
-          "litigation-warranty"
-        ]
-      }
-    ],
-    "sources": [
-      {
-        "id": "claim-correspondence-and-pleadings",
-        "type": "court-document",
-        "citation": "Claim correspondence, letters before claim, pleadings, notices and procedural orders — to be identified in diligence."
-      },
-      {
-        "id": "insurance-policies-and-notices",
-        "type": "contract",
-        "citation": "Relevant insurance policies, endorsements, claims notifications and insurer correspondence — to be identified in diligence."
-      },
-      {
-        "id": "pre-action-conduct-practice-direction",
-        "type": "legal-authority",
-        "citation": "Civil Procedure Rules, Practice Direction – Pre-Action Conduct and Protocols.",
-        "url": "https://www.justice.gov.uk/courts/procedure-rules/civil/rules/pd_pre-action_conduct"
-      },
-      {
-        "id": "limitation-act-1980",
-        "type": "legal-authority",
-        "citation": "Limitation Act 1980.",
-        "url": "https://www.legislation.gov.uk/ukpga/1980/58"
-      }
-    ],
-    "notes": "Reusable draft content only. This record is not legal advice and must be tailored by appropriately qualified advisers. Handle privileged material, settlement communications and insurer communications carefully; the disclosure and claims-handling approach should be agreed for the specific transaction.",
     "last_reviewed": "2026-10-15"
   }
 ]

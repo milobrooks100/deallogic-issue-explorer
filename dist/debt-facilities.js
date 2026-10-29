@@ -1,6 +1,7 @@
 /* Debt facilities: diligence, risk and answer-driven deal logic. */
 (() => {
   const issueId = "debt-facilities-repayment";
+  const escapeLogicText = value => String(value || "").replace(/[&<>'"]/g, character => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", "'": "&#39;", '"': "&quot;" }[character]));
   const ids = ["debt-obligations", "debt-transaction-effect", "debt-payoff", "debt-consent", "debt-funding", "debt-releases", "debt-completion-sequence"];
   const options = {
     "debt-obligations": ["Unanswered", "No — confirmed from finance documents and charge records", "Yes — finance obligations or security exist", "Possibly — records are incomplete", "Not yet checked"],
@@ -311,31 +312,23 @@
 
   const previousRenderLogic = renderLogic;
   renderLogic = function (issue) {
-    previousRenderLogic(issue);
-    if (issue?.id !== issueId) return;
+    if (issue?.id !== issueId) return previousRenderLogic(issue);
     const logicCard = document.querySelector("#logic-card");
+    document.querySelector("#recommendations-card")?.remove();
+    logicCard.classList.add("coc-deal-logic");
     if (!debtAnswersComplete()) {
       logicCard.classList.add("logic-standby");
       logicCard.innerHTML = `<h3>Apply deal logic</h3><p>Turn the recorded facts into a clear transaction response.</p>`;
       return;
     }
     logicCard.classList.remove("logic-standby");
-    const summary = document.querySelector("#logic-card .logic-conclusion");
-    if (summary) summary.textContent = debtSummary();
-    const implications = document.querySelector("#logic-card .logic-section:nth-of-type(2) ul");
-    if (implications) implications.replaceChildren(...debtImplications().map(item => {
-      const li = document.createElement("li");
-      li.textContent = item;
-      return li;
-    }));
-    const actionSection = document.querySelector("#logic-card .logic-section:nth-of-type(3)");
-    if (actionSection) {
-      const side = getTransactionSide();
-      const actions = debtActions(side);
-      const sidePicker = `<div class="logic-side-picker" aria-label="Transaction side selector"><button type="button" class="active" data-logic-side-toggle>${side}</button></div>`;
-      const actionMarkup = actions.length ? actions.map(({ id, priority, title, description }) => `<div class="logic-action" data-action-id="${id}"><span class="logic-icon">◌</span><div><span class="logic-priority" data-level="${priority.toLowerCase()}">${priority}</span><strong>${title}</strong><span>${description}</span></div></div>`).join("") : `<p>There are no active transaction actions on the information recorded.</p>`;
-      actionSection.innerHTML = `<div class="logic-section-heading"><h4>Recommended actions</h4>${sidePicker}</div>${actionMarkup}`;
-    }
+    const side = getTransactionSide();
+    const actions = debtActions(side);
+    const sidePicker = `<div class="logic-side-picker" aria-label="Transaction side selector"><button type="button" class="active" data-logic-side-toggle>${escapeLogicText(side)}</button></div>`;
+    const actionMarkup = actions.length ? actions.map(({ id, priority, title, description }) => `<div class="logic-action" data-action-id="${escapeLogicText(id)}"><span class="logic-icon">◌</span><div><span class="logic-priority" data-level="${escapeLogicText(priority.toLowerCase())}">${escapeLogicText(priority)}</span><strong>${escapeLogicText(title)}</strong><span>${escapeLogicText(description)}</span></div></div>`).join("") : `<p>There are no active transaction actions on the information recorded.</p>`;
+    const implications = debtImplications().map(item => `<li>${escapeLogicText(item)}</li>`).join("");
+    const notes = (issue.notes || "").split(/\n\s*\n/).filter(Boolean).map(entry => `<div class="logic-note">${escapeLogicText(entry)}</div>`).join("");
+    logicCard.innerHTML = `<h3>Apply deal logic</h3><section class="logic-section"><h4>Summary</h4><p class="logic-conclusion">${escapeLogicText(debtSummary())}</p></section><section class="logic-section"><h4>Key deal implications</h4><ul>${implications}</ul></section><section class="logic-section"><div class="logic-section-heading"><h4>Recommended actions</h4>${sidePicker}</div>${actionMarkup}</section>${notes ? `<section class="logic-section"><h4>Notes</h4>${notes}</section>` : ""}`;
     document.dispatchEvent(new CustomEvent("debt-facilities-logic-rendered"));
   };
 })();

@@ -1,5 +1,5 @@
 (() => {
-  const KEY = "deallogic:deal-hub:v1";
+  const LEGACY_KEY = "deallogic:deal-hub:v1";
   const statuses = ["To Review", "In Negotiation", "Drafted in SPA", "Satisfied/Closed"];
   const phases = ["Pre-LOI", "Due Diligence", "SPA Drafting", "Post-Signing / Integration", "Closing Condition"];
   const priorities = ["High", "Medium", "Low"];
@@ -8,23 +8,28 @@
   const safeUrl = value => { try { const url=new URL(value); return ["http:","https:"].includes(url.protocol)?url.href:""; } catch { return ""; } };
   const uid = () => crypto.randomUUID ? crypto.randomUUID() : `${Date.now()}-${Math.random().toString(36).slice(2)}`;
   const parse = (value, fallback) => { try { return JSON.parse(value) || fallback; } catch { return fallback; } };
-  const state = parse(localStorage.getItem(KEY), {issues:[], actions:[], projects:[]});
-  if (!Array.isArray(state.issues)) state.issues = [];
-  if (!Array.isArray(state.actions)) state.actions = [];
-  if (!Array.isArray(state.projects)) {
-    state.projects = (Array.isArray(state.workstreams) ? state.workstreams : []).map(name => ({id:uid(), name}));
-    state.actions.forEach(action => { action.projectId = state.projects.find(project => project.name === action.workstream)?.id || ""; });
-    delete state.workstreams;
-    localStorage.setItem(KEY, JSON.stringify(state));
+  function activeHub(){
+    const store=getDealProjects(),project=store.projects.find(item=>item.id===store.activeProjectId)||store.projects[0];
+    if(!project.hub){
+      const legacy=parse(DealLogicStorage.getItem(LEGACY_KEY),{issues:[],actions:[],projects:[]});
+      const groups=Array.isArray(legacy.projects)?legacy.projects:(Array.isArray(legacy.workstreams)?legacy.workstreams.map(name=>({id:uid(),name})):[]);
+      project.hub={issues:Array.isArray(legacy.issues)?legacy.issues:[],actions:Array.isArray(legacy.actions)?legacy.actions:[],groups};
+    }
+    if(!Array.isArray(project.hub.issues))project.hub.issues=[];
+    if(!Array.isArray(project.hub.actions))project.hub.actions=[];
+    if(!Array.isArray(project.hub.groups))project.hub.groups=[];
+    const issuesBeforePruning=project.hub.issues.length;
+    project.hub.issues=project.hub.issues.filter(issue=>!String(issue.id).startsWith("company-radar:")||project.hub.actions.some(action=>action.issueId===issue.id));
+    if(project.hub.issues.length!==issuesBeforePruning)saveDealProjects(store);
+    return project.hub;
   }
-  let view = "summary", filter = "All issues", search = "", picking = false;
+  let state=activeHub();
+  let view = "summary", filter = "All issues", search = "", picking = false, creatingProject = false;
   const picks = new Map();
-  const save = () => localStorage.setItem(KEY, JSON.stringify(state));
+  const save = () => {const store=getDealProjects(),project=store.projects.find(item=>item.id===store.activeProjectId)||store.projects[0];project.hub=state;saveDealProjects(store);};
   const currentIssue = () => typeof current === "function" ? current() : null;
   const issueById = id => state.issues.find(issue => issue.id === id);
   const actionById = id => state.actions.find(action => action.id === id);
-  const projectById = id => state.projects.find(project => project.id === id);
-  const projectName = action => projectById(action.projectId)?.name || "No project";
   const answerSnapshot = () => JSON.parse(JSON.stringify(typeof answers === "object" ? answers : {}));
   const riskLabel = () => document.querySelector(".risk-score")?.textContent.trim() || "Not assessed";
   const liveSummary = () => document.querySelector(".logic-conclusion")?.textContent.trim() || document.querySelector(".issue-header .summary")?.textContent.trim() || "";
@@ -35,21 +40,29 @@
     if (/spa|warranty|indemnity|covenant|disclos|price/.test(text)) return "SPA Drafting";
     return "Due Diligence";
   };
-  const actionKey = (issueId, side, title, instruction) => `${issueId}|${side}|${title}|${instruction}`;
+  const actionKey = (issueId, side, title, instruction, stableActionId="") => stableActionId ? `${issueId}|action|${stableActionId}` : `${issueId}|${side}|${title}|${instruction}`;
+  const stableActionIdFor = (issueId, title, instruction, explicitId="") => window.DealLogicActionRegistry?.resolveActionId(issueId,title,instruction,explicitId) || explicitId;
+  const hasEquivalentAction = item => state.actions.some(action => {
+    if (action.issueId !== item.issueId) return false;
+    const existingId = action.stableActionId || stableActionIdFor(action.issueId,action.originalTitle||action.title,action.originalInstruction||action.instruction);
+    if (item.actionId && existingId) return item.actionId === existingId;
+    return action.sourceKey === actionKey(item.issueId,item.side,item.title,item.instruction,item.actionId);
+  });
   const available = () => {
     const issue = currentIssue();
     if (!issue) return [];
     const card = document.querySelector("#logic-card");
-    if (issue.id === "customer-change-of-control" && card?.querySelector(".logic-section-heading")) {
+    if (["customer-change-of-control", "missing-ip-assignment", "option-holders", "threatened-litigation", "debt-facilities-repayment"].includes(issue.id) && card?.querySelector(".logic-section-heading")) {
       return [...card.querySelectorAll(".logic-action")].map(row => ({
-        issueId: issue.id, side: getTransactionSide(), icon: row.querySelector(".logic-icon")?.textContent.trim() || "◌",
+        issueId: issue.id, side: getTransactionSide(), icon: row.querySelector(".logic-icon")?.dataset.originalIcon || row.querySelector(".logic-icon")?.textContent.trim() || "◌",
+        actionId: stableActionIdFor(issue.id,row.querySelector("strong")?.textContent.trim(),row.querySelector("span:last-child")?.textContent.trim(),row.dataset.actionId),
         priority: row.querySelector(".logic-priority")?.textContent.trim() || "Recommended",
         title: row.querySelector("strong")?.textContent.trim() || "Action",
         instruction: row.querySelector("span:last-child")?.textContent.trim() || ""
       }));
     }
     return [...document.querySelectorAll("#recommendations-card .recommendation")].map(row => ({
-      issueId: issue.id, side: getTransactionSide(), icon: "◌", priority: row.querySelector(".pill")?.textContent.trim() || "Recommended",
+      issueId: issue.id, side: getTransactionSide(), icon: "◌", actionId: stableActionIdFor(issue.id,row.querySelector("strong")?.textContent.trim(),row.querySelector("p")?.textContent.trim()), priority: row.querySelector(".pill")?.textContent.trim() || "Recommended",
       title: row.querySelector("strong")?.textContent.trim() || "Action",
       instruction: row.querySelector("p")?.textContent.trim() || ""
     }));
@@ -59,11 +72,37 @@
     risk: riskLabel(), summary: liveSummary(), answers: answerSnapshot(), capturedAt: new Date().toISOString(),
     sourceDocument: "", sourceClause: "", sourceUrl: ""
   });
-  const isStale = issue => JSON.stringify(issue.answers) !== JSON.stringify(parse(localStorage.getItem(`deallogic:${issue.id}`), {}));
+  const isStale = issue => JSON.stringify(issue.answers) !== JSON.stringify(parse(DealLogicStorage.getItem(`deallogic:deal-project:${activeDealProjectId()}:issue:${issue.id}`), {}));
   const toast = message => { document.querySelector(".hub-toast")?.remove(); const node = document.createElement("div"); node.className="hub-toast"; node.setAttribute("role","status"); node.textContent=message; document.body.append(node); setTimeout(()=>node.remove(),3000); };
   const hub = document.createElement("section");
   hub.className = "deal-hub-view screen-hidden";
   document.querySelector(".library-view")?.insertAdjacentElement("beforebegin", hub);
+
+  function renderProjectRail(){
+    let rail=document.querySelector(".project-rail");
+    if(!rail){
+      rail=document.createElement("aside");rail.className="project-rail";rail.setAttribute("aria-label","Deals");
+      document.querySelector(".workspace")?.insertAdjacentElement("beforebegin",rail);
+    }
+    const store=getDealProjects(),active=activeDealProject();
+    rail.innerHTML=`<div class="project-rail-head"><div><span class="eyebrow">Workspace</span><h3>Deals</h3></div><button type="button" class="project-new" data-new-deal-project aria-label="Create a new deal"><i data-lucide="plus" aria-hidden="true"></i></button></div>${creatingProject?`<form class="project-rail-create" data-create-deal-project><label>Deal name<input name="name" maxlength="80" placeholder="e.g. Deal Redwood" required autofocus></label><label>Transaction side<select name="side"><option>Buyer</option><option>Seller</option><option selected>Balanced</option></select></label><div><button class="hub-button primary">Create deal</button><button type="button" class="hub-button" data-cancel-deal-project>Cancel</button></div></form>`:""}<button class="project-rail-item ${active.isQuick?"active":""}" data-switch-deal-project="quick-workspace"><span class="project-dot"></span><span><strong>Quick workspace</strong><small>Unassigned work</small></span></button><div class="project-rail-list">${store.projects.filter(project=>!project.isQuick).map(project=>`<button class="project-rail-item ${project.id===active.id?"active":""}" data-switch-deal-project="${esc(project.id)}"><span class="project-dot"></span><span><strong>${esc(project.name)}</strong><small>${esc(project.side)} · ${project.hub?.actions?.length||0} actions</small></span></button>`).join("")}</div><div class="project-rail-note project-rail-account" data-account-slot></div>`;
+    document.dispatchEvent(new Event("deal-project-rail-rendered"));
+  }
+  document.addEventListener("click",event=>{
+    const change=event.target.closest("[data-switch-deal-project]");if(change){switchDealProject(change.dataset.switchDealProject);return;}
+    if(event.target.closest("[data-new-deal-project]")){creatingProject=true;renderProjectRail();document.querySelector("[data-create-deal-project] [name=name]")?.focus();return;}
+    if(event.target.closest("[data-cancel-deal-project]")){creatingProject=false;renderProjectRail();}
+  });
+  document.addEventListener("submit",event=>{
+    if(!event.target.matches("[data-create-deal-project]"))return;
+    event.preventDefault();
+    const name=String(event.target.elements.name.value||"").trim();
+    if(!name)return;
+    createDealProject(name,event.target.elements.side.value);creatingProject=false;renderProjectRail();
+  });
+  document.addEventListener("deal-project-change",()=>{
+    state=activeHub();filter="All issues";search="";picks.clear();picking=false;loadAnswers();renderMap();renderPanel();renderHub();renderProjectRail();document.dispatchEvent(new CustomEvent("transaction-side-change"));
+  });
 
   function decorateRecommendations() {
     const issue = currentIssue();
@@ -82,7 +121,7 @@
     (cocHeading || genericHeading).append(pin);
     pin.onclick = () => {
       if (!picking) picking = true;
-      for (const item of availableActions) picks.set(actionKey(item.issueId,item.side,item.title,item.instruction), {...item, issueSnapshot:snapshot(issue)});
+      for (const item of availableActions) picks.set(actionKey(item.issueId,item.side,item.title,item.instruction,item.actionId), {...item, issueSnapshot:snapshot(issue)});
       decorateRecommendations();
     };
     const rows = cocHeading ? [...document.querySelectorAll("#logic-card .logic-action")] : [...document.querySelectorAll("#recommendations-card .recommendation")];
@@ -90,7 +129,7 @@
       row.querySelector(".hub-pick")?.remove();
       if (!picking) return;
       const item = availableActions[index];
-      const key = actionKey(item.issueId,item.side,item.title,item.instruction);
+      const key = actionKey(item.issueId,item.side,item.title,item.instruction,item.actionId);
       const checkbox = document.createElement("input"); checkbox.type="checkbox"; checkbox.className="hub-pick"; checkbox.checked=picks.has(key); checkbox.setAttribute("aria-label",`Add ${item.title} for Deal Hub`);
       checkbox.onchange=()=>{ if (checkbox.checked) picks.set(key,{...item,issueSnapshot:snapshot(issue)}); else picks.delete(key); updatePickbar(); };
       row.append(checkbox);
@@ -123,35 +162,63 @@
     }
     let added=0;
     for (const item of selected) {
-      const key=actionKey(item.issueId,item.side,item.title,item.instruction);
-      if (state.actions.some(action=>action.sourceKey===key)) continue;
-      state.actions.push({id:uid(),sourceKey:key,issueId:item.issueId,side:item.side,icon:item.icon,priority:item.priority,
+      const key=actionKey(item.issueId,item.side,item.title,item.instruction,item.actionId);
+      if (hasEquivalentAction(item)) continue;
+      state.actions.push({id:uid(),sourceKey:key,stableActionId:item.actionId||"",issueId:item.issueId,side:item.side,icon:item.icon,priority:item.priority,
         title:item.title,instruction:item.instruction,originalTitle:item.title,originalInstruction:item.instruction,
-        status:statuses[0],dealPhase:phaseFor(item.title,item.instruction),projectId:"",
+        status:statuses[0],dealPhase:phaseFor(item.title,item.instruction),
         urgency:"Medium",notes:"",createdAt:new Date().toISOString(),manual:false});
       added++;
     }
-    save(); picking=false;picks.clear();decorateRecommendations();renderHub();
+    save(); picking=false;picks.clear();decorateRecommendations();renderHub();document.dispatchEvent(new CustomEvent("deal-hub-actions-change"));
     toast(added?`${added} action${added===1?"":"s"} added to Deal Hub`:"These actions are already in Deal Hub");
   }
+  const libraryPhase = phase => ({"Due diligence":"Due Diligence","SPA drafting":"SPA Drafting","Signing":"Post-Signing / Integration","Closing condition":"Closing Condition","Post-completion":"Post-Signing / Integration"}[phase] || "Due Diligence");
+  window.isActionInDealHub = (issueId, actionId) => hasEquivalentAction({issueId,actionId,side:getTransactionSide(),title:"",instruction:""});
+  window.addLibraryActionToDealHub = (issueId, action) => {
+    const item={issueId,actionId:action.id,side:getTransactionSide(),title:action.title,instruction:action.description};
+    if (hasEquivalentAction(item)) {toast("This action is already in Deal Hub");return false;}
+    const source=(typeof issues!=="undefined"?issues:[]).find(issue=>issue.id===issueId);
+    if(source && !issueById(issueId)){
+      const storedAnswers=parse(DealLogicStorage.getItem(`deallogic:deal-project:${activeDealProjectId()}:issue:${issueId}`),{});
+      state.issues.push({id:source.id,title:source.title,category:(typeof areas==="object"&&areas[source.category])||source.category,risk:currentIssue()?.id===issueId?riskLabel():"Not assessed",summary:source.summary||"Manually selected from the Action Library.",answers:storedAnswers,capturedAt:new Date().toISOString(),sourceDocument:"",sourceClause:"",sourceUrl:""});
+    }
+    state.actions.push({id:uid(),sourceKey:actionKey(issueId,item.side,item.title,item.instruction,action.id),stableActionId:action.id,issueId,side:item.side,icon:"◌",iconKey:action.icon,priority:"Consider",title:item.title,instruction:item.instruction,originalTitle:item.title,originalInstruction:item.instruction,status:statuses[0],dealPhase:libraryPhase(action.phase),urgency:"Medium",notes:"",createdAt:new Date().toISOString(),manual:true,selectionSource:"library"});
+    save();renderHub();renderProjectRail();document.dispatchEvent(new CustomEvent("deal-hub-actions-change"));toast("Action added to Deal Hub");return true;
+  };
+  window.addCompanyRadarAction = (company, flag) => {
+    const issueId = `company-radar:${company.number}`;
+    const sourceKey = `${issueId}:${flag.id}`;
+    if (state.actions.some(action => action.sourceKey === sourceKey)) { toast("This Company Radar action is already in Deal Hub"); return false; }
+    if (!issueById(issueId)) state.issues.push({ id: issueId, title: company.name, category: "Company Radar", risk: "Not assessed", summary: "Public register findings for this company.", answers: {}, capturedAt: new Date().toISOString(), sourceDocument: "Companies House", sourceClause: company.number, sourceUrl: company.url });
+    state.actions.push({ id: uid(), sourceKey, issueId, side: "Custom", iconKey: "ellipsis", priority: flag.level === "red" ? "High" : "Medium", title: `Review ${flag.title.toLowerCase()} for ${company.name}`, instruction: `${flag.detail} Source: ${flag.source || company.url}`, originalTitle: `Review ${flag.title.toLowerCase()} for ${company.name}`, originalInstruction: `${flag.detail} Source: ${flag.source || company.url}`, status: statuses[0], dealPhase: "Due Diligence", urgency: flag.level === "red" ? "High" : "Medium", notes: "", createdAt: new Date().toISOString(), manual: true, selectionSource: "company-radar" });
+    save(); renderHub(); renderProjectRail(); document.dispatchEvent(new CustomEvent("deal-hub-actions-change")); toast("Company Radar action added to Deal Hub"); return true;
+  };
   function issueMarkup(issue) {
     const actionCount=state.actions.filter(action=>action.issueId===issue.id).length;
     const answerEntries=Object.entries(issue.answers||{}).filter(([,value])=>value && value!=="Unanswered");
     const sourceLabel=issue.sourceDocument || issue.sourceClause || "Source document or clause not recorded";
-    return `<article class="hub-issue" data-issue-id="${esc(issue.id)}"><div class="hub-issue-head"><div><div class="eyebrow">${esc(issue.category)}</div><h3>${esc(issue.title)}</h3><div class="hub-meta">${esc(issue.risk)} · ${actionCount} action${actionCount===1?"":"s"} · Saved ${new Date(issue.capturedAt).toLocaleDateString()}</div></div><div><button class="hub-text-button" data-open-issue="${esc(issue.id)}">Open issue</button></div></div><p class="hub-summary">${esc(issue.summary)}</p><div class="hub-meta">Source: ${safeUrl(issue.sourceUrl)?`<a class="hub-source-link" href="${esc(safeUrl(issue.sourceUrl))}" target="_blank" rel="noopener noreferrer">${esc(sourceLabel)}</a>`:esc(sourceLabel)}</div>${isStale(issue)?`<p class="hub-meta hub-confirm">Answers have changed since this was saved. <button class="hub-text-button" data-refresh-issue="${esc(issue.id)}">Refresh snapshot</button></p>`:""}<details><summary>Saved responses (${answerEntries.length})</summary><div class="hub-answers">${answerEntries.map(([key,value])=>`<div><strong>${esc(key.replaceAll("-"," "))}:</strong> ${esc(Array.isArray(value)?value.join(", "):value)}</div>`).join("")}</div></details><div class="hub-issue-fields"><label>Source document<input data-issue-field="sourceDocument" value="${esc(issue.sourceDocument||"")}" placeholder="e.g. Customer Agreement"></label><label>Clause / finding<input data-issue-field="sourceClause" value="${esc(issue.sourceClause||"")}" placeholder="e.g. clause 14.2"></label><label>Document link<input type="url" data-issue-field="sourceUrl" value="${esc(issue.sourceUrl||"")}" placeholder="https://..."></label></div></article>`;
+    const riskLevel=String(issue.risk||"").match(/^(\d)\/5/)?.[1]||"1";
+    return `<article class="hub-issue" data-issue-id="${esc(issue.id)}"><div class="hub-issue-head"><div><div class="eyebrow">${esc(issue.category)}</div><h3>${esc(issue.title)}</h3><div class="hub-meta"><span class="hub-risk hub-risk-${riskLevel}">${esc(issue.risk)}</span> · ${actionCount} action${actionCount===1?"":"s"} · Saved ${new Date(issue.capturedAt).toLocaleDateString()}</div></div><div><button class="hub-text-button" data-open-issue="${esc(issue.id)}">Open issue</button></div></div><p class="hub-summary">${esc(issue.summary)}</p><div class="hub-meta">Source: ${safeUrl(issue.sourceUrl)?`<a class="hub-source-link" href="${esc(safeUrl(issue.sourceUrl))}" target="_blank" rel="noopener noreferrer">${esc(sourceLabel)}</a>`:esc(sourceLabel)}</div>${isStale(issue)?`<p class="hub-meta hub-confirm">Answers have changed since this was saved. <button class="hub-text-button" data-refresh-issue="${esc(issue.id)}">Refresh snapshot</button></p>`:""}<details><summary>Saved responses (${answerEntries.length})</summary><div class="hub-answers">${answerEntries.map(([key,value])=>`<div><strong>${esc(key.replaceAll("-"," "))}:</strong> ${esc(Array.isArray(value)?value.join(", "):value)}</div>`).join("")}</div></details><div class="hub-issue-fields"><label>Source document<input data-issue-field="sourceDocument" maxlength="200" value="${esc(issue.sourceDocument||"")}" placeholder="e.g. Customer Agreement"></label><label>Clause / finding<input data-issue-field="sourceClause" maxlength="200" value="${esc(issue.sourceClause||"")}" placeholder="e.g. clause 14.2"></label><label>Document link<input type="url" data-issue-field="sourceUrl" maxlength="2048" value="${esc(issue.sourceUrl||"")}" placeholder="https://..."></label></div></article>`;
   }
   function compactIssueMarkup(issue) {
     const actionCount=state.actions.filter(action=>action.issueId===issue.id).length;
-    return `<article class="hub-issue hub-issue-compact"><div class="hub-issue-head"><div><div class="eyebrow">${esc(issue.category)}</div><h3>${esc(issue.title)}</h3><div class="hub-meta">${esc(issue.risk)} · ${actionCount} action${actionCount===1?"":"s"}</div></div><button class="hub-text-button" data-open-issue="${esc(issue.id)}">Open issue</button></div><p class="hub-summary">${esc(issue.summary)}</p>${isStale(issue)?`<p class="hub-meta hub-confirm">Answers have changed. <button class="hub-text-button" data-refresh-issue="${esc(issue.id)}">Refresh snapshot</button></p>`:""}</article>`;
+    return `<article class="hub-issue hub-issue-compact"><div class="hub-issue-head"><div><div class="eyebrow">${esc(issue.category)}</div><h3>${esc(issue.title)}</h3><div class="hub-meta"><span class="hub-risk hub-risk-${String(issue.risk||"").match(/^(\d)\/5/)?.[1]||"1"}">${esc(issue.risk)}</span> · ${actionCount} action${actionCount===1?"":"s"}</div></div><button class="hub-text-button" data-open-issue="${esc(issue.id)}">Open issue</button></div><p class="hub-summary">${esc(issue.summary)}</p>${isStale(issue)?`<p class="hub-meta hub-confirm">Answers have changed. <button class="hub-text-button" data-refresh-issue="${esc(issue.id)}">Refresh snapshot</button></p>`:""}</article>`;
   }
   function actionMarkup(action, expanded=false) {
     const issue=issueById(action.issueId);
     const actionLevel = ["Required", "Recommended", "Consider"].includes(action.priority) ? action.priority : "Consider";
-    return `<article class="hub-item" draggable="true" data-action-id="${esc(action.id)}"><div class="hub-item-top"><div><h4>${esc(action.icon||"◌")} ${esc(action.title)}</h4><div class="hub-tags"><span class="hub-tag hub-level-${actionLevel.toLowerCase()}">${esc(actionLevel)}</span><span class="hub-tag hub-stage">${esc(action.dealPhase)}</span></div></div><button class="hub-text-button" data-edit-action="${esc(action.id)}">${expanded?"Close":"Edit"}</button></div><p>${esc(action.instruction)}</p><div class="hub-meta">${esc(issue?.title||"Custom action")} · ${esc(projectName(action))} · ${esc(action.status)}</div>${action.notes?`<p class="hub-meta">Note: ${esc(action.notes)}</p>`:""}${expanded?editorMarkup(action):""}</article>`;
+    const editControl = view === "board" || view === "summary"
+      ? `<button class="hub-item-edit" type="button" data-edit-action="${esc(action.id)}" aria-label="Edit ${esc(action.title)}" title="Edit action"><i data-lucide="pencil" aria-hidden="true"></i></button>`
+      : `<button class="hub-text-button" data-edit-action="${esc(action.id)}">${expanded?"Close":"Edit"}</button>`;
+    return `<article class="hub-item" draggable="true" data-action-id="${esc(action.id)}"><div class="hub-item-top"><div><h4>${esc(action.icon||"◌")} ${esc(action.title)}</h4><div class="hub-tags"><span class="hub-tag hub-level-${actionLevel.toLowerCase()}">${esc(actionLevel)}</span><span class="hub-tag hub-stage">${esc(action.dealPhase)}</span></div></div>${editControl}</div><p>${esc(action.instruction)}</p><div class="hub-meta">${esc(issue?.title||"Custom action")} · ${esc(action.status)}</div>${action.notes?`<p class="hub-meta">Note: ${esc(action.notes)}</p>`:""}${expanded?editorMarkup(action):""}</article>`;
   }
   const options=(values,currentValue)=>values.map(value=>`<option ${value===currentValue?"selected":""}>${esc(value)}</option>`).join("");
   function editorMarkup(action) {
-    return `<div class="hub-editor"><label>Action title<input data-action-field="title" maxlength="120" value="${esc(action.title)}"></label><label>Recommended action<textarea data-action-field="instruction">${esc(action.instruction)}</textarea></label><label>Deal notes<textarea data-action-field="notes" placeholder="Add deal-specific context or drafting notes">${esc(action.notes||"")}</textarea></label><div class="hub-editor-grid"><label>Status<select data-action-field="status">${options(statuses,action.status)}</select></label><label>Deal phase<select data-action-field="dealPhase">${options(phases,action.dealPhase)}</select></label><label>Priority<select data-action-field="urgency">${options(priorities,action.urgency)}</select></label><label>Project<select data-action-field="projectId"><option value="">No project</option>${state.projects.map(project=>`<option value="${esc(project.id)}" ${project.id===action.projectId?"selected":""}>${esc(project.name)}</option>`).join("")}</select></label></div><div><button data-save-action="${esc(action.id)}">Save changes</button> <button class="hub-text-button danger" data-delete-action="${esc(action.id)}">Remove from Hub</button></div><div class="hub-meta">Original suggestion: ${esc(action.originalTitle)} — ${esc(action.originalInstruction)}</div></div>`;
+    return `<div class="hub-editor"><label>Action title<input data-action-field="title" maxlength="120" value="${esc(action.title)}"></label><label>Recommended action<textarea data-action-field="instruction" maxlength="10000">${esc(action.instruction)}</textarea></label><label>Deal notes<textarea data-action-field="notes" maxlength="10000" placeholder="Add deal-specific context or drafting notes">${esc(action.notes||"")}</textarea></label><div class="hub-editor-grid"><label>Status<select data-action-field="status">${options(statuses,action.status)}</select></label><label>Deal phase<select data-action-field="dealPhase">${options(phases,action.dealPhase)}</select></label><label>Priority<select data-action-field="urgency">${options(priorities,action.urgency)}</select></label></div><div><button data-save-action="${esc(action.id)}">Save changes</button> <button class="hub-text-button danger" data-delete-action="${esc(action.id)}">Remove from Hub</button></div></div>`;
+  }
+  function tableEditorMarkup(action) {
+    return `<tr class="hub-table-editor" data-table-editor-for="${esc(action.id)}"><td colspan="9">${editorMarkup(action)}</td></tr>`;
   }
   function filteredActions() {
     return state.actions.filter(action=>{
@@ -163,10 +230,9 @@
   function renderHub() {
     const items=filteredActions();
     const issueOptions=state.issues.map(issue=>`<option value="${esc(issue.id)}" ${filter===issue.id?"selected":""}>${esc(issue.title)}</option>`).join("");
-    const projectOptions = `<option value="">No project</option>${state.projects.map(project=>`<option value="${esc(project.id)}">${esc(project.name)}</option>`).join("")}`;
-    hub.innerHTML=`<div class="hub-header"><div><h2>Deal Hub</h2><p>Build a deal-specific briefing and action plan from saved issues and recommendations.</p></div><div class="hub-toolbar"><button class="primary" data-new-action>＋ Custom action</button><div class="hub-export"><button data-export-csv>Export table</button><button data-export-doc>Export briefing</button></div></div></div><form class="hub-new-action screen-hidden" data-new-action-form><h3>Add custom action</h3><div class="hub-editor-grid"><label>Title<input name="title" maxlength="120" required></label><label>Related issue<select name="issueId"><option value="custom-actions">General deal action</option>${state.issues.filter(issue=>issue.id!=="custom-actions").map(issue=>`<option value="${esc(issue.id)}">${esc(issue.title)}</option>`).join("")}</select></label><label>Deal phase<select name="dealPhase">${options(phases,"Due Diligence")}</select></label><label>Project<select name="projectId">${projectOptions}</select></label></div><label>Action details<textarea name="instruction" required></textarea></label><div><button class="hub-button primary">Add action</button> <button class="hub-button" type="button" data-cancel-new-action>Cancel</button></div></form><div class="hub-tabs" role="tablist" aria-label="Deal Hub views">${[["summary","Summary"],["board","Task board"],["table","Table"],["projects","Projects"]].map(([name,label])=>`<button role="tab" aria-selected="${view===name}" class="${view===name?"active":""}" data-hub-view="${name}">${label}</button>`).join("")}</div>${view!=="projects"?`<div class="hub-filter-row"><label>Issue <select data-filter-issue><option>All issues</option>${issueOptions}</select></label><input data-hub-search type="search" placeholder="Search actions" value="${esc(search)}" aria-label="Search Deal Hub actions"><span class="hub-meta">${state.issues.length} open issues · ${state.actions.length} actions · saved in this browser</span></div>`:""}<div class="hub-content"></div>`;
+    hub.innerHTML=`<div class="hub-header"><div><h2>Deal Hub</h2><p>Build a deal-specific briefing and action plan from saved issues and recommendations.</p></div><div class="hub-toolbar"><button class="primary" data-new-action>＋ Custom action</button><div class="hub-export"><button data-export-csv>Export table</button><button data-export-doc>Export briefing</button></div></div></div><form class="hub-new-action screen-hidden" data-new-action-form><h3>Add custom action</h3><div class="hub-editor-grid"><label>Title<input name="title" maxlength="120" required></label><label>Related issue<select name="issueId"><option value="custom-actions">General deal action</option>${state.issues.filter(issue=>issue.id!=="custom-actions").map(issue=>`<option value="${esc(issue.id)}">${esc(issue.title)}</option>`).join("")}</select></label><label>Deal phase<select name="dealPhase">${options(phases,"Due Diligence")}</select></label></div><label>Action details<textarea name="instruction" maxlength="10000" required></textarea></label><div><button class="hub-button primary">Add action</button> <button class="hub-button" type="button" data-cancel-new-action>Cancel</button></div></form><div class="hub-tabs" role="tablist" aria-label="Deal Hub views">${[["summary","Summary"],["board","Task board"],["table","Table"],["projects","Deal settings"]].map(([name,label])=>`<button role="tab" aria-selected="${view===name}" class="${view===name?"active":""}" data-hub-view="${name}">${label}</button>`).join("")}</div>${view!=="projects"?`<div class="hub-filter-row"><label>Issue <select data-filter-issue><option>All issues</option>${issueOptions}</select></label><input data-hub-search type="search" maxlength="200" placeholder="Search actions" value="${esc(search)}" aria-label="Search Deal Hub actions"><span class="hub-meta">${state.issues.length} open issues · ${state.actions.length} actions · saved in this browser</span></div>`:""}<div class="hub-content"></div>`;
     const content=hub.querySelector(".hub-content");
-    if (!state.issues.length && !state.actions.length) {
+    if (!state.issues.length && !state.actions.length && view!=="projects") {
       content.innerHTML='<div class="hub-empty"><h3>Your Deal Hub is ready</h3><p>Open a legal issue, use the pin beside Recommended Actions, and select the actions to bring here. You can also create a custom action.</p><button class="hub-button primary" data-go-map>Explore Deal Map</button></div>';
     } else if (view==="summary") {
       const shownIssues=state.issues.filter(issue=>filter==="All issues"||issue.id===filter);
@@ -175,9 +241,10 @@
     } else if (view==="board") {
       content.innerHTML=`<div class="hub-columns">${statuses.map(status=>`<section class="hub-column" data-drop-status="${esc(status)}"><h3>${esc(status)} <small>(${items.filter(action=>action.status===status).length})</small></h3>${items.filter(action=>action.status===status).map(action=>actionMarkup(action)).join("")}</section>`).join("")}</div>`;
     } else if (view==="table") {
-      content.innerHTML=`<div class="hub-table-wrap"><table class="hub-table"><thead><tr><th>Issue</th><th>Risk</th><th>Action</th><th>Side</th><th>Phase</th><th>Priority</th><th>Status</th><th>Project</th><th>Notes</th><th></th></tr></thead><tbody>${items.map(action=>{const issue=issueById(action.issueId);return `<tr data-action-id="${esc(action.id)}"><td>${esc(issue?.title||"Custom")}</td><td>${esc(issue?.risk||"")}</td><td><strong>${esc(action.title)}</strong><br>${esc(action.instruction)}</td><td>${esc(action.side||"Custom")}</td><td>${esc(action.dealPhase)}</td><td>${esc(action.urgency)}</td><td><select data-quick-status="${esc(action.id)}">${options(statuses,action.status)}</select></td><td>${esc(projectName(action))}</td><td>${esc(action.notes)}</td><td><button data-edit-action="${esc(action.id)}">Edit</button></td></tr>`}).join("")}</tbody></table></div>`;
+      content.innerHTML=`<div class="hub-table-wrap"><table class="hub-table"><thead><tr><th>Issue</th><th>Risk</th><th>Action</th><th>Side</th><th>Phase</th><th>Priority</th><th>Status</th><th>Notes</th><th></th></tr></thead><tbody>${items.map(action=>{const issue=issueById(action.issueId);const riskLevel=String(issue?.risk||"").match(/^(\d)\/5/)?.[1]||"1";return `<tr data-action-id="${esc(action.id)}"><td>${esc(issue?.title||"Custom")}</td><td><span class="hub-risk hub-risk-${riskLevel}">${esc(issue?.risk||"")}</span></td><td><strong>${esc(action.title)}</strong><br>${esc(action.instruction)}</td><td>${esc(action.side||"Custom")}</td><td>${esc(action.dealPhase)}</td><td>${esc(action.urgency)}</td><td><select data-quick-status="${esc(action.id)}">${options(statuses,action.status)}</select></td><td>${esc(action.notes)}</td><td><button class="hub-table-edit" type="button" data-edit-action="${esc(action.id)}" aria-label="Edit ${esc(action.title)}" title="Edit action"><i data-lucide="pencil" aria-hidden="true"></i></button></td></tr>`}).join("")}</tbody></table></div>`;
     } else {
-      content.innerHTML=`<section class="hub-projects"><div class="hub-projects-intro"><div><h3>Projects</h3><p>Create projects to group actions around advisers, priorities or deal strands.</p></div><form class="hub-project-form" data-project-form><input name="name" maxlength="60" placeholder="Project name" required><button class="hub-button primary">Create project</button></form></div><div class="hub-project-grid">${state.projects.length?state.projects.map(project=>{const projectActions=state.actions.filter(action=>action.projectId===project.id);return `<article class="hub-project-card" data-project-id="${esc(project.id)}"><div class="hub-project-card-head"><h4>${esc(project.name)}</h4><span class="hub-count">${projectActions.length}</span></div><p>${projectActions.length} action item${projectActions.length===1?"":"s"}</p><div class="hub-project-actions"><button class="hub-text-button" data-edit-project="${esc(project.id)}">Edit</button><button class="hub-text-button danger" data-delete-project="${esc(project.id)}">Delete</button></div></article>`}).join(""):'<p class="hub-meta">Create a project to start grouping actions.</p>'}</div></section>`;
+      const active=activeDealProject();
+      content.innerHTML=`<section class="hub-projects"><div class="hub-projects-intro"><div><h3>Deal settings</h3><p>Update this deal’s name and transaction side. Deleting a deal removes its Deal Map answers and Deal Hub actions from this browser.</p></div></div>${active.isQuick?`<div class="hub-project-empty"><p>This is the quick workspace. Create a deal from the Deals rail to save this work separately.</p><button class="hub-button primary" data-new-deal-project>＋ Create deal</button></div>`:`<form class="hub-project-settings" data-save-deal-project><label>Deal name<input name="name" maxlength="80" required value="${esc(active.name)}"></label><label>Transaction side<select name="side">${options(sides,active.side)}</select></label><div class="hub-project-actions"><button class="hub-button primary">Save deal changes</button><button type="button" class="hub-text-button danger" data-delete-deal-project="${esc(active.id)}">Delete deal</button></div></form>`}</section>`;
     }
   }
   function download(name,mime,body) {
@@ -186,8 +253,8 @@
   }
   const csvCell=value=>`"${String(value??"").replaceAll('"','""')}"`;
   function exportCsv() {
-    const rows=[["Issue","Risk","Source document","Clause / finding","Document link","Action","Recommendation","Transaction side","Action label","Deal phase","Priority","Status","Project","Notes"]];
-    state.actions.forEach(action=>{const issue=issueById(action.issueId);rows.push([issue?.title,issue?.risk,issue?.sourceDocument,issue?.sourceClause,issue?.sourceUrl,action.title,action.instruction,action.side,action.priority,action.dealPhase,action.urgency,action.status,projectName(action),action.notes]);});
+    const rows=[["Issue","Risk","Source document","Clause / finding","Document link","Action","Recommendation","Transaction side","Action label","Deal phase","Priority","Status","Notes"]];
+    state.actions.forEach(action=>{const issue=issueById(action.issueId);rows.push([issue?.title,issue?.risk,issue?.sourceDocument,issue?.sourceClause,issue?.sourceUrl,action.title,action.instruction,action.side,action.priority,action.dealPhase,action.urgency,action.status,action.notes]);});
     download("deal-hub-actions.csv","text/csv;charset=utf-8","\uFEFF"+rows.map(row=>row.map(csvCell).join(",")).join("\r\n"));
   }
   function exportDoc() {
@@ -209,7 +276,7 @@
     if (!title||!instruction) return;
     const issueId=String(data.get("issueId")||"custom-actions");
     if (!issueById(issueId)) state.issues.push({id:issueId,title:"Custom actions",category:"Deal Hub",risk:"Not assessed",summary:"Manually added deal actions.",answers:{},capturedAt:new Date().toISOString(),sourceDocument:"",sourceClause:"",sourceUrl:""});
-    state.actions.push({id:uid(),issueId,side:"Custom",icon:"＋",priority:"Consider",title,instruction,originalTitle:title,originalInstruction:instruction,status:statuses[0],dealPhase:String(data.get("dealPhase")),projectId:String(data.get("projectId")||""),urgency:"Medium",notes:"",createdAt:new Date().toISOString(),manual:true});
+    state.actions.push({id:uid(),issueId,side:"Custom",icon:"＋",priority:"Consider",title,instruction,originalTitle:title,originalInstruction:instruction,status:statuses[0],dealPhase:String(data.get("dealPhase")),urgency:"Medium",notes:"",createdAt:new Date().toISOString(),manual:true});
     save();renderHub();toast("Custom action added");
   }
   hub.addEventListener("click", event=>{
@@ -219,13 +286,21 @@
     if(event.target.closest("[data-export-csv]")){exportCsv();return;}
     if(event.target.closest("[data-export-doc]")){exportDoc();return;}
     if(event.target.closest("[data-go-map]")){window.showDealLogicView?.("deal-map");return;}
-    const open=event.target.closest("[data-open-issue]");if(open){selectedId=open.dataset.openIssue;const source=(typeof issues!=="undefined"?issues:[]).find(item=>item.id===selectedId);if(source){openArea=source.category;loadAnswers();renderMap();renderPanel();window.showDealLogicView?.("deal-map");}return;}
+    const open=event.target.closest("[data-open-issue]");if(open){if(open.dataset.openIssue.startsWith("company-radar:")){window.showDealLogicView?.("company-radar");return;}selectedId=open.dataset.openIssue;const source=(typeof issues!=="undefined"?issues:[]).find(item=>item.id===selectedId);if(source){openArea=source.category;loadAnswers();renderMap();renderPanel();window.showDealLogicView?.("deal-map");}return;}
     const refresh=event.target.closest("[data-refresh-issue]");if(refresh){refreshIssue(refresh.dataset.refreshIssue);return;}
-    const edit=event.target.closest("[data-edit-action]");if(edit){const card=edit.closest(".hub-item");if(card){card.outerHTML=actionMarkup(actionById(edit.dataset.editAction),!card.querySelector(".hub-editor"));}else{view="summary";renderHub();hub.querySelector(`[data-action-id="${CSS.escape(edit.dataset.editAction)}"] [data-edit-action]`)?.click();}return;}
-    const saveButton=event.target.closest("[data-save-action]");if(saveButton){const action=actionById(saveButton.dataset.saveAction),card=saveButton.closest(".hub-item");if(!action||!card)return;card.querySelectorAll("[data-action-field]").forEach(field=>{action[field.dataset.actionField]=field.value;});save();renderHub();toast("Action updated");return;}
-    const remove=event.target.closest("[data-delete-action]");if(remove){if(remove.dataset.confirm!=="yes"){remove.dataset.confirm="yes";remove.textContent="Click again to remove";return;}state.actions=state.actions.filter(action=>action.id!==remove.dataset.deleteAction);save();renderHub();toast("Action removed from Deal Hub");}
-    const editProject=event.target.closest("[data-edit-project]");if(editProject){const project=projectById(editProject.dataset.editProject);const name=prompt("Project name",project?.name||"");if(name?.trim()&&project){project.name=name.trim();save();renderHub();}return;}
-    const deleteProject=event.target.closest("[data-delete-project]");if(deleteProject){const project=projectById(deleteProject.dataset.deleteProject);if(!project)return;if(deleteProject.dataset.confirm!=="yes"){deleteProject.dataset.confirm="yes";deleteProject.textContent="Confirm delete";return;}state.actions.forEach(action=>{if(action.projectId===project.id)action.projectId="";});state.projects=state.projects.filter(item=>item.id!==project.id);save();renderHub();toast("Project deleted; its actions are now unassigned");}
+    const edit=event.target.closest("[data-edit-action]");if(edit){const card=edit.closest(".hub-item");if(card){card.outerHTML=actionMarkup(actionById(edit.dataset.editAction),!card.querySelector(".hub-editor"));}else{const row=edit.closest("tr[data-action-id]");if(row?.closest(".hub-table")){const editor=row.nextElementSibling?.matches(`[data-table-editor-for="${CSS.escape(edit.dataset.editAction)}"]`)?row.nextElementSibling:null;if(editor){editor.remove();}else{row.insertAdjacentHTML("afterend",tableEditorMarkup(actionById(edit.dataset.editAction)));}}}return;}
+    const saveButton=event.target.closest("[data-save-action]");if(saveButton){const action=actionById(saveButton.dataset.saveAction),editor=saveButton.closest(".hub-item,.hub-table-editor");if(!action||!editor)return;editor.querySelectorAll("[data-action-field]").forEach(field=>{action[field.dataset.actionField]=field.value;});save();renderHub();toast("Action updated");return;}
+    const remove=event.target.closest("[data-delete-action]");if(remove){if(remove.dataset.confirm!=="yes"){remove.dataset.confirm="yes";remove.textContent="Click again to remove";return;}state.actions=state.actions.filter(action=>action.id!==remove.dataset.deleteAction);state.issues=state.issues.filter(issue=>!String(issue.id).startsWith("company-radar:")||state.actions.some(action=>action.issueId===issue.id));save();renderHub();document.dispatchEvent(new CustomEvent("deal-hub-actions-change"));toast("Action removed from Deal Hub");}
+    const deleteProject=event.target.closest("[data-delete-deal-project]");if(deleteProject){
+      if(deleteProject.dataset.confirm!=="yes"){deleteProject.dataset.confirm="yes";deleteProject.textContent="Click again to delete";return;}
+      const store=getDealProjects(),id=deleteProject.dataset.deleteDealProject;
+      store.projects=store.projects.filter(project=>project.id!==id);
+      store.activeProjectId="quick-workspace";
+      saveDealProjects(store);
+      DealLogicStorage.removeItem(`deallogic:deal-project:${id}:issue:customer-change-of-control`);
+      document.dispatchEvent(new CustomEvent("deal-project-change",{detail:{id:"quick-workspace"}}));
+      toast("Deal deleted");
+    }
   });
   hub.addEventListener("change",event=>{
     const target=event.target;
@@ -234,13 +309,26 @@
     if(target.matches("[data-quick-status]")){const action=actionById(target.dataset.quickStatus);if(action){action.status=target.value;save();renderHub();}}
   });
   hub.addEventListener("input",event=>{if(event.target.matches("[data-hub-search]")){search=event.target.value;const pos=event.target.selectionStart;renderHub();const field=hub.querySelector("[data-hub-search]");field.focus();field.setSelectionRange(pos,pos);}});
-  hub.addEventListener("submit",event=>{if(event.target.matches("[data-new-action-form]")){event.preventDefault();addCustomAction(event.target);return;}if(!event.target.matches("[data-project-form]"))return;event.preventDefault();const name=event.target.elements.name.value.trim();if(name&&!state.projects.some(project=>project.name.toLowerCase()===name.toLowerCase())){state.projects.push({id:uid(),name});save();renderHub();}});
+  hub.addEventListener("submit",event=>{
+    if(event.target.matches("[data-new-action-form]")){event.preventDefault();addCustomAction(event.target);return;}
+    if(event.target.matches("[data-save-deal-project]")){
+      event.preventDefault();
+      const store=getDealProjects(),project=store.projects.find(item=>item.id===store.activeProjectId),name=String(event.target.elements.name.value||"").trim();
+      if(!project||!name)return;
+      project.name=name;project.side=event.target.elements.side.value;saveDealProjects(store);renderProjectRail();renderHub();toast("Deal updated");
+    }
+  });
   hub.addEventListener("dragstart",event=>{const item=event.target.closest("[data-action-id]");if(item)event.dataTransfer.setData("text/plain",item.dataset.actionId);});
   hub.addEventListener("dragover",event=>{const target=event.target.closest("[data-drop-status]");if(target){event.preventDefault();target.classList.add("drag-over");}});
   hub.addEventListener("dragleave",event=>event.target.closest("[data-drop-status]")?.classList.remove("drag-over"));
   hub.addEventListener("drop",event=>{const target=event.target.closest("[data-drop-status]");if(!target)return;event.preventDefault();const action=actionById(event.dataTransfer.getData("text/plain"));if(action){action.status=target.dataset.dropStatus;save();renderHub();}});
   const priorRender=renderLogic;
   renderLogic=function(issue){priorRender(issue);decorateRecommendations();};
+  document.addEventListener("missing-ip-logic-rendered",decorateRecommendations);
+  document.addEventListener("option-holders-logic-rendered",decorateRecommendations);
+  document.addEventListener("threatened-litigation-logic-rendered",decorateRecommendations);
+  document.addEventListener("debt-facilities-logic-rendered",decorateRecommendations);
+  renderProjectRail();
   renderHub();
   if(currentIssue())decorateRecommendations();
 })();

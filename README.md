@@ -61,11 +61,10 @@ The document route verifies that the document belongs to the selected company an
 
 ## Runtime structure
 
-- `dist/index.html` contains the core issue explorer and the two completed issue-specific logic flows.
-- `dist/deal-logic-templates.js` contains the shared provisional renderer for Shares, Disputes and Finance.
-- `dist/deal-hub-v8.js` owns Deal Hub state and interaction.
+- `dist/index.html` contains the core issue explorer and the issue explorer and tailored diligence flows.
+- `dist/deal-hub.js` owns Deal Hub state and interaction.
 - `dist/workspace-redesign.js` is presentation-only decoration for navigation, icons and workspace summaries.
-- `dist/issues.json` is generated from the structured issue files by `npm run build`.
+- `dist/issues.json` is the canonical issue data shipped with the app. `npm run build` validates it and prepares the Firebase configuration. The active Deal Hub assets are `dist/deal-hub.js` and `dist/deal-hub.css`; older designs are preserved in Git history.
 
 ## Status
 
