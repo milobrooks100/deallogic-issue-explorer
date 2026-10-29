@@ -12,7 +12,8 @@
 .tour-launcher.is-dismissing .tour-launcher-row { pointer-events:none; animation:tour-slide-below-divider 360ms cubic-bezier(.4, 0, 1, 1) forwards; }
 @keyframes tour-slide-below-divider { to { transform:translateY(70px); opacity:0; } }
 .tour-settings { display:flex; align-items:center; }
-.tour-settings-button { min-height:44px; padding:10px 16px; border:1px solid var(--line); border-radius:12px; background:var(--surface, #fff); color:var(--ink); font-size:13px; font-weight:600; cursor:pointer; }
+.tour-settings-button { display:inline-flex; align-items:center; gap:10px; min-height:44px; padding:10px 16px; border:1px solid var(--line); border-radius:12px; background:var(--surface, #fff); color:var(--ink); font-size:13px; font-weight:600; cursor:pointer; }
+.tour-settings-button svg { width:18px; height:18px; flex:none; }
 .tour-settings-button:hover { background:var(--soft, #edf2ed); }
 .tour-overlay { position:fixed; inset:0; z-index:9000; font-family:Inter,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif; }
 .tour-overlay[hidden] { display:none!important; }

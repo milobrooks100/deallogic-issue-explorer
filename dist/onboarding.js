@@ -8,11 +8,12 @@
   const settingsHelp = document.createElement("button");
   settingsHelp.type = "button";
   settingsHelp.className = "tour-settings-button";
-  settingsHelp.textContent = "Getting started with Deal Logic";
+  settingsHelp.innerHTML = '<i data-lucide="circle-help" aria-hidden="true"></i><span>Getting started with Deal Logic</span>';
   const settingsSection = document.createElement("section");
   settingsSection.className = "settings-section tour-settings";
   settingsSection.append(settingsHelp);
   settingsPanel.append(settingsSection);
+  window.lucide?.createIcons({ attrs: { "stroke-width": 1.75 } });
 
   function mountSidebarHelp() {
     const slot = document.querySelector(".project-rail-account");
