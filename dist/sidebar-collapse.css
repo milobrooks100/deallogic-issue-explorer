@@ -146,4 +146,10 @@
   .project-rail { margin-bottom: 26px; padding-bottom: 12px; }
   .project-rail-head { margin-top: 10px; margin-bottom: 4px; }
   .workspace-context { margin-bottom: 26px; }
+
+  /* Keep the Deal Map introduction compact on narrow screens. */
+  main:has(.intro:not(.screen-hidden)) .project-rail,
+  main:has(.intro:not(.screen-hidden)) .workspace-context { margin-bottom: 14px; }
+  main:has(.intro:not(.screen-hidden)) .intro { margin-bottom: 14px; }
+  main:has(.intro:not(.screen-hidden)) .workspace { margin-top: 6px; }
 }
