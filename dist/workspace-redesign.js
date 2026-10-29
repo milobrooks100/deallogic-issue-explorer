@@ -203,5 +203,6 @@
   let queued=false;
   const observer=new MutationObserver(()=>{if(queued)return;queued=true;requestAnimationFrame(()=>{queued=false;observer.disconnect();polish();observer.observe(main,{childList:true,subtree:true});});});
   polish();observer.observe(main,{childList:true,subtree:true});
+  document.documentElement.classList.remove('app-loading');
   document.addEventListener('deal-project-change',updateContext);
 })();
