@@ -91,25 +91,6 @@
         ["D13", "Charge-register update", "After actual repayment or release, arrange any appropriate Companies House record update.", "file-check", "Post-completion"],
         ["D14", "APA excluded liabilities", "In cases of asset sales, specify which finance liabilities the buyer assumes, exclude the others, and obtain any necessary creditor consent or novation.", "file-pen-line", "SPA drafting"]
       ]
-    },
-    {
-      id: "share-ownership-transfer-restrictions",
-      label: "Share ownership and transfer restrictions",
-      shortLabel: "Share Ownership",
-      actions: [
-        ["SO01", "Reconcile title and transfer requirements", "Reconcile the register, supporting title documents and SPA sale schedule; review the current articles and shareholder agreement for the proposed transfer.", "search", "Due diligence"],
-        ["SO02", "Lost-certificate completion package", "Agree the SPA certificate deliverables and a proportionate lost-certificate indemnity or replacement procedure under the articles. Verify the other title evidence; this package does not resolve conflicting ownership records.", "file-text", "Closing condition"],
-        ["SO03", "Resolve conflicting ownership records", "Require evidence-based title resolution before completion, with corrective documents or specialist advice on register rectification where needed. A replacement certificate or warranty alone does not resolve a title dispute.", "wrench", "Closing condition"],
-        ["SO04", "Seller authority and beneficial interests", "Identify the transferor, beneficial owner and authorised signatory in the SPA. Deliver any trustee or nominee authority, beneficiary consent or release, grant of representation or power of attorney actually required.", "handshake", "Closing condition"],
-        ["SO05", "Release security over the sale shares", "Require release of each charge or pledge over the sale shares against any agreed payment, with binding release documents and a coordinated funds flow as SPA completion deliverables.", "lock-keyhole", "Closing condition"],
-        ["SO06", "Transfer consents and waivers", "Schedule the required board, shareholder and investor steps in the SPA, with a covenant to obtain effective written approvals or waivers from the correct right holders and comply with transfer notices and deadlines.", "handshake", "SPA drafting"],
-        ["SO07", "Tag, drag and adherence mechanics", "Reflect any engaged tag, drag, lock-in or adherence terms in the SPA: eligible holders, thresholds, notices, timing and execution. Do not assume a drag binds every holder or that the shareholder agreement terminates automatically.", "file-pen-line", "SPA drafting"],
-        ["SO08", "Title and capacity warranties", "Obtain seller-specific SPA warranties covering ownership, authority to sell, freedom from encumbrances and absence of undisclosed transfer restrictions. Address legal and beneficial title expressly where they differ.", "shield-check", "SPA drafting"],
-        ["SO09", "Specific title and transfer disclosure", "Identify certificate gaps, title discrepancies, beneficial interests and transfer requirements against the relevant SPA warranties. Describe the evidence and agreed solution; disclosure alone does not cure title or release transfer rights.", "file-search", "SPA drafting"],
-        ["SO10", "Transfer and registration mechanics", "Specify executed transfers, certificates or agreed loss evidence, board registration steps and applicable Stamp Duty formalities in the SPA completion schedule. Address interim voting and dividends pending registration where lawful.", "calendar-check", "Closing condition"],
-        ["SO11", "Completion condition and longstop", "Make material unresolved title, release or transfer steps objective SPA conditions or completion deliverables, with a covenant to progress them, an agreed longstop and a defined termination route.", "circle-check", "Closing condition"],
-        ["SO12", "Targeted title indemnity", "For an identified title conflict or adverse claim, negotiate a specific SPA indemnity with defined losses, claim conduct, limits and no double recovery; consider security if recovery is doubtful. It is not a substitute for the ability to transfer title.", "banknote", "SPA drafting"]
-      ]
     }
   ];
 

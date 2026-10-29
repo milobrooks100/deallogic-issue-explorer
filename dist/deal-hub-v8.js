@@ -52,12 +52,10 @@
     const issue = currentIssue();
     if (!issue) return [];
     const card = document.querySelector("#logic-card");
-    if (window.DealLogicActionRegistry?.byTopic.has(issue.id) && card?.querySelector(".logic-section-heading")) {
+    if (["customer-change-of-control", "missing-ip-assignment", "option-holders", "threatened-litigation", "debt-facilities-repayment"].includes(issue.id) && card?.querySelector(".logic-section-heading")) {
       return [...card.querySelectorAll(".logic-action")].map(row => ({
         issueId: issue.id, side: getTransactionSide(), icon: row.querySelector(".logic-icon")?.dataset.originalIcon || row.querySelector(".logic-icon")?.textContent.trim() || "◌",
         actionId: stableActionIdFor(issue.id,row.querySelector("strong")?.textContent.trim(),row.querySelector("span:last-child")?.textContent.trim(),row.dataset.actionId),
-        iconKey: window.DealLogicActionRegistry.byTopic.get(issue.id)?.actions.find(action => action.id === row.dataset.actionId)?.icon,
-        phase: window.DealLogicActionRegistry.byTopic.get(issue.id)?.actions.find(action => action.id === row.dataset.actionId)?.phase,
         priority: row.querySelector(".logic-priority")?.textContent.trim() || "Recommended",
         title: row.querySelector("strong")?.textContent.trim() || "Action",
         instruction: row.querySelector("span:last-child")?.textContent.trim() || ""
@@ -166,9 +164,9 @@
     for (const item of selected) {
       const key=actionKey(item.issueId,item.side,item.title,item.instruction,item.actionId);
       if (hasEquivalentAction(item)) continue;
-      state.actions.push({id:uid(),sourceKey:key,stableActionId:item.actionId||"",issueId:item.issueId,side:item.side,icon:item.icon,iconKey:item.iconKey,priority:item.priority,
+      state.actions.push({id:uid(),sourceKey:key,stableActionId:item.actionId||"",issueId:item.issueId,side:item.side,icon:item.icon,priority:item.priority,
         title:item.title,instruction:item.instruction,originalTitle:item.title,originalInstruction:item.instruction,
-        status:statuses[0],dealPhase:item.phase ? libraryPhase(item.phase) : phaseFor(item.title,item.instruction),
+        status:statuses[0],dealPhase:phaseFor(item.title,item.instruction),
         urgency:"Medium",notes:"",createdAt:new Date().toISOString(),manual:false});
       added++;
     }
@@ -213,7 +211,7 @@
     const editControl = view === "board" || view === "summary"
       ? `<button class="hub-item-edit" type="button" data-edit-action="${esc(action.id)}" aria-label="Edit ${esc(action.title)}" title="Edit action"><i data-lucide="pencil" aria-hidden="true"></i></button>`
       : `<button class="hub-text-button" data-edit-action="${esc(action.id)}">${expanded?"Close":"Edit"}</button>`;
-    return `<article class="hub-item" draggable="true" data-action-id="${esc(action.id)}" data-action-key="${esc(action.stableActionId || "")}"><div class="hub-item-top"><div><h4>${esc(action.icon||"◌")} ${esc(action.title)}</h4><div class="hub-tags"><span class="hub-tag hub-level-${actionLevel.toLowerCase()}">${esc(actionLevel)}</span><span class="hub-tag hub-stage">${esc(action.dealPhase)}</span></div></div>${editControl}</div><p>${esc(action.instruction)}</p><div class="hub-meta">${esc(issue?.title||"Custom action")} · ${esc(action.status)}</div>${action.notes?`<p class="hub-meta">Note: ${esc(action.notes)}</p>`:""}${expanded?editorMarkup(action):""}</article>`;
+    return `<article class="hub-item" draggable="true" data-action-id="${esc(action.id)}"><div class="hub-item-top"><div><h4>${esc(action.icon||"◌")} ${esc(action.title)}</h4><div class="hub-tags"><span class="hub-tag hub-level-${actionLevel.toLowerCase()}">${esc(actionLevel)}</span><span class="hub-tag hub-stage">${esc(action.dealPhase)}</span></div></div>${editControl}</div><p>${esc(action.instruction)}</p><div class="hub-meta">${esc(issue?.title||"Custom action")} · ${esc(action.status)}</div>${action.notes?`<p class="hub-meta">Note: ${esc(action.notes)}</p>`:""}${expanded?editorMarkup(action):""}</article>`;
   }
   const options=(values,currentValue)=>values.map(value=>`<option ${value===currentValue?"selected":""}>${esc(value)}</option>`).join("");
   function editorMarkup(action) {
@@ -330,7 +328,6 @@
   document.addEventListener("option-holders-logic-rendered",decorateRecommendations);
   document.addEventListener("threatened-litigation-logic-rendered",decorateRecommendations);
   document.addEventListener("debt-facilities-logic-rendered",decorateRecommendations);
-  document.addEventListener("share-ownership-logic-rendered",decorateRecommendations);
   renderProjectRail();
   renderHub();
   if(currentIssue())decorateRecommendations();
