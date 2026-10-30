@@ -129,3 +129,35 @@ test("confirmed recovery never raises risk across the litigation answer combinat
     }
   }
 });
+
+test("an actual credible threat starts above a possible threat", () => {
+  const state = litigationHarness();
+  const threatId = state.litigation.litigationQuestionIds[0];
+  state.answers[threatId] = "Possibly";
+  assert.equal(state.litigation.litigationRiskScore(), 2);
+  state.answers[threatId] = "Yes";
+  assert.equal(state.litigation.litigationRiskScore(), 3);
+});
+
+test("Yes never scores below Possibly with the same remaining answers", () => {
+  const state = litigationHarness();
+  const ids = state.litigation.litigationQuestionIds;
+  for (let stage = 0; stage < expectedOptions[ids[1]].length; stage++) {
+    for (let merits = 0; merits < expectedOptions[ids[2]].length; merits++) {
+      for (let impact = 0; impact < expectedOptions[ids[3]].length; impact++) {
+        for (let transfer = 0; transfer < expectedOptions[ids[4]].length; transfer++) {
+          for (let resolution = 0; resolution < expectedOptions[ids[5]].length; resolution++) {
+            [3, stage, merits, impact, transfer, resolution].forEach((choice, index) => {
+              state.answers[ids[index]] = expectedOptions[ids[index]][choice];
+            });
+            const possibleRisk = state.litigation.litigationRiskScore();
+            state.answers[ids[0]] = "Yes";
+            const actualRisk = state.litigation.litigationRiskScore();
+            assert.ok(actualRisk >= possibleRisk,
+              `Yes scored below Possibly for ${[stage, merits, impact, transfer, resolution].join(",")}`);
+          }
+        }
+      }
+    }
+  }
+});
