@@ -1154,7 +1154,8 @@
 
         if (transfer === 1) {
           const nonFinancialFloor = fundamental ? 5 : urgent ? 4 : issued ? 3 : 2;
-          score = Math.max(nonFinancialFloor, score - 1);
+          // Confirmed recovery cannot increase the risk already assessed from the other answers.
+          score = Math.min(score, Math.max(nonFinancialFloor, score - 1));
         }
         if (transfer === 3) score = Math.max(3, score + 1);
         if (transfer === 4 && meaningfulImpact) score += 1;

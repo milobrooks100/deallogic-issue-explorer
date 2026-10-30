@@ -94,3 +94,38 @@ test("shortened choices drive the summary, risk and recommendations", () => {
   assert.equal(state.litigation.litigationRiskScore(), 1);
   assert.deepEqual(Array.from(state.litigation.litigationActions(issue, "Buyer")), []);
 });
+
+test("confirmed recovery does not raise risk for the answers shown in the screenshots", () => {
+  const state = litigationHarness();
+  const ids = state.litigation.litigationQuestionIds;
+  const choices = [3, 4, 1, 1, 4, 0];
+  ids.forEach((id, index) => { state.answers[id] = expectedOptions[id][choices[index]]; });
+  assert.equal(state.litigation.litigationRiskScore(), 2);
+  state.answers[ids[4]] = expectedOptions[ids[4]][1];
+  assert.equal(state.litigation.litigationRiskScore(), 2);
+});
+
+test("confirmed recovery never raises risk across the litigation answer combinations", () => {
+  const state = litigationHarness();
+  const ids = state.litigation.litigationQuestionIds;
+  for (const threat of [2, 3]) {
+    for (let stage = 0; stage < expectedOptions[ids[1]].length; stage++) {
+      for (let merits = 0; merits < expectedOptions[ids[2]].length; merits++) {
+        for (let impact = 0; impact < expectedOptions[ids[3]].length; impact++) {
+          for (let resolution = 0; resolution < expectedOptions[ids[5]].length; resolution++) {
+            [threat, stage, merits, impact, 1, resolution].forEach((choice, index) => {
+              state.answers[ids[index]] = expectedOptions[ids[index]][choice];
+            });
+            const withConfirmedRecovery = state.litigation.litigationRiskScore();
+            for (const alternative of [0, 2, 3, 4, 5]) {
+              state.answers[ids[4]] = expectedOptions[ids[4]][alternative];
+              const alternativeRisk = state.litigation.litigationRiskScore();
+              assert.ok(withConfirmedRecovery <= alternativeRisk,
+                `Confirmed recovery raised risk relative to choice ${alternative} for ${[threat, stage, merits, impact, resolution].join(",")}`);
+            }
+          }
+        }
+      }
+    }
+  }
+});
