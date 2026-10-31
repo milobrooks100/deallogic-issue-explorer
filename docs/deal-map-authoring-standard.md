@@ -33,7 +33,7 @@ After completion, use this order:
 
 Use the existing five-step scale and indicator: **1 No risk, 2 Low risk, 3 Medium risk, 4 High risk, 5 Very high risk**. Write an issue-specific decision table with rule order, increases, reductions, floors, caps, uncertainty treatment and early exits. Include worked scenarios with expected scores. Do not derive risk merely from the number of questions answered or copy another issue's formula.
 
-Questionnaires initially display **1/5 · No risk**, including Share ownership and transfer restrictions. Keep the risk badge limited to the score and level; do not append a provisional label. Record any future initial-state change explicitly.
+Questionnaires initially display **1/5 · No risk**, including Share Ownership and Transfer Restrictions. Keep the risk badge limited to the score and level; do not append a provisional label. Record any future initial-state change explicitly.
 
 Keep issue risk, action priority and Deal Hub urgency distinct. Apply these priority meanings in the selected transaction perspective:
 

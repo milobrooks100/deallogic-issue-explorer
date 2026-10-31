@@ -1,10 +1,10 @@
-# Key employee retention and employment terms
+# Key Employee Retention and Employment Terms
 
 ## Scope and current delivery
 
-Employees (`employees`) contains `key-employee-retention-and-employment-terms`. This branch implements the agreed questionnaire and introduction only, using Threatened Litigation's shared header, facts card, single-select controls, information tooltips, progressive reveal, reset and standby layout. Jurisdiction metadata follows that template. It does not duplicate litigation scoring, legal notes or recommended actions.
+Employment (`employees`) contains `key-employee-retention-and-employment-terms`. This branch implements the agreed questionnaire and introduction only, using Threatened Litigation's shared header, facts card, single-select controls, information tooltips, progressive reveal, reset and standby layout. Jurisdiction metadata follows that template. It does not duplicate litigation scoring, legal notes or recommended actions.
 
-The introduction is maintained in `dist/issues.json`: “The business may depend on employees whose departure would affect its operations or value. Review their plans, employment terms and transaction payments to identify any retention or handover arrangements needed for continuity.”
+The introduction is maintained in `dist/issues.json`: “The target may depend on employees whose departure would affect its operations or value. Review their plans, employment terms and transaction payments to identify any retention or handover arrangements needed for continuity.”
 
 Included: key staff dependence, replacement, intentions, continuity terms, transaction payments and retention/handover readiness. General employment liabilities, TUPE and pensions remain outside this issue; option treatment belongs in Option Holders.
 
@@ -29,8 +29,8 @@ Answers use existing issue/deal-scoped DealLogicStorage, reset and account sync.
 
 Employee assessment, summaries, implications, action priorities, side differences and legal notes are deferred to the next authoring stage. Apply deal logic remains in the existing standby state, even after all questions are answered. No registered employee actions or Hub selection are supplied at this stage. Existing Buyer/Seller/Balanced settings remain available globally.
 
-As a deliberate exception for this questionnaire-only draft, the risk widget is hidden and no numeric risk is exported until an employee-specific decision table exists. The internal initial score of 1 is only a shell fallback, not an employee assessment. Do not reuse litigation risk rules. Full issue authoring must complete the risk table, actions, sources and Hub integration before this issue is treated as complete.
+The shared risk assessment bar is displayed, as requested, with the initial 1/5 No risk state. Employee-specific scoring remains pending; the current score stays at its initial value and is omitted from the questionnaire report. Do not reuse litigation risk rules. Full issue authoring must complete the risk table, actions, sources and Hub integration before this issue is treated as complete.
 
 ## Verification
 
-Automated checks cover progressive visibility, unknown/not-assessed responses, confirmed-absence exit, invalid responses, hidden-answer removal, export labels, standby and delegation to other issue renderers. Verify question selection, reload, reset, tooltips and the new Employees navigation in the browser. Material/remediated scores, action sides, Hub snapshots and legal-note verification are inapplicable to this questionnaire-only stage and remain future work.
+Automated checks cover progressive visibility, unknown/not-assessed responses, confirmed-absence exit, invalid responses, hidden-answer removal, export labels, standby and delegation to other issue renderers. Verify question selection, reload, reset, tooltips and the new Employment navigation in the browser. Material/remediated scores, action sides, Hub snapshots and legal-note verification are inapplicable to this questionnaire-only stage and remain future work.

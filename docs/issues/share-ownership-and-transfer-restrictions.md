@@ -1,4 +1,4 @@
-# Share ownership and transfer restrictions
+# Share Ownership and Transfer Restrictions
 
 ## Current scope
 

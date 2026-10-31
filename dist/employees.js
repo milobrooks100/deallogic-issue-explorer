@@ -1,4 +1,4 @@
-/* Employees questionnaire: Threatened Litigation presentation and progressive reveal. */
+/* Employment questionnaire: Threatened Litigation presentation and progressive reveal. */
 (() => {
   const issueId = "key-employee-retention-and-employment-terms";
   const isEmployees = issue => issue?.id === issueId;
@@ -23,7 +23,7 @@
         "Not assessed"
       ]
     ],
-    "guidance": "Consider employees who hold key customer relationships, specialist knowledge or essential leadership roles. Assess whether their departure would materially affect the business."
+    "guidance": "Consider employees who hold key customer relationships, specialist knowledge or essential leadership roles. Assess whether their departure would materially affect the target."
   },
   "employee-replacement": {
     "options": [
@@ -184,9 +184,6 @@
         renderPanel();
       };
     });
-    // A questionnaire draft must not imply that an employee risk score is calculated.
-    const risk = document.querySelector(".issue-header .risk-wrap");
-    if (risk) risk.hidden = true;
     renderLogic(issue);
   };
   const previousRenderLogic = renderLogic;

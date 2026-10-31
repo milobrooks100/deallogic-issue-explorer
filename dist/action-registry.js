@@ -96,7 +96,7 @@
 
   topics.push({
     id: "share-ownership-and-transfer-restrictions",
-    label: "Share ownership and transfer restrictions",
+    label: "Share Ownership and Transfer Restrictions",
     shortLabel: "Share Ownership",
     actions: [
       ["SO01", "Verify share ownership", "Reconcile the register of members, cap table and supporting title documents to confirm each seller’s ownership of the sale shares.", "search", "Due diligence"],

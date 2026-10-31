@@ -69,7 +69,7 @@
   },
   {
     "id": "share-ownership-and-transfer-restrictions",
-    "title": "Share ownership and transfer restrictions",
+    "title": "Share Ownership and Transfer Restrictions",
     "category": "corporate-and-shares",
     "summary": "Unverified ownership, unwilling sellers, transfer restrictions or security over the shares can delay completion or prevent the buyer from acquiring the agreed shares.",
     "jurisdiction": {
@@ -346,9 +346,9 @@
   },
   {
     "id": "key-employee-retention-and-employment-terms",
-    "title": "Key employee retention and employment terms",
+    "title": "Key Employee Retention and Employment Terms",
     "category": "employees",
-    "summary": "The business may depend on employees whose departure would affect its operations or value. Review their plans, employment terms and transaction payments to identify any retention or handover arrangements needed for continuity.",
+    "summary": "The target may depend on employees whose departure would affect its operations or value. Review their plans, employment terms and transaction payments to identify any retention or handover arrangements needed for continuity.",
     "jurisdiction": {
       "primary": "England and Wales",
       "legal_system": "common-law"
@@ -356,15 +356,15 @@
     "key_questions": [
       {
         "id": "employee-dependence",
-        "question": "Does the business depend on particular employees for its operations or value?"
+        "question": "Does the target depend on particular employees for its operations or value?"
       },
       {
         "id": "employee-replacement",
-        "question": "How difficult would it be to replace those employees without disrupting the business?"
+        "question": "How difficult would it be to replace those employees without disrupting the target?"
       },
       {
         "id": "employee-intentions",
-        "question": "Do those employees intend to remain with the business after completion?"
+        "question": "Do those employees intend to remain with the target after completion?"
       },
       {
         "id": "employee-terms",
