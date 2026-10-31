@@ -55,7 +55,7 @@ If no theme applies, use one qualified clear-position statement. No dependence u
 
 | Order | Answer | Adjustment / protected minimum |
 | --- | --- | --- |
-| 1 | Dependence Yes / Partly / Unknown | Start 3 / 2 / 3; Unknown minimum 3 |
+| 1 | Dependence Yes / Partly / Unknown | Start 3 / 2 / 2; overall minimum 2 |
 | 2 | Replacement Easy / Manageable | −1 / none |
 | 2 | Replacement Difficult / Unknown | +1 and minimum 3 / minimum 3 |
 | 3 | All staying / Some undecided / Unknown intentions | −1 / minimum 3 / minimum 3 |
@@ -75,3 +75,5 @@ The 5 override requires an actual valid arrangement answer: an unanswered final 
 Worked outcomes: No dependence → 1; Yes/Easy/All staying/Yes/No/All agreed → 2; same with Unclear payments → 3; Yes/Difficult/Some leaving/Yes/No/All agreed → 4; Yes/Easy/All leaving/Yes/No/All agreed → 3; Yes/Difficult/All leaving/No/Yes/None agreed → 5; changing only None agreed to All agreed → 4; all explicit uncertainties → 3.
 
 Risk checks cover all 18,000 combinations of current choices and unanswered states, integer bounds, hidden-answer exclusion, uncertainty and departure floors, the exclusive 5 trigger and non-increasing risk when outstanding arrangements become agreed. Focused scenarios verify each agreed example, remediation, export score parity and delegation to other issues.
+
+Question 1 Unknown starts at 2/5 Low risk, as requested. Later answered questions can independently impose higher floors; unknown dependence alone does not impose a minimum of 3.

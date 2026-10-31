@@ -159,7 +159,7 @@ test('all 18000 permutations respect bounds, active answers, floors and the excl
     const severe = dependence === 'yes' && replacement === 'difficult' && intentions === 'all-leaving'
       && terms === 'no' && arrangements && arrangements !== 'all-agreed';
     assert.equal(score === 5, Boolean(severe));
-    if (dependence === 'unknown' || replacement === 'unknown' || intentions === 'unknown' || terms === 'unknown'
+    if (replacement === 'unknown' || intentions === 'unknown' || terms === 'unknown'
       || payments === 'unclear' || ['some-outstanding','none-agreed','unknown'].includes(arrangements)) assert.ok(score >= 3);
     if (intentions === 'some-leaving' && replacement === 'difficult') assert.ok(score >= 4);
     if (intentions === 'all-leaving') assert.ok(score >= (replacement === 'easy' ? 3 : 4));
@@ -183,4 +183,13 @@ test('risk recomputes after remediation and matches the exported score', () => {
   assert.equal(context.riskScore(),1);
   context.current = () => ({id:'other'});
   assert.equal(context.riskScore(),4);
+});
+
+test('unknown dependence starts at low risk while later concerns retain their floors', () => {
+  const {ids, assessRisk} = setup();
+  const answers = {[ids[0]]:'unknown'};
+  assert.equal(assessRisk(answers),2);
+  answers[ids[1]] = 'unknown';
+  assert.equal(assessRisk(answers),3);
+  assert.equal(assessRisk(Object.fromEntries(ids.map((id,i) => [id,['unknown','easy','all-staying','yes','no','not-needed'][i]]))),2);
 });

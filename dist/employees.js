@@ -235,8 +235,8 @@
     const active = id => visible.includes(id) && valid(id, responses[id]) ? responses[id] : "";
     const [dependence, replacement, intentions, terms, payments, arrangements] = ids.map(active);
     if (!dependence || dependence === "no") return 1;
-    let score = dependence === "partly" ? 2 : 3;
-    let floor = dependence === "unknown" ? 3 : 2;
+    let score = dependence === "yes" ? 3 : 2;
+    let floor = 2;
     const atLeast = minimum => { floor = Math.max(floor, minimum); };
 
     if (replacement === "easy") score -= 1;
