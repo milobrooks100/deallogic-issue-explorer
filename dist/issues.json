@@ -343,5 +343,41 @@
         "timing": "signing"
       }
     ]
+  },
+  {
+    "id": "key-employee-retention-and-employment-terms",
+    "title": "Key employee retention and employment terms",
+    "category": "employees",
+    "summary": "The business may depend on employees whose departure would affect its operations or value. Review their plans, employment terms and transaction payments to identify any retention or handover arrangements needed for continuity.",
+    "jurisdiction": {
+      "primary": "England and Wales",
+      "legal_system": "common-law"
+    },
+    "key_questions": [
+      {
+        "id": "employee-dependence",
+        "question": "Does the business depend on particular employees for its operations or value?"
+      },
+      {
+        "id": "employee-replacement",
+        "question": "How difficult would it be to replace those employees without disrupting the business?"
+      },
+      {
+        "id": "employee-intentions",
+        "question": "Do those employees intend to remain with the business after completion?"
+      },
+      {
+        "id": "employee-terms",
+        "question": "Do their employment terms allow enough time for replacement and handover?"
+      },
+      {
+        "id": "employee-payments",
+        "question": "Will the transaction trigger bonuses, severance or other employee payments?"
+      },
+      {
+        "id": "employee-arrangements",
+        "question": "Are any necessary retention or handover arrangements agreed?"
+      }
+    ]
   }
 ]

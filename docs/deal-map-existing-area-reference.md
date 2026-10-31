@@ -42,3 +42,7 @@ Some issue-record questions differ from the tailored UI questions. Do not assume
 The [Share ownership and transfer restrictions draft](issues/share-ownership-and-transfer-restrictions.md) is a sixth issue under Shares. It implements the agreed facts questionnaire, component-based risk assessment, prose summary and up to three stable deal implications using Option Holders presentation. Its ten registered actions follow a perspective-specific matrix capped at eight recommendations, with selected-action saving to Deal Hub. Four short legal notes include linked authorities. Its specification records the scoring table, completion gate, action matrix, legal sources and worked outcomes.
 
 Keep a completed risk decision table in the issue's maintained specification when introducing new substantive rules. Record ordered conditions, operations, floors, reductions and worked outcomes using the issue template. Link that specification here so the main authoring standard stays short. Preserve the executable rule as the implementation authority and investigate any disagreement between it and the specification.
+
+## Employees questionnaire draft
+
+[Key employee retention and employment terms](issues/key-employee-retention-and-employment-terms.md) adds the Employees area with six agreed questions, answers and tooltips, reusing Threatened Litigation presentation. This is a questionnaire-only stage; employee scoring, analysis, actions and legal notes remain pending. See the specification for visibility and export behaviour.
