@@ -30,7 +30,7 @@ Some issue-record questions differ from the tailored UI questions. Do not assume
 ## Exceptions and boundaries
 
 - All five use the standby message and the completed Summary → Key deal implications → Recommended actions → Notes structure. Their readiness gates differ. Finance requires all currently visible answers; Change of Control does not require every consent-outlook detail before producing output. Consult each renderer's completion condition rather than assuming a universal gate.
-- The original five issues initially display 1/5, labelled No risk. The Share ownership issue instead uses Not assessed and provisional results; its issue specification records that distinction.
+- All six issues initially display 1/5, labelled No risk. Share ownership reveals one additional question at a time as the preceding answer is recorded, including conditional follow-ups before continuing.
 - Existing option and litigation answers can be substantially longer than the preferred short-label standard. Some questions have more than five substantive choices. Do not copy that verbosity into a new issue or shorten old labels without handling their dependent rules and saved values.
 - Finance currently caps displayed actions at ten; litigation caps at nine and limits overlapping action families. These are issue-specific implementation details, not shared limits.
 - Buyer / Seller / Balanced affects action recommendations and priority. Do not infer the risk score from the selected side or action count.

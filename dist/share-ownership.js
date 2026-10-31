@@ -34,13 +34,22 @@
       guidance: "Review the lender’s written release arrangements, including any repayment conditions and required documents. Confirm that the release will take effect as part of completion, rather than relying on an informal assurance."
     }
   };
-  const visible = id => !fields[id].parent || fields[id].showFor.includes(answers[fields[id].parent]);
-  const visibleQuestions = issue => issue.key_questions.filter(question => visible(question.id));
+  const visibleIds = responses => {
+    const ids = [];
+    for (const [id, field] of Object.entries(fields)) {
+      if (field.parent && !field.showFor.includes(responses[field.parent])) continue;
+      ids.push(id);
+      if (!field.options.some(([value]) => value === responses[id])) break;
+    }
+    return ids;
+  };
+  const visibleQuestions = issue => issue.key_questions.filter(question => visibleIds(answers).includes(question.id));
   const labelFor = id => fields[id].options.find(([value]) => value === answers[id])?.[1] || "Unanswered";
   const questionMarkup = ({ id, question }) => `<div class="question"><div class="question-top"><label for="${id}">${escape(question)}</label><button class="info" type="button" aria-label="${escape(`Guidance: ${question}`)}">i<span class="tooltip">${escape(fields[id].guidance)}</span></button></div><select id="${id}"><option value="" ${!answers[id] ? "selected" : ""}>Unanswered</option>${fields[id].options.map(([value, label]) => `<option value="${value}" ${answers[id] === value ? "selected" : ""}>${escape(label)}</option>`).join("")}</select></div>`;
 
   const assessRisk = responses => {
-    const answer = id => fields[id].options.some(([value]) => value === responses[id]) ? responses[id] : "";
+    const activeIds = visibleIds(responses);
+    const answer = id => activeIds.includes(id) && fields[id].options.some(([value]) => value === responses[id]) ? responses[id] : "";
     const ownership = answer("share-ownership-verified");
     const participation = answer("share-seller-participation");
     const restrictions = answer("share-transfer-restrictions");
@@ -50,8 +59,7 @@
     const activeAnswers = [ownership, participation, restrictions, security];
     if (["yes", "partly-unclear"].includes(restrictions)) activeAnswers.push(addressed);
     if (security === "yes") activeAnswers.push(release);
-    const provisional = activeAnswers.some(value => ["", "unchecked", "unclear", "partly-unclear"].includes(value));
-    if (!activeAnswers.some(Boolean)) return { score: null, provisional: true };
+    if (!activeAnswers.some(Boolean)) return { score: 1 };
 
     const ownershipRisk = { verified: 1, "evidence-gaps": 2, disputed: 4, unchecked: 2 }[ownership] || 2;
     const participationRisk = { "all-agreed": 1, "some-undecided": 3, "some-refusing": 4, unchecked: 2 }[participation] || 2;
@@ -65,13 +73,12 @@
     let unresolvedComponents = [ownershipRisk, participationRisk, restrictionsRisk, securityRisk].filter(value => value >= 3).length;
     if (participation === "some-refusing" && restrictionsRisk >= 3) unresolvedComponents -= 1;
     if (score < 4 && unresolvedComponents >= 3) score += 1;
-    return { score, provisional };
+    return { score };
   };
-  const riskText = assessment => assessment.score === null ? "Not assessed"
-    : `${assessment.score}/5 · ${riskNames[assessment.score - 1]}${assessment.provisional ? " · Provisional" : ""}`;
+  const riskText = assessment => `${assessment.score}/5 · ${riskNames[assessment.score - 1]}`;
   const previousRiskScore = riskScore;
   riskScore = function () {
-    return isShareOwnership(current()) ? (assessRisk(answers).score ?? 1) : previousRiskScore();
+    return isShareOwnership(current()) ? assessRisk(answers).score : previousRiskScore();
   };
 
   const previousRenderLogic = renderLogic;
@@ -92,9 +99,8 @@
     const assessment = assessRisk(answers);
     const riskLabel = document.querySelector(".risk-score");
     riskLabel.textContent = riskText(assessment);
-    document.querySelector(".risk-pointer").hidden = assessment.score === null;
     document.querySelectorAll(".risk-step").forEach((step, index) => {
-      step.classList.toggle("active", assessment.score !== null && index < assessment.score);
+      step.classList.toggle("active", index < assessment.score);
       step.onmouseleave = () => { riskLabel.textContent = riskText(assessRisk(answers)); };
     });
     const factsCard = document.querySelector(".content-grid > .card");
@@ -107,7 +113,8 @@
         const { id, value } = event.target;
         if (value) answers[id] = value;
         else delete answers[id];
-        Object.keys(fields).filter(key => !visible(key)).forEach(key => delete answers[key]);
+        const activeIds = visibleIds(answers);
+        Object.keys(fields).filter(key => !activeIds.includes(key)).forEach(key => delete answers[key]);
         DealLogicStorage.setItem(storedKey(), JSON.stringify(answers));
         renderPanel();
         document.getElementById(id)?.focus();

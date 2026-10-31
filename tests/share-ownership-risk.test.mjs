@@ -8,20 +8,17 @@ const context = vm.createContext({
   current: () => ({ id: "other-issue" }), riskScore: () => 99,
   renderPanel: () => {}, renderLogic: () => {}, exportReport: () => {}
 });
-vm.runInContext(source.replace(/\}\)\(\);\s*$/, "globalThis.riskTest = { assessRisk, fields }; })();"), context);
+vm.runInContext(source.replace(/\}\)\(\);\s*$/, "globalThis.riskTest = { assessRisk, fields, visibleIds }; })();"), context);
 const assess = answers => context.riskTest.assessRisk(answers);
 const clean = {
   "share-ownership-verified": "verified", "share-seller-participation": "all-agreed",
   "share-transfer-restrictions": "no", "share-security-exists": "no"
 };
 
-test("untouched is not assessed; incomplete or unchecked responses are provisional", () => {
-  assert.equal(assess({}).score, null);
+test("untouched starts at no risk and unanswered main questions retain their floor", () => {
+  assert.equal(assess({}).score, 1);
   assert.equal(assess({ "share-ownership-verified": "verified" }).score, 2);
-  assert.equal(assess({ "share-ownership-verified": "verified" }).provisional, true);
   assert.equal(assess(clean).score, 1);
-  assert.equal(assess(clean).provisional, false);
-  assert.equal(assess({ ...clean, "share-ownership-verified": "unchecked" }).provisional, true);
 });
 
 test("each answer establishes its agreed floor against otherwise clean facts", () => {
@@ -51,7 +48,6 @@ test("each answer establishes its agreed floor against otherwise clean facts", (
 test("uncertain restrictions remain medium even if the follow-up says all addressed", () => {
   const result = assess({ ...clean, "share-transfer-restrictions": "partly-unclear", "share-restrictions-addressed": "all-addressed" });
   assert.equal(result.score, 3);
-  assert.equal(result.provisional, true);
 });
 
 test("three medium components increase the result once, capped at high", () => {
@@ -73,8 +69,7 @@ test("cures recalculate the result without cancelling another component's floor"
 test("hidden follow-ups never affect the assessment", () => {
   const result = assess({ ...clean, "share-restrictions-addressed": "not-addressed", "share-security-release": "release-refused" });
   assert.equal(result.score, 1);
-  assert.equal(result.provisional, false);
-  assert.equal(assess({ "share-security-release": "release-refused" }).score, null);
+  assert.equal(assess({ "share-security-release": "release-refused" }).score, 1);
 });
 
 test("all answer permutations stay in range and only a visible refused release produces five", () => {
@@ -88,9 +83,9 @@ test("all answer permutations stay in range and only a visible refused release p
       return;
     }
     const result = assess(responses);
-    assert.ok(result.score === null || (Number.isInteger(result.score) && result.score >= 1 && result.score <= 5));
-    assert.equal(result.score === 5, responses["share-security-exists"] === "yes" && responses["share-security-release"] === "release-refused");
-    if (result.score === 1) {
+    assert.ok(Number.isInteger(result.score) && result.score >= 1 && result.score <= 5);
+    assert.equal(result.score === 5, context.riskTest.visibleIds(responses).includes("share-security-release") && responses["share-security-release"] === "release-refused");
+    if (result.score === 1 && responses["share-ownership-verified"]) {
       assert.equal(responses["share-ownership-verified"], "verified");
       assert.equal(responses["share-seller-participation"], "all-agreed");
       assert.equal(responses["share-security-exists"], "no");
@@ -104,4 +99,16 @@ test("all answer permutations stay in range and only a visible refused release p
 
 test("other issues retain their existing risk implementation", () => {
   assert.equal(context.riskScore(), 99);
+});
+
+
+test("questions reveal sequentially and conditional follow-ups precede the next main question", () => {
+  const ids = answers => Array.from(context.riskTest.visibleIds(answers));
+  assert.deepEqual(ids({}), ["share-ownership-verified"]);
+  assert.deepEqual(ids({ "share-ownership-verified": "verified" }), ["share-ownership-verified", "share-seller-participation"]);
+  const restricted = { ...clean, "share-transfer-restrictions": "yes" };
+  assert.deepEqual(ids(restricted), ["share-ownership-verified", "share-seller-participation", "share-transfer-restrictions", "share-restrictions-addressed"]);
+  assert.equal(assess({ ...restricted, "share-security-exists": "yes", "share-security-release": "release-refused" }).score, 3);
+  assert.equal(ids({ ...restricted, "share-restrictions-addressed": "all-addressed", "share-security-exists": "yes" }).at(-1), "share-security-release");
+  assert.deepEqual(ids({ ...clean, "share-ownership-verified": "" }), ["share-ownership-verified"]);
 });
