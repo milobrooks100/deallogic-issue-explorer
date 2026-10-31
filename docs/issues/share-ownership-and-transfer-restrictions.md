@@ -88,9 +88,9 @@ For the fully adverse example, Buyer receives SO01–SO06, SO09 and SO10; Seller
 Four notes appear after Recommended actions, using the existing `.logic-note` treatment: a bold lead-in, two concise sentences and an underlined source link opening in a separate tab. Four notes, rather than the usual two or three, are explicitly requested for this issue. The registration-timing draft was excluded.
 
 - **Ownership evidence:** Companies Act 2006, section 127; register evidence is prima facie rather than conclusive.
-- **Missing certificates:** private company Model Article 25; check the actual articles and agree replacement or lost-certificate arrangements.
+- **Missing certificates:** [private company Model Article 25](https://www.legislation.gov.uk/uksi/2008/3229/schedule/1/paragraph/25/data.html); check the actual articles and agree replacement or lost-certificate arrangements.
 - **Transfer pre-emption:** Companies Act 2006, section 561; distinguish statutory allotment rights from separate transfer restrictions.
-- **Drag-along amendments:** Arbuthnott v Bonnyman [2015] EWCA Civ 536, paragraphs 66 and 98–100; the amendments facilitated an existing compulsory transfer arrangement, rather than simply creating a new drag right.
+- **Drag-along amendments:** [Arbuthnott v Bonnyman [2015] EWCA Civ 536](https://caselaw.nationalarchives.gov.uk/ewca/civ/2015/536), paragraphs 66 and 98–100; the amendments facilitated an existing compulsory transfer arrangement, rather than simply creating a new drag right.
 
 Sources were verified against the legislation, model articles and judgment on 31 October 2026 during drafting. Note text and source URLs are maintained together in `legalNotes` in `dist/share-ownership.js`. Completed reports reproduce all four notes and their source URLs. Notes remain hidden while the questionnaire is incomplete.
 

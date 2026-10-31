@@ -217,7 +217,7 @@
       title: "Missing certificates",
       text: "A missing share certificate does not itself establish defective ownership; Model Article 25 provides for replacement subject to conditions concerning evidence, indemnity and reasonable fees. Check the company’s actual articles and agree the replacement or lost-certificate arrangements before completion.",
       source: "Model Article 25",
-      url: "https://www.gov.uk/government/publications/model-articles-for-private-companies-limited-by-shares/model-articles-for-private-companies-limited-by-shares"
+      url: "https://www.legislation.gov.uk/uksi/2008/3229/schedule/1/paragraph/25/data.html"
     },
     {
       title: "Transfer pre-emption",
@@ -229,7 +229,7 @@
       title: "Drag-along amendments",
       text: "In Arbuthnott v Bonnyman [2015] EWCA Civ 536, the Court of Appeal upheld amendments clarifying and facilitating an existing compulsory transfer arrangement. Review the existing shareholder bargain, company benefit and minority protections before relying on an amendment to compel an unwilling shareholder to sell.",
       source: "Judgment, paragraphs 66 and 98–100",
-      url: "https://www.oeclaw.co.uk/images/uploads/judgments/Arbuthnott_v_Bonnyman_Re_Charterhouse_Capital_Limited_2015_EWCA_Civ_536.pdf"
+      url: "https://caselaw.nationalarchives.gov.uk/ewca/civ/2015/536"
     }
   ];
   const notesMarkup = () => legalNotes.map(note => `<div class="logic-note"><strong>${escape(note.title)}:</strong> ${escape(note.text)} <a href="${escape(note.url)}" target="_blank" rel="noopener noreferrer">${escape(note.source)}</a></div>`).join("");

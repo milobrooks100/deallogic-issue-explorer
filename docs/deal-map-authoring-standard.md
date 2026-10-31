@@ -27,7 +27,7 @@ After completion, use this order:
 1. **Summary:** a short, factual account of the recorded position, including material uncertainty.
 2. **Key deal implications:** preferably two or three concise bullets explaining the transaction effect, without repeating the questionnaire. A clear early exit may need only one.
 3. **Recommended actions:** only relevant actions, each with its priority label, registry icon, short title and concise instruction. Preserve the Buyer / Seller / Balanced selector where applicable. Show an explicit no-active-actions message when appropriate.
-4. **Notes:** two or three issue-specific legal notes. Each uses a short bold lead-in with a colon, followed by one or two concise sentences. Reuse `.logic-note` smaller, muted text and paragraph spacing; keep notes inside the existing Notes section. Verify new legal propositions and references for the specified jurisdiction.
+4. **Notes:** two or three issue-specific legal notes. Each uses a short bold lead-in with a colon, followed by one or two concise sentences. Reuse `.logic-note` smaller, muted text and paragraph spacing; keep notes inside the existing Notes section. Verify new legal propositions and references for the specified jurisdiction. Follow the Share ownership notes’ source-link pattern: append a descriptive hyperlink only where authority supports the proposition. Prefer the exact legislation provision, official judgment or responsible regulator/department’s guidance; include judgment paragraph references where useful. Do not attach generic legal sources to practical advice governed by the actual transaction documents. See the [notes source review](notes-source-review.md).
 
 ## Risk and action rules
 
