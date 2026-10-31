@@ -68,6 +68,42 @@
     ]
   },
   {
+    "id": "share-ownership-and-transfer-restrictions",
+    "title": "Share ownership and transfer restrictions",
+    "category": "corporate-and-shares",
+    "summary": "Unverified ownership, unwilling sellers, transfer restrictions or security over the shares can delay completion or prevent the buyer from acquiring the agreed shares.",
+    "jurisdiction": {
+      "primary": "England and Wales",
+      "legal_system": "common-law"
+    },
+    "key_questions": [
+      {
+        "id": "share-ownership-verified",
+        "question": "Do all sellers have verified ownership of their sale shares?"
+      },
+      {
+        "id": "share-seller-participation",
+        "question": "Have all shareholders needed for the acquisition agreed to sell?"
+      },
+      {
+        "id": "share-transfer-restrictions",
+        "question": "Are there any restrictions on transferring the sale shares?"
+      },
+      {
+        "id": "share-restrictions-addressed",
+        "question": "Have all transfer restrictions been addressed?"
+      },
+      {
+        "id": "share-security-exists",
+        "question": "Is there any security over the sale shares?"
+      },
+      {
+        "id": "share-security-release",
+        "question": "Will the security be released at completion?"
+      }
+    ]
+  },
+  {
     "id": "debt-facilities-repayment",
     "title": "Debt Facilities Requiring Repayment",
     "category": "finance-and-banking",

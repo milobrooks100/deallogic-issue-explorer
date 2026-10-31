@@ -39,4 +39,6 @@ Some issue-record questions differ from the tailored UI questions. Do not assume
 
 ## Recording future scoring detail
 
+The [Share ownership and transfer restrictions draft](issues/share-ownership-and-transfer-restrictions.md) is a sixth issue under Shares. It currently implements the agreed facts questionnaire only, using Option Holders presentation; substantive risk and deal logic remain deferred.
+
 Keep a completed risk decision table in the issue's maintained specification when introducing new substantive rules. Record ordered conditions, operations, floors, reductions and worked outcomes using the issue template. Link that specification here so the main authoring standard stays short. Preserve the executable rule as the implementation authority and investigate any disagreement between it and the specification.
