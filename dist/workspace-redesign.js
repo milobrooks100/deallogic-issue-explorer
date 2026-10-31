@@ -171,8 +171,10 @@
       const savedAction=activeDealProject().hub.actions.find(action=>action.id===actionId);
       if(savedAction?.manual && !["library", "company-radar"].includes(savedAction.selectionSource))return;
       const title=heading.textContent.replace(/^\S+\s/,'');
-      const iconKeyMap={'file-text':'document','circle-arrow-right':'arrowCircle','file-pen-line':'filePenLine','shield-check':'shieldCheck','circle-check':'circleCheck','file-search':'fileSearch','arrow-down-up':'arrowDownUp','calendar-check':'calendarCheck','arrow-left-right':'arrowLeftRight','ellipsis':'ellipsisCircle'};
-      const symbol=savedAction?.selectionSource === 'company-radar' ? 'ellipsisCircle' : iconKeyMap[savedAction?.iconKey] || savedAction?.iconKey || actionLibraryIcons[title] || (/warranty|indemnity|consent/i.test(title)?'shieldCheck':/completion|condition/i.test(title)?'circleCheck':'document');
+      const registry = window.DealLogicActionRegistry;
+      const stableId = savedAction?.stableActionId || registry?.resolveActionId(savedAction?.issueId, savedAction?.originalTitle || savedAction?.title, savedAction?.originalInstruction || savedAction?.instruction);
+      const registeredAction = registry?.byTopic.get(savedAction?.issueId)?.actions.find(action => action.id === stableId);
+      const symbol = registeredAction ? iconKeyByLucide[registeredAction.icon] : savedAction?.selectionSource === 'company-radar' ? 'ellipsisCircle' : iconKeyByLucide[savedAction?.iconKey] || actionLibraryIcons[title] || 'document';
       heading.closest('.hub-item')?.setAttribute('data-action-icon', symbol);
       const label=document.createElement('span');label.textContent=title;
       heading.replaceChildren();heading.insertAdjacentHTML('afterbegin',icon(symbol));heading.append(label);heading.dataset.vector='true';
