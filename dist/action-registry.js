@@ -94,8 +94,28 @@
     }
   ];
 
+  const coreActionIcons = Object.freeze({
+    "Further diligence": "search",
+    "Rectification": "wrench",
+    "Third-party consent": "handshake",
+    "Condition precedent": "circle-check",
+    "Pre-completion covenant": "file-pen-line",
+    "Warranty": "shield-check",
+    "Specific indemnity": "banknote",
+    "Specific disclosure": "file-search",
+    "Escrow or retention": "lock-keyhole",
+    "Price adjustment": "arrow-down-up",
+    "Completion mechanic": "calendar-check",
+    "Post-completion action": "circle-arrow-right",
+    "Walk away or renegotiate": "arrow-left-right",
+    "Other": "ellipsis"
+  });
+  const validIcons = new Set(Object.values(coreActionIcons));
   topics.forEach(topic => {
-    topic.actions = topic.actions.map(([id, title, description, icon, phase]) => ({ id, title, description, icon, phase }));
+    topic.actions = topic.actions.map(([id, title, description, icon, phase]) => {
+      if (!validIcons.has(icon)) throw new Error(`Unknown action icon for ${topic.id}/${id}: ${icon}`);
+      return { id, title, description, icon, phase };
+    });
   });
 
   const byTopic = new Map(topics.map(topic => [topic.id, topic]));
@@ -120,5 +140,10 @@
     return explicitId || "";
   };
 
-  window.DealLogicActionRegistry = { topics, byTopic, resolveActionId };
+  const actionFor = (topicId, title = "", description = "", explicitId = "") => {
+    const id = resolveActionId(topicId, title, description, explicitId);
+    return byTopic.get(topicId)?.actions.find(action => action.id === id) || null;
+  };
+
+  window.DealLogicActionRegistry = { topics, byTopic, coreActionIcons, resolveActionId, actionFor };
 })();

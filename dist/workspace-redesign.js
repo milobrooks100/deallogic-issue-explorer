@@ -135,22 +135,7 @@
   function polish() {
     decorateRail(); updateContext();
     decorateMapSidebar();
-    const actionLibraryIcons = {
-      'Further diligence':'search',
-      'Rectification':'wrench',
-      'Third-party consent':'handshake',
-      'Condition precedent':'circleCheck',
-      'Pre-completion covenant':'filePenLine',
-      'Warranty':'shieldCheck',
-      'Specific indemnity':'banknote',
-      'Specific disclosure':'fileSearch',
-      'Escrow or retention':'lockKeyhole',
-      'Price adjustment':'arrowDownUp',
-      'Completion mechanic':'calendarCheck',
-      'Post-completion action':'arrowCircle',
-      'Walk away or renegotiate':'arrowLeftRight',
-      'Other':'ellipsisCircle'
-    };
+    const coreActionIcons = window.DealLogicActionRegistry?.coreActionIcons || {};
     document.querySelectorAll('.logic-icon,.action-symbol').forEach(node=>{
       if(node.dataset.vector)return;
       const label = node.parentElement.querySelector('strong')?.textContent.trim() || '';
@@ -159,23 +144,23 @@
       const logicAction = node.closest('.logic-action');
       const issueId = logicAction && typeof current === 'function' ? current()?.id : null;
       const registry = window.DealLogicActionRegistry;
-      const actionId = logicAction ? registry?.resolveActionId(issueId, label, logicAction.textContent, logicAction.dataset.actionId || '') : '';
-      const registeredAction = registry?.byTopic.get(issueId)?.actions.find(action => action.id === actionId);
-      const name = iconKeyByLucide[registeredAction?.icon] || actionLibraryIcons[label] || 'document';
-      logicAction?.setAttribute('data-action-icon', name);
-      node.dataset.originalIcon=node.textContent.trim();node.innerHTML=icon(name);node.dataset.vector='true';
+      const registeredAction = logicAction ? registry?.actionFor(issueId, label, logicAction.textContent, logicAction.dataset.actionId || '') : null;
+      const iconName = registeredAction?.icon || coreActionIcons[label] || 'file-text';
+      const name = iconKeyByLucide[iconName] || 'document';
+      logicAction?.setAttribute('data-core-icon', iconName);
+      node.closest('.action-item')?.setAttribute('data-core-icon', iconName);
+      node.innerHTML=icon(name);node.dataset.vector='true';
     });
     document.querySelectorAll('.hub-item h4').forEach(heading=>{
       if(heading.dataset.vector)return;
       const actionId=heading.closest('[data-action-id]')?.dataset.actionId;
       const savedAction=activeDealProject().hub.actions.find(action=>action.id===actionId);
       if(savedAction?.manual && !["library", "company-radar"].includes(savedAction.selectionSource))return;
-      const title=heading.textContent.replace(/^\S+\s/,'');
+      const title = savedAction?.title || heading.textContent.trim();
       const registry = window.DealLogicActionRegistry;
-      const stableId = savedAction?.stableActionId || registry?.resolveActionId(savedAction?.issueId, savedAction?.originalTitle || savedAction?.title, savedAction?.originalInstruction || savedAction?.instruction);
-      const registeredAction = registry?.byTopic.get(savedAction?.issueId)?.actions.find(action => action.id === stableId);
-      const symbol = registeredAction ? iconKeyByLucide[registeredAction.icon] : savedAction?.selectionSource === 'company-radar' ? 'ellipsisCircle' : iconKeyByLucide[savedAction?.iconKey] || actionLibraryIcons[title] || 'document';
-      heading.closest('.hub-item')?.setAttribute('data-action-icon', symbol);
+      const registeredAction = registry?.actionFor(savedAction?.issueId, savedAction?.originalTitle || savedAction?.title, savedAction?.originalInstruction || savedAction?.instruction, savedAction?.stableActionId || '');
+      const iconName = registeredAction?.icon || (savedAction?.selectionSource === 'company-radar' ? 'ellipsis' : savedAction?.iconKey) || coreActionIcons[title] || 'file-text';
+      const symbol = iconKeyByLucide[iconName] || (lucideNames[iconName] ? iconName : 'document');
       const label=document.createElement('span');label.textContent=title;
       heading.replaceChildren();heading.insertAdjacentHTML('afterbegin',icon(symbol));heading.append(label);heading.dataset.vector='true';
     });
