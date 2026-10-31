@@ -81,14 +81,94 @@
     return isShareOwnership(current()) ? assessRisk(answers).score : previousRiskScore();
   };
 
+  const summaryCopy = {
+    ownership: {
+      verified: "All sellers have verified ownership of their sale shares.",
+      "evidence-gaps": "There are gaps in the evidence of the sellers’ ownership of their sale shares.",
+      disputed: "There is an ownership dispute affecting the sale shares.",
+      unchecked: "The sellers’ ownership of their sale shares has not yet been checked."
+    },
+    participation: {
+      "all-agreed": "All shareholders needed for the acquisition have agreed to sell.",
+      "some-undecided": "Some shareholders needed for the acquisition have not yet agreed to sell.",
+      "some-refusing": "Some shareholders needed for the acquisition are refusing to sell.",
+      unchecked: "Shareholder participation in the acquisition has not yet been checked."
+    },
+    restrictions: {
+      no: "No restrictions on transferring the sale shares have been identified.",
+      unchecked: "Restrictions on transferring the sale shares have not yet been checked.",
+      yes: {
+        "all-addressed": "Transfer restrictions have been identified and all have been addressed.",
+        "some-outstanding": "Transfer restrictions have been identified, with some requirements still outstanding.",
+        "not-addressed": "The identified transfer restrictions have not yet been addressed.",
+        unclear: "Transfer restrictions have been identified, but whether they have been addressed is unclear."
+      },
+      "partly-unclear": {
+        "all-addressed": "The scope of any transfer restrictions remains unclear, although the identified requirements are recorded as addressed.",
+        "some-outstanding": "The scope of any transfer restrictions remains unclear, with some requirements still outstanding.",
+        "not-addressed": "The scope of any transfer restrictions remains unclear and the potential requirements have not been addressed.",
+        unclear: "The existence or scope of transfer restrictions, and whether they have been addressed, remain unclear."
+      }
+    },
+    security: {
+      no: "No security over the sale shares has been identified.",
+      unclear: "It is unclear whether there is security over the sale shares.",
+      unchecked: "Security over the sale shares has not yet been checked.",
+      yes: {
+        "release-agreed": "The sale shares are subject to security, with release arrangements agreed for completion.",
+        "discussions-ongoing": "The sale shares are subject to security and discussions about its release are ongoing.",
+        "release-refused": "The sale shares are subject to security and the required release has been refused.",
+        unclear: "The sale shares are subject to security, but the arrangements for its release remain unclear."
+      }
+    }
+  };
+  const buildAnalysis = responses => {
+    const ids = visibleIds(responses);
+    if (!ids.every(id => fields[id].options.some(([value]) => value === responses[id]))) return null;
+    const ownership = responses["share-ownership-verified"];
+    const participation = responses["share-seller-participation"];
+    const restrictions = responses["share-transfer-restrictions"];
+    const addressed = responses["share-restrictions-addressed"];
+    const security = responses["share-security-exists"];
+    const release = responses["share-security-release"];
+    const restrictionsCopy = summaryCopy.restrictions[restrictions];
+    const securityCopy = summaryCopy.security[security];
+    const summary = [summaryCopy.ownership[ownership], summaryCopy.participation[participation],
+      typeof restrictionsCopy === "string" ? restrictionsCopy : restrictionsCopy[addressed],
+      typeof securityCopy === "string" ? securityCopy : securityCopy[release]].join(" ");
+
+    // One stable implication per theme keeps every outcome within three points.
+    const implications = [];
+    if (ownership === "disputed") implications.push("The ownership dispute may prevent delivery of the agreed shares and needs to be resolved before completion.");
+    else if (ownership !== "verified") implications.push("The ownership evidence needs to be established before the buyer can rely on the sellers’ title.");
+
+    const transferOpen = restrictions !== "no" && !(restrictions === "yes" && addressed === "all-addressed");
+    if (participation === "some-refusing") implications.push("A valid route to acquire the agreed shareholding must address shareholder refusal and any outstanding transfer requirements.");
+    else if (participation !== "all-agreed") implications.push("Acquisition of the agreed shareholding remains dependent on confirming shareholder participation and any outstanding transfer requirements.");
+    else if (transferOpen) implications.push("The transfer route remains unconfirmed until applicable restrictions and required approvals or waivers are established.");
+
+    if (security === "yes") {
+      implications.push(release === "release-refused"
+        ? "The refused security release is a potential completion blocker; an alternative route needs to be agreed."
+        : release === "release-agreed"
+          ? "Completion should link the share transfer to the effective release of security."
+          : "Delivering the shares free of security remains a completion dependency until release arrangements are confirmed.");
+    } else if (security !== "no") implications.push("Security checks are needed before the shares can be treated as free from third-party security rights.");
+    if (!implications.length) implications.push("No ownership or transfer obstacle is currently indicated by the recorded answers.");
+    return { summary, implications };
+  };
+
   const previousRenderLogic = renderLogic;
   renderLogic = function (issue) {
     if (!isShareOwnership(issue)) return previousRenderLogic(issue);
     document.querySelector("#recommendations-card")?.remove();
     const card = document.querySelector("#logic-card");
-    card.classList.add("coc-deal-logic", "logic-standby");
-    // Keep the copied Option Holders standby tile until tailored logic is agreed.
-    card.innerHTML = `<h3>Apply deal logic</h3><p>Answer all relevant questions to generate your deal analysis.</p>`;
+    const analysis = buildAnalysis(answers);
+    card.classList.add("coc-deal-logic");
+    card.classList.toggle("logic-standby", !analysis);
+    card.innerHTML = analysis
+      ? `<h3>Apply deal logic</h3><section class="logic-section"><h4>Summary</h4><p class="logic-conclusion">${escape(analysis.summary)}</p></section><section class="logic-section"><h4>Key deal implications</h4><ul>${analysis.implications.map(item => `<li>${escape(item)}</li>`).join("")}</ul></section>`
+      : `<h3>Apply deal logic</h3><p>Answer all relevant questions to generate your deal analysis.</p>`;
   };
 
   const previousRenderPanel = renderPanel;
@@ -126,7 +206,10 @@
   exportReport = function () {
     const issue = current();
     if (!isShareOwnership(issue)) return previousExportReport();
-    const report = ["DEALLOGIC ISSUE REPORT", "", issue.title, `${areas[issue.category]} · ${issue.jurisdiction.primary}`, `Risk assessment: ${riskText(assessRisk(answers))}`, "", "DILIGENCE ANSWERS", ...visibleQuestions(issue).map(({ id, question }) => `- ${question}\n  Response: ${labelFor(id)}`), "", "NOTE", "Tailored deal logic is not yet configured. Obtain transaction-specific legal advice."].join("\n");
+    const analysis = buildAnalysis(answers);
+    const report = ["DEALLOGIC ISSUE REPORT", "", issue.title, `${areas[issue.category]} · ${issue.jurisdiction.primary}`, `Risk assessment: ${riskText(assessRisk(answers))}`, "", "DILIGENCE ANSWERS", ...visibleQuestions(issue).map(({ id, question }) => `- ${question}\n  Response: ${labelFor(id)}`),
+      ...(analysis ? ["", "SUMMARY", analysis.summary, "", "KEY DEAL IMPLICATIONS", ...analysis.implications.map(item => `- ${item}`)] : []),
+      "", "NOTE", "Prototype content only. Obtain transaction-specific legal advice."].join("\n");
     const url = URL.createObjectURL(new Blob([report], { type: "text/plain" }));
     const link = document.createElement("a");
     link.href = url;

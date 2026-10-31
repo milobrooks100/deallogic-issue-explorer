@@ -2,7 +2,7 @@
 
 ## Current scope
 
-Questionnaire and risk assessment under Shares, using Option Holders as the presentation template. The original Option Holders issue remains unchanged. The agreed title, introduction, questionnaire, tooltips and risk rules are implemented; completion outputs, actions and legal notes remain deferred. Apply deal logic retains the standby presentation even after answers are entered.
+Questionnaire and risk assessment under Shares, using Option Holders as the presentation template. The original Option Holders issue remains unchanged. The title, introduction, questionnaire, tooltips, risk rules, prose summary and key deal implications are implemented. Recommended actions and legal notes remain deferred. Apply deal logic stays in standby until every applicable question has a valid answer, including conditional follow-ups.
 
 ## Canonical content and visibility
 
@@ -36,9 +36,28 @@ No active answers produces **1/5 · No risk**, with the first segment and pointe
 
 Worked outcomes: all verified / agreed / unrestricted / unsecured → 1; evidence gaps only → 2; undecided sellers only → 3; undecided sellers + outstanding restrictions + release discussions → 4; disputed ownership → 4; refused security release → 5. Changing a refused release to agreed reduces its component from 5 to 2, but an ownership dispute still holds the overall result at 4.
 
+## Summary and key deal implications
+
+`buildAnalysis` in `dist/share-ownership.js` returns no analysis until every reachable question is answered. Unchecked and unclear are valid recorded answers and generate explicit uncertainty rather than positive assumptions. The summary composes four short sentences: ownership, shareholder participation, transfer restrictions with their resolution status, and security with its release status. It uses stable answer values, ignores hidden responses and never describes agreed releases as completed or seller agreement as a binding commitment.
+
+Key deal implications use a small set of stable consequence statements, with one point per theme and no more than three points:
+
+1. Ownership: a dispute may obstruct delivery; evidence gaps or unchecked ownership require the title evidence to be established. Verified ownership adds no adverse implication.
+2. Acquisition route: seller refusal and any outstanding transfer requirements share one point; undecided or unchecked participation uses a confirmation point. If sellers have all agreed but transfer restrictions remain unresolved or uncertain, use the transfer-clearance point instead.
+3. Security: refused release is a potential completion blocker; ongoing or unclear release arrangements remain a completion dependency; agreed releases must take effect with transfer. Unknown or unchecked security requires investigation.
+
+If none of these themes has an open issue or an outstanding release step, show one qualified point: no ownership or transfer obstacle is currently indicated by the recorded answers. Do not imply that no further transaction documentation is needed.
+
+Worked examples:
+
+- Disputed ownership + refusing sellers + unresolved restrictions + refused security release: the summary describes all four facts; three implications cover ownership, the acquisition route (including restrictions), and the release blocker.
+- Verified ownership + all sellers agreed + restrictions addressed + release agreed: the summary records the clearances and future release; one implication links effective release to completion.
+- Unclear restrictions + all addressed: retain uncertainty about the scope despite the recorded clearance. Unchecked ownership or security is described as unreviewed.
+- Incomplete or cleared earlier answer: revert to the standby message and remove old summary and implications; never retain analysis based on unreachable responses.
+
 ## Persistence and integration
 
-Use the existing issue/deal-scoped storage adapter. New stable issue and answer IDs isolate responses from Option Holders. Reports translate stable values to current display labels, include only visible questions, and report the same score and risk level as the UI. No new actions or registry entries exist at this stage, so there is no action-selection or Deal Hub recommendation integration yet. Existing issues delegate to their unchanged renderers and export handlers.
+Use the existing issue/deal-scoped storage adapter. New stable issue and answer IDs isolate responses from Option Holders. Reports translate stable values to current display labels, include only visible questions, and report the same score and risk level as the UI. Completed reports also include the same summary and implications; incomplete reports omit those sections. No new actions or registry entries exist at this stage, so there is no action-selection or Deal Hub recommendation integration yet. Existing issues delegate to their unchanged renderers and export handlers.
 
 ## Verification scenarios
 
@@ -47,7 +66,9 @@ Use the existing issue/deal-scoped storage adapter. New stable issue and answer 
 - Security Yes: show 4b; No / Unclear / Unchecked / Unanswered: hide and clear 4b.
 - Parent answer changes do not clear unrelated main or still-applicable follow-up responses.
 - Reload / issue switching / deal switching preserve independent responses; reports contain current labels, not storage IDs.
-- Completed questionnaire still shows standby; no Option Holders recommendations or notes appear in this issue.
+- A completed questionnaire shows the prose summary and at most three implications; no Option Holders recommendations or notes appear in this issue.
 - Original Option Holders and the five existing issue flows remain unchanged.
 
 Before adding deal logic, specify perspective-specific actions and legal notes using the main authoring template. Do not reuse the Option Holders scoring formula. Risk rules have automated floor, reduction and all-permutation coverage in `tests/share-ownership-risk.test.mjs`.
+
+Analysis completion, truthful uncertainty, stable implication families, rendering transitions and all 15,625 raw answer permutations are covered in `tests/share-ownership-analysis.test.mjs`.

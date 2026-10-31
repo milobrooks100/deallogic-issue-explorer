@@ -214,7 +214,7 @@ test("deal logic waits for all visible answers on each question route", () => {
   const base = { "debt-obligations": "Yes — finance obligations or security exist" };
   events.length = 0;
   assert.equal(render({}), true);
-  assert.match(logicCard.innerHTML, /Turn the recorded facts/);
+  assert.match(logicCard.innerHTML, /Answer all relevant questions to generate your deal analysis/);
   assert.equal(render(base), true);
   assert.deepEqual(events, []);
   assert.equal(render({ "debt-obligations": "Not yet checked" }), false);
