@@ -30,6 +30,7 @@
   const lucideNames = {
     grid:'layout-grid', map:'map', book:'book-open', radar:'radar', settings:'settings', check:'check', document:'file-text', shield:'shield-check', arrow:'arrow-right', search:'search', folder:'folder', clock:'clock', scale:'scale', wrench:'wrench', handshake:'handshake', circleCheck:'circle-check', filePenLine:'file-pen-line', shieldCheck:'shield-check', banknote:'banknote', fileSearch:'file-search', lockKeyhole:'lock-keyhole', arrowDownUp:'arrow-down-up', calendarCheck:'calendar-check', arrowCircle:'circle-arrow-right', arrowLeftRight:'arrow-left-right', ellipsisCircle:'ellipsis'
   };
+  const iconKeyByLucide = Object.fromEntries(Object.entries(lucideNames).map(([key, value]) => [value, key]));
   const icon = name => `<i data-lucide="${lucideNames[name] || lucideNames.document}" aria-hidden="true"></i>`;
   const renderLucideIcons = () => window.lucide?.createIcons({ attrs: { 'stroke-width': 1.75 } });
   const destinations = [['deal-map','Deal Map','map'],['deal-hub','Deal Hub','grid'],['action-library','Action Library','book'],['company-radar','Company Radar','radar'],['settings','Settings','settings']];
@@ -155,8 +156,13 @@
       const label = node.parentElement.querySelector('strong')?.textContent.trim() || '';
       // Custom library symbols are user content and are preserved.
       if(node.closest('.custom-library-action'))return;
-      const name = actionLibraryIcons[label] || (/diligence/i.test(label)?'search':/consent|warranty|indemnity/i.test(label)?'shield':/completion|condition/i.test(label)?'check':/price|escrow/i.test(label)?'scale':'document');
-      node.closest('.logic-action')?.setAttribute('data-action-icon', name);
+      const logicAction = node.closest('.logic-action');
+      const issueId = logicAction && typeof current === 'function' ? current()?.id : null;
+      const registry = window.DealLogicActionRegistry;
+      const actionId = logicAction ? registry?.resolveActionId(issueId, label, logicAction.textContent, logicAction.dataset.actionId || '') : '';
+      const registeredAction = registry?.byTopic.get(issueId)?.actions.find(action => action.id === actionId);
+      const name = iconKeyByLucide[registeredAction?.icon] || actionLibraryIcons[label] || 'document';
+      logicAction?.setAttribute('data-action-icon', name);
       node.dataset.originalIcon=node.textContent.trim();node.innerHTML=icon(name);node.dataset.vector='true';
     });
     document.querySelectorAll('.hub-item h4').forEach(heading=>{
