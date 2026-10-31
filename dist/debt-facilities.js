@@ -327,7 +327,7 @@
     const sidePicker = `<div class="logic-side-picker" aria-label="Transaction side selector"><button type="button" class="active" data-logic-side-toggle>${escapeLogicText(side)}</button></div>`;
     const actionMarkup = actions.length ? actions.map(({ id, priority, title, description }) => `<div class="logic-action" data-action-id="${escapeLogicText(id)}"><span class="logic-icon">◌</span><div><span class="logic-priority" data-level="${escapeLogicText(priority.toLowerCase())}">${escapeLogicText(priority)}</span><strong>${escapeLogicText(title)}</strong><span>${escapeLogicText(description)}</span></div></div>`).join("") : `<p>There are no active transaction actions on the information recorded.</p>`;
     const implications = debtImplications().map(item => `<li>${escapeLogicText(item)}</li>`).join("");
-    const notes = (issue.notes || "").split(/\n\s*\n/).filter(Boolean).map(entry => `<div class="logic-note">${escapeLogicText(entry)}</div>`).join("");
+    const notes = (issue.notes || "").split(/\n\s*\n/).filter(Boolean).map(entry => `<div class="logic-note">${escapeLogicText(entry).replace(/^(Transaction triggers:|Register updates:)/, "<strong>$1</strong>")}</div>`).join("");
     logicCard.innerHTML = `<h3>Apply deal logic</h3><section class="logic-section"><h4>Summary</h4><p class="logic-conclusion">${escapeLogicText(debtSummary())}</p></section><section class="logic-section"><h4>Key deal implications</h4><ul>${implications}</ul></section><section class="logic-section"><div class="logic-section-heading"><h4>Recommended actions</h4>${sidePicker}</div>${actionMarkup}</section>${notes ? `<section class="logic-section"><h4>Notes</h4>${notes}</section>` : ""}`;
     document.dispatchEvent(new CustomEvent("debt-facilities-logic-rendered"));
   };
