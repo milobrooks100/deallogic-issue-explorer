@@ -732,7 +732,7 @@
         if (existence === "Not yet checked") return 2;
         if (existence === "Unanswered") return 1;
 
-        let score = existence === "Possibly — the records are incomplete or inconsistent" ? 3 : 2;
+        let score = existence === "Possibly — the records are incomplete or inconsistent" ? 2 : 3;
         const reconciliation = answers["award-register-reconciliation"];
         if (reconciliation === "No — material discrepancies or undocumented awards exist") score = Math.max(score, 4);
         if (reconciliation === "Not yet reconciled") score = Math.max(score, 3);
