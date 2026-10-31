@@ -10,7 +10,7 @@ function setup() {
   const card = { innerHTML: '', classList: { add() {} } };
   let report;
   const context = vm.createContext({
-    answers: {}, current: () => employee, areas: {employees: 'Employees'},
+    answers: {}, current: () => employee, areas: {employees: 'Employment'},
     riskScore: () => 4, renderPanel() {}, renderLogic() { card.innerHTML = 'Existing issue'; },
     exportReport() { report = 'Existing export'; },
     Blob: class { constructor(parts) { report = parts.join(''); } },
@@ -26,7 +26,7 @@ test('progressive reveal stops at unanswered, invalid or confirmed absence', () 
   assert.equal(visibleIds({[ids[0]]:'yes'}).length, 2);
   assert.equal(visibleIds({[ids[0]]:'no', [ids[1]]:'difficult'}).length, 1);
   assert.equal(visibleIds({[ids[0]]:'unknown'}).length, 2);
-  assert.equal(visibleIds({[ids[0]]:'not-assessed'}).length, 2);
+  assert.equal(visibleIds({[ids[0]]:'partly'}).length, 2);
   assert.equal(visibleIds({[ids[0]]:'invalid'}).length, 1);
 });
 test('obsolete dependent answers are removed from saved context', () => {
@@ -47,4 +47,15 @@ test('exports use visible current labels and never borrow litigation analysis', 
   assert.doesNotMatch(card.innerHTML, /Recommended actions|Limitation periods/);
   context.renderLogic({id:'other'});
   assert.equal(card.innerHTML, 'Existing issue');
+});
+
+test('legacy uncertainty selections migrate without losing later answers', () => {
+  const {ids, normalize} = setup();
+  const responses = Object.fromEntries(ids.map(id => [id, 'not-assessed']));
+  responses[ids[1]] = 'manageable';
+  normalize(responses);
+  assert.deepEqual(responses, {
+    [ids[0]]: 'unknown', [ids[1]]: 'manageable', [ids[2]]: 'unknown',
+    [ids[3]]: 'unknown', [ids[4]]: 'unclear', [ids[5]]: 'unknown'
+  });
 });

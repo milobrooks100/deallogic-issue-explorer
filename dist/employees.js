@@ -15,12 +15,12 @@
         "No"
       ],
       [
-        "unknown",
-        "Unknown"
+        "partly",
+        "Partly"
       ],
       [
-        "not-assessed",
-        "Not assessed"
+        "unknown",
+        "Unknown"
       ]
     ],
     "guidance": "Consider employees who hold key customer relationships, specialist knowledge or essential leadership roles. Assess whether their departure would materially affect the target."
@@ -63,10 +63,6 @@
       [
         "unknown",
         "Unknown"
-      ],
-      [
-        "not-assessed",
-        "Not assessed"
       ]
     ],
     "guidance": "Review any recorded discussions or commitments about their future plans. Do not assume that silence, an existing contract or a retention payment confirms an intention to stay."
@@ -88,10 +84,6 @@
       [
         "unknown",
         "Unknown"
-      ],
-      [
-        "not-assessed",
-        "Not assessed"
       ]
     ],
     "guidance": "Review notice periods, fixed-term expiry dates and any rights to leave on the acquisition. Consider whether these allow enough time to recruit a replacement and transfer responsibilities."
@@ -109,10 +101,6 @@
       [
         "unclear",
         "Unclear"
-      ],
-      [
-        "not-assessed",
-        "Not assessed"
       ]
     ],
     "guidance": "Check employment contracts, bonus plans and side agreements for payments triggered by the sale or a related departure. Confirm the amounts, conditions and who bears the cost; assess share options in Option Holders."
@@ -136,8 +124,8 @@
         "Not needed"
       ],
       [
-        "not-assessed",
-        "Not assessed"
+        "unknown",
+        "Unknown"
       ]
     ],
     "guidance": "Check whether required incentives, revised terms, succession plans or handover arrangements are documented and agreed with the relevant people. Distinguish agreed arrangements from proposals or ongoing discussions."
@@ -154,6 +142,10 @@
     return visible;
   };
   const normalize = responses => {
+    // Preserve existing selections when consolidating the uncertainty choices.
+    ids.forEach(id => {
+      if (responses[id] === "not-assessed") responses[id] = id === "employee-payments" ? "unclear" : "unknown";
+    });
     const visible = visibleIds(responses);
     ids.forEach(id => { if (!visible.includes(id) || !valid(id, responses[id])) delete responses[id]; });
   };
@@ -165,7 +157,11 @@
   riskScore = function () { return isEmployees(current()) ? 1 : previousRiskScore(); };
   const previousRenderPanel = renderPanel;
   renderPanel = function () {
-    if (isEmployees(current())) normalize(answers);
+    if (isEmployees(current())) {
+      const previous = JSON.stringify(answers);
+      normalize(answers);
+      if (JSON.stringify(answers) !== previous) DealLogicStorage.setItem(storedKey(), JSON.stringify(answers));
+    }
     previousRenderPanel();
     const issue = current();
     if (!isEmployees(issue)) return;
@@ -198,6 +194,7 @@
   exportReport = function () {
     const issue = current();
     if (!isEmployees(issue)) return previousExportReport();
+    normalize(answers);
     const visible = visibleIds(answers);
     const lines = issue.key_questions.filter(question => visible.includes(question.id)).map(({id, question}) => `- ${question}\n  Response: ${labelFor(id)}`);
     const report = ["DEALLOGIC ISSUE REPORT", "", issue.title, `${areas[issue.category]} · ${issue.jurisdiction.primary}`, issue.summary, "", "DILIGENCE ANSWERS", ...lines, "", "Assessment and recommended actions are not yet configured for this questionnaire.", "", "NOTE", "Prototype content only. Obtain transaction-specific legal advice."].join("\n");
