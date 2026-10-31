@@ -206,6 +206,34 @@
     ...window.DealLogicActionRegistry.actionFor(issueId, "", "", choice.id), ...choice
   }));
 
+  const legalNotes = [
+    {
+      title: "Ownership evidence",
+      text: "The register of members provides prima facie, rather than conclusive, evidence of shareholdings. Reconcile it with the underlying allotment and transfer documents, and investigate discrepancies before relying on a seller’s title.",
+      source: "Companies Act 2006, s.127",
+      url: "https://www.legislation.gov.uk/ukpga/2006/46/section/127/data.html"
+    },
+    {
+      title: "Missing certificates",
+      text: "A missing share certificate does not itself establish defective ownership; Model Article 25 provides for replacement subject to conditions concerning evidence, indemnity and reasonable fees. Check the company’s actual articles and agree the replacement or lost-certificate arrangements before completion.",
+      source: "Model Article 25",
+      url: "https://www.gov.uk/government/publications/model-articles-for-private-companies-limited-by-shares/model-articles-for-private-companies-limited-by-shares"
+    },
+    {
+      title: "Transfer pre-emption",
+      text: "Statutory pre-emption under section 561 concerns allotments of equity securities, rather than a shareholder’s sale of existing shares. Check the articles and shareholders’ agreement for separate transfer pre-emption rights, and follow or validly waive the applicable procedure.",
+      source: "Companies Act 2006, s.561",
+      url: "https://www.legislation.gov.uk/ukpga/2006/46/section/561?view=extent"
+    },
+    {
+      title: "Drag-along amendments",
+      text: "In Arbuthnott v Bonnyman [2015] EWCA Civ 536, the Court of Appeal upheld amendments clarifying and facilitating an existing compulsory transfer arrangement. Review the existing shareholder bargain, company benefit and minority protections before relying on an amendment to compel an unwilling shareholder to sell.",
+      source: "Judgment, paragraphs 66 and 98–100",
+      url: "https://www.oeclaw.co.uk/images/uploads/judgments/Arbuthnott_v_Bonnyman_Re_Charterhouse_Capital_Limited_2015_EWCA_Civ_536.pdf"
+    }
+  ];
+  const notesMarkup = () => legalNotes.map(note => `<div class="logic-note"><strong>${escape(note.title)}:</strong> ${escape(note.text)} <a href="${escape(note.url)}" target="_blank" rel="noopener noreferrer">${escape(note.source)}</a></div>`).join("");
+
   const previousRenderLogic = renderLogic;
   renderLogic = function (issue) {
     if (!isShareOwnership(issue)) return previousRenderLogic(issue);
@@ -219,7 +247,7 @@
       const actions = actionsFor(answers, side);
       const sidePicker = `<div class="logic-side-picker" aria-label="Transaction side selector"><button type="button" class="active" data-logic-side-toggle>${escape(side)}</button></div>`;
       const actionMarkup = actions.map(({ id, priority, title, description }) => `<div class="logic-action" data-action-id="${id}"><span class="logic-icon" aria-hidden="true"></span><div><span class="logic-priority" data-level="${priority.toLowerCase()}">${priority}</span><strong>${escape(title)}</strong><span>${escape(description)}</span></div></div>`).join("");
-      card.innerHTML = `<h3>Apply deal logic</h3><section class="logic-section"><h4>Summary</h4><p class="logic-conclusion">${escape(analysis.summary)}</p></section><section class="logic-section"><h4>Key deal implications</h4><ul>${analysis.implications.map(item => `<li>${escape(item)}</li>`).join("")}</ul></section><section class="logic-section"><div class="logic-section-heading"><h4>Recommended actions</h4>${sidePicker}</div>${actionMarkup}</section>`;
+      card.innerHTML = `<h3>Apply deal logic</h3><section class="logic-section"><h4>Summary</h4><p class="logic-conclusion">${escape(analysis.summary)}</p></section><section class="logic-section"><h4>Key deal implications</h4><ul>${analysis.implications.map(item => `<li>${escape(item)}</li>`).join("")}</ul></section><section class="logic-section"><div class="logic-section-heading"><h4>Recommended actions</h4>${sidePicker}</div>${actionMarkup}</section><section class="logic-section"><h4>Notes</h4>${notesMarkup()}</section>`;
     } else card.innerHTML = `<h3>Apply deal logic</h3><p>Answer all relevant questions to generate your deal analysis.</p>`;
     document.dispatchEvent(new CustomEvent("share-ownership-logic-rendered"));
   };
@@ -262,7 +290,8 @@
     const analysis = buildAnalysis(answers);
     const report = ["DEALLOGIC ISSUE REPORT", "", issue.title, `${areas[issue.category]} · ${issue.jurisdiction.primary}`, `Risk assessment: ${riskText(assessRisk(answers))}`, "", "DILIGENCE ANSWERS", ...visibleQuestions(issue).map(({ id, question }) => `- ${question}\n  Response: ${labelFor(id)}`),
       ...(analysis ? ["", "SUMMARY", analysis.summary, "", "KEY DEAL IMPLICATIONS", ...analysis.implications.map(item => `- ${item}`),
-        "", `RECOMMENDED ACTIONS (${getTransactionSide()})`, ...actionsFor(answers, getTransactionSide()).map(action => `- ${action.title} (${action.priority})\n  ${action.description}`)] : []),
+        "", `RECOMMENDED ACTIONS (${getTransactionSide()})`, ...actionsFor(answers, getTransactionSide()).map(action => `- ${action.title} (${action.priority})\n  ${action.description}`),
+        "", "LEGAL NOTES", ...legalNotes.map(note => `${note.title}: ${note.text}\nSource: ${note.source} — ${note.url}`)] : []),
       "", "NOTE", "Prototype content only. Obtain transaction-specific legal advice."].join("\n");
     const url = URL.createObjectURL(new Blob([report], { type: "text/plain" }));
     const link = document.createElement("a");

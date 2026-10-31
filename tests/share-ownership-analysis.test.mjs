@@ -142,7 +142,11 @@ test("renderer shows standby until complete, and replaces analysis after answers
   assert.match(card.innerHTML, /<h4>Summary<\/h4>/);
   assert.match(card.innerHTML, /<h4>Key deal implications<\/h4>/);
   assert.match(card.innerHTML, /Recommended actions/);
-  assert.doesNotMatch(card.innerHTML, /<h4>Notes/);
+  assert.match(card.innerHTML, /<h4>Notes<\/h4>/);
+  assert.equal((card.innerHTML.match(/class="logic-note"/g) || []).length, 4);
+  assert.equal((card.innerHTML.match(/rel="noopener noreferrer"/g) || []).length, 4);
+  assert.match(card.innerHTML, /existing compulsory transfer arrangement/);
+  assert.doesNotMatch(card.innerHTML, /Registration timing:/);
   assert.equal(classes.has("logic-standby"), false);
   context.answers = { ...clean, "share-seller-participation": "" };
   context.renderLogic(issue);

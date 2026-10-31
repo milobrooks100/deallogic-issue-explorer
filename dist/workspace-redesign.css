@@ -86,3 +86,6 @@ html{scroll-behavior:auto}body{font-family:Inter,-apple-system,BlinkMacSystemFon
     padding-bottom: 8px;
   }
 }
+
+/* Legal authorities retain the Notes typography while remaining identifiable links. */
+.logic-note a { color: inherit; text-decoration: underline; text-underline-offset: 2px; }

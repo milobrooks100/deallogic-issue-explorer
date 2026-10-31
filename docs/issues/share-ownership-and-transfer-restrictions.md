@@ -2,7 +2,7 @@
 
 ## Current scope
 
-Questionnaire and risk assessment under Shares, using Option Holders as the presentation template. The original Option Holders issue remains unchanged. The title, introduction, questionnaire, tooltips, risk rules, prose summary, key deal implications and perspective-specific recommended actions are implemented. Legal notes remain deferred. Apply deal logic stays in standby until every applicable question has a valid answer, including conditional follow-ups.
+Questionnaire and risk assessment under Shares, using Option Holders as the presentation template. The original Option Holders issue remains unchanged. The title, introduction, questionnaire, tooltips, risk rules, prose summary, key deal implications and perspective-specific recommended actions are implemented. Four legal notes with linked sources are included at the user’s request. Apply deal logic stays in standby until every applicable question has a valid answer, including conditional follow-ups.
 
 ## Canonical content and visibility
 
@@ -83,6 +83,17 @@ Instructions distinguish title evidence gaps from disputes, shareholder refusal 
 
 For the fully adverse example, Buyer receives SO01–SO06, SO09 and SO10; Seller and Balanced receive SO01–SO05, SO07, SO09 and SO10. A clear assessment receives SO01, SO06 and SO10. Reports include the same selected perspective and displayed action recommendations as the UI.
 
+## Legal notes
+
+Four notes appear after Recommended actions, using the existing `.logic-note` treatment: a bold lead-in, two concise sentences and an underlined source link opening in a separate tab. Four notes, rather than the usual two or three, are explicitly requested for this issue. The registration-timing draft was excluded.
+
+- **Ownership evidence:** Companies Act 2006, section 127; register evidence is prima facie rather than conclusive.
+- **Missing certificates:** private company Model Article 25; check the actual articles and agree replacement or lost-certificate arrangements.
+- **Transfer pre-emption:** Companies Act 2006, section 561; distinguish statutory allotment rights from separate transfer restrictions.
+- **Drag-along amendments:** Arbuthnott v Bonnyman [2015] EWCA Civ 536, paragraphs 66 and 98–100; the amendments facilitated an existing compulsory transfer arrangement, rather than simply creating a new drag right.
+
+Sources were verified against the legislation, model articles and judgment on 31 October 2026 during drafting. Note text and source URLs are maintained together in `legalNotes` in `dist/share-ownership.js`. Completed reports reproduce all four notes and their source URLs. Notes remain hidden while the questionnaire is incomplete.
+
 ## Persistence and integration
 
 Use the existing issue/deal-scoped storage adapter. New stable issue and answer IDs isolate responses from Option Holders. Reports translate stable values to current display labels, include only visible questions, and report the same score and risk level as the UI. Completed reports also include the same summary and implications; incomplete reports omit those sections. All ten actions are registered in Actions by Issue; up to eight relevant actions can be selected and saved to Deal Hub. Stable IDs link the registry icons across the views, and saved selections capture the current perspective, priority, phase, summary, risk and answers. Rerendering updates still-selected candidates to the current perspective and removes selections that no longer apply; it does not rewrite existing Hub actions. Duplicate prevention is shared with Action Library additions. Existing issues delegate to their unchanged renderers and export handlers.
@@ -97,7 +108,7 @@ Use the existing issue/deal-scoped storage adapter. New stable issue and answer 
 - A completed questionnaire shows the prose summary and at most three implications; no Option Holders recommendations or notes appear in this issue.
 - Original Option Holders and the five existing issue flows remain unchanged.
 
-Before adding legal notes, use the main authoring template. Do not reuse the Option Holders scoring formula. Risk rules have automated floor, reduction and all-permutation coverage in `tests/share-ownership-risk.test.mjs`.
+Keep legal authorities current when amending the notes. Do not reuse the Option Holders scoring formula. Risk rules have automated floor, reduction and all-permutation coverage in `tests/share-ownership-risk.test.mjs`.
 
 Analysis completion, truthful uncertainty, stable implication families, rendering transitions and all 15,625 raw answer permutations are covered in `tests/share-ownership-analysis.test.mjs`.
 
