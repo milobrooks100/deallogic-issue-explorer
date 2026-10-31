@@ -30,7 +30,7 @@ Some issue-record questions differ from the tailored UI questions. Do not assume
 ## Exceptions and boundaries
 
 - All five use the standby message and the completed Summary → Key deal implications → Recommended actions → Notes structure. Their readiness gates differ. Finance requires all currently visible answers; Change of Control does not require every consent-outlook detail before producing output. Consult each renderer's completion condition rather than assuming a universal gate.
-- Initial untouched scores currently display 1/5, labelled No risk. A separate Not assessed display remains a proposal, not an implemented feature.
+- The original five issues initially display 1/5, labelled No risk. The Share ownership issue instead uses Not assessed and provisional results; its issue specification records that distinction.
 - Existing option and litigation answers can be substantially longer than the preferred short-label standard. Some questions have more than five substantive choices. Do not copy that verbosity into a new issue or shorten old labels without handling their dependent rules and saved values.
 - Finance currently caps displayed actions at ten; litigation caps at nine and limits overlapping action families. These are issue-specific implementation details, not shared limits.
 - Buyer / Seller / Balanced affects action recommendations and priority. Do not infer the risk score from the selected side or action count.
@@ -39,6 +39,6 @@ Some issue-record questions differ from the tailored UI questions. Do not assume
 
 ## Recording future scoring detail
 
-The [Share ownership and transfer restrictions draft](issues/share-ownership-and-transfer-restrictions.md) is a sixth issue under Shares. It currently implements the agreed facts questionnaire only, using Option Holders presentation; substantive risk and deal logic remain deferred.
+The [Share ownership and transfer restrictions draft](issues/share-ownership-and-transfer-restrictions.md) is a sixth issue under Shares. It implements the agreed facts questionnaire and component-based risk assessment using Option Holders presentation; substantive deal logic remains deferred. Its specification records the scoring table and worked outcomes.
 
 Keep a completed risk decision table in the issue's maintained specification when introducing new substantive rules. Record ordered conditions, operations, floors, reductions and worked outcomes using the issue template. Link that specification here so the main authoring standard stays short. Preserve the executable rule as the implementation authority and investigate any disagreement between it and the specification.

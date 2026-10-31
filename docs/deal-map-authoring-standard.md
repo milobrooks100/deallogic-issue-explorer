@@ -33,7 +33,7 @@ After completion, use this order:
 
 Use the existing five-step scale and indicator: **1 No risk, 2 Low risk, 3 Medium risk, 4 High risk, 5 Very high risk**. Write an issue-specific decision table with rule order, increases, reductions, floors, caps, uncertainty treatment and early exits. Include worked scenarios with expected scores. Do not derive risk merely from the number of questions answered or copy another issue's formula.
 
-Existing questionnaires initially display 1/5 even before assessment. A separate **Not assessed** display was proposed during planning but is **not implemented or mandated by this documentation**. Do not introduce that product change as part of an unrelated issue addition; record the initial-state decision explicitly.
+The original five questionnaires initially display 1/5 even before assessment. Share ownership and transfer restrictions uses **Not assessed** before any active answer, and marks incomplete or unreviewed results **Provisional**, as specified in its issue reference. Do not change another issue’s initial state as part of unrelated work; record the initial-state decision explicitly.
 
 Keep issue risk, action priority and Deal Hub urgency distinct. Apply these priority meanings in the selected transaction perspective:
 

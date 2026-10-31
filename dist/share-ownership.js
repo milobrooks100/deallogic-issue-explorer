@@ -1,4 +1,4 @@
-/* Share ownership: Option Holders presentation with a facts-only questionnaire. */
+/* Share ownership questionnaire and component-based risk assessment. */
 (() => {
   const issueId = "share-ownership-and-transfer-restrictions";
   const isShareOwnership = issue => issue?.id === issueId;
@@ -39,6 +39,41 @@
   const labelFor = id => fields[id].options.find(([value]) => value === answers[id])?.[1] || "Unanswered";
   const questionMarkup = ({ id, question }) => `<div class="question"><div class="question-top"><label for="${id}">${escape(question)}</label><button class="info" type="button" aria-label="${escape(`Guidance: ${question}`)}">i<span class="tooltip">${escape(fields[id].guidance)}</span></button></div><select id="${id}"><option value="" ${!answers[id] ? "selected" : ""}>Unanswered</option>${fields[id].options.map(([value, label]) => `<option value="${value}" ${answers[id] === value ? "selected" : ""}>${escape(label)}</option>`).join("")}</select></div>`;
 
+  const assessRisk = responses => {
+    const answer = id => fields[id].options.some(([value]) => value === responses[id]) ? responses[id] : "";
+    const ownership = answer("share-ownership-verified");
+    const participation = answer("share-seller-participation");
+    const restrictions = answer("share-transfer-restrictions");
+    const addressed = ["yes", "partly-unclear"].includes(restrictions) ? answer("share-restrictions-addressed") : "";
+    const security = answer("share-security-exists");
+    const release = security === "yes" ? answer("share-security-release") : "";
+    const activeAnswers = [ownership, participation, restrictions, security];
+    if (["yes", "partly-unclear"].includes(restrictions)) activeAnswers.push(addressed);
+    if (security === "yes") activeAnswers.push(release);
+    const provisional = activeAnswers.some(value => ["", "unchecked", "unclear", "partly-unclear"].includes(value));
+    if (!activeAnswers.some(Boolean)) return { score: null, provisional: true };
+
+    const ownershipRisk = { verified: 1, "evidence-gaps": 2, disputed: 4, unchecked: 2 }[ownership] || 2;
+    const participationRisk = { "all-agreed": 1, "some-undecided": 3, "some-refusing": 4, unchecked: 2 }[participation] || 2;
+    const restrictionsRisk = restrictions === "yes" ? (addressed === "all-addressed" ? 1 : 3)
+      : restrictions === "partly-unclear" ? 3 : restrictions === "no" ? 1 : 2;
+    const securityRisk = security === "yes" ? ({ "release-agreed": 2, "discussions-ongoing": 3, "release-refused": 5, unclear: 3 }[release] || 3)
+      : security === "unclear" ? 3 : security === "no" ? 1 : 2;
+    let score = Math.max(ownershipRisk, participationRisk, restrictionsRisk, securityRisk);
+    // Refusal and unresolved transfer restrictions may describe one obstacle.
+    // Without evidence of independence, do not count that pair twice.
+    let unresolvedComponents = [ownershipRisk, participationRisk, restrictionsRisk, securityRisk].filter(value => value >= 3).length;
+    if (participation === "some-refusing" && restrictionsRisk >= 3) unresolvedComponents -= 1;
+    if (score < 4 && unresolvedComponents >= 3) score += 1;
+    return { score, provisional };
+  };
+  const riskText = assessment => assessment.score === null ? "Not assessed"
+    : `${assessment.score}/5 · ${riskNames[assessment.score - 1]}${assessment.provisional ? " · Provisional" : ""}`;
+  const previousRiskScore = riskScore;
+  riskScore = function () {
+    return isShareOwnership(current()) ? (assessRisk(answers).score ?? 1) : previousRiskScore();
+  };
+
   const previousRenderLogic = renderLogic;
   renderLogic = function (issue) {
     if (!isShareOwnership(issue)) return previousRenderLogic(issue);
@@ -54,6 +89,14 @@
     previousRenderPanel();
     const issue = current();
     if (!isShareOwnership(issue)) return;
+    const assessment = assessRisk(answers);
+    const riskLabel = document.querySelector(".risk-score");
+    riskLabel.textContent = riskText(assessment);
+    document.querySelector(".risk-pointer").hidden = assessment.score === null;
+    document.querySelectorAll(".risk-step").forEach((step, index) => {
+      step.classList.toggle("active", assessment.score !== null && index < assessment.score);
+      step.onmouseleave = () => { riskLabel.textContent = riskText(assessRisk(answers)); };
+    });
     const factsCard = document.querySelector(".content-grid > .card");
     if (!factsCard) return;
     const heading = factsCard.querySelector("h3");
@@ -76,7 +119,7 @@
   exportReport = function () {
     const issue = current();
     if (!isShareOwnership(issue)) return previousExportReport();
-    const report = ["DEALLOGIC ISSUE REPORT", "", issue.title, `${areas[issue.category]} · ${issue.jurisdiction.primary}`, "", "DILIGENCE ANSWERS", ...visibleQuestions(issue).map(({ id, question }) => `- ${question}\n  Response: ${labelFor(id)}`), "", "NOTE", "Questionnaire only. Tailored risk assessment and deal logic are not yet configured."].join("\n");
+    const report = ["DEALLOGIC ISSUE REPORT", "", issue.title, `${areas[issue.category]} · ${issue.jurisdiction.primary}`, `Risk assessment: ${riskText(assessRisk(answers))}`, "", "DILIGENCE ANSWERS", ...visibleQuestions(issue).map(({ id, question }) => `- ${question}\n  Response: ${labelFor(id)}`), "", "NOTE", "Tailored deal logic is not yet configured. Obtain transaction-specific legal advice."].join("\n");
     const url = URL.createObjectURL(new Blob([report], { type: "text/plain" }));
     const link = document.createElement("a");
     link.href = url;
