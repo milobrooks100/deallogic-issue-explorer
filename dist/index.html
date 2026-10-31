@@ -413,7 +413,7 @@
         const readyForLogic = clause === "No" || (clause !== "Unanswered" && trigger === "No") || (clause !== "Unanswered" && trigger !== "Unanswered" && downstreamComplete);
         if (!readyForLogic) {
           logicCard.classList.add("logic-standby");
-          logicCard.innerHTML = `<h3>Apply deal logic</h3><p>Turn the recorded facts into a clear transaction response.</p>`;
+          logicCard.innerHTML = `<h3>Apply deal logic</h3><p>Answer all relevant questions to generate your deal analysis.</p>`;
           return;
         }
         logicCard.classList.remove("logic-standby");
@@ -677,7 +677,7 @@
         const finalAnswer = answers["ip-owner-claim"] || "Unanswered";
         if (!noGap && !ownershipConfirmed && finalAnswer === "Unanswered") {
           logicCard.classList.add("logic-standby");
-          logicCard.innerHTML = `<h3>Apply deal logic</h3><p>Turn the recorded facts into a clear transaction response.</p>`;
+          logicCard.innerHTML = `<h3>Apply deal logic</h3><p>Answer all relevant questions to generate your deal analysis.</p>`;
           return;
         }
         logicCard.classList.remove("logic-standby");
@@ -993,7 +993,7 @@
         );
         if (!questionnaireComplete) {
           logicCard.classList.add("logic-standby");
-          logicCard.innerHTML = `<h3>Apply deal logic</h3><p>Turn the recorded facts into a clear transaction response.</p>`;
+          logicCard.innerHTML = `<h3>Apply deal logic</h3><p>Answer all relevant questions to generate your deal analysis.</p>`;
           return;
         }
         logicCard.classList.remove("logic-standby");
@@ -1509,7 +1509,7 @@
         logicCard.classList.add("coc-deal-logic");
         if (!litigationAnswerComplete()) {
           logicCard.classList.add("logic-standby");
-          logicCard.innerHTML = `<h3>Apply deal logic</h3><p>Turn the recorded facts into a clear transaction response.</p>`;
+          logicCard.innerHTML = `<h3>Apply deal logic</h3><p>Answer all relevant questions to generate your deal analysis.</p>`;
           return;
         }
         logicCard.classList.remove("logic-standby");

@@ -318,7 +318,7 @@
     logicCard.classList.add("coc-deal-logic");
     if (!debtAnswersComplete()) {
       logicCard.classList.add("logic-standby");
-      logicCard.innerHTML = `<h3>Apply deal logic</h3><p>Turn the recorded facts into a clear transaction response.</p>`;
+      logicCard.innerHTML = `<h3>Apply deal logic</h3><p>Answer all relevant questions to generate your deal analysis.</p>`;
       return;
     }
     logicCard.classList.remove("logic-standby");

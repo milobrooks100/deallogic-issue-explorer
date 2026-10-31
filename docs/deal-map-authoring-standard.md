@@ -20,7 +20,7 @@ Reuse the current shared typography, spacing, theme, risk colours, tooltips, act
 
 Before the applicable completion rule is satisfied, show the existing standby panel:
 
-> Turn the recorded facts into a clear transaction response.
+> Answer all relevant questions to generate your deal analysis.
 
 After completion, use this order:
 

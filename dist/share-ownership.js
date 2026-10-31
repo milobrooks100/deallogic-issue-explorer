@@ -88,7 +88,7 @@
     const card = document.querySelector("#logic-card");
     card.classList.add("coc-deal-logic", "logic-standby");
     // Keep the copied Option Holders standby tile until tailored logic is agreed.
-    card.innerHTML = `<h3>Apply deal logic</h3><p>Turn the recorded facts into a clear transaction response.</p>`;
+    card.innerHTML = `<h3>Apply deal logic</h3><p>Answer all relevant questions to generate your deal analysis.</p>`;
   };
 
   const previousRenderPanel = renderPanel;
