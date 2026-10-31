@@ -9,7 +9,7 @@ The **Getting started** button opens an on-demand tour of the live workspace. A 
 ## Current features
 
 - Six completed issue-specific diligence flows: change-of-control clauses, option holders, share ownership and transfer restrictions, missing IP assignments, debt facilities and threatened litigation.
-- An Employment questionnaire for Key Employee Retention and Employment Terms; assessment logic and recommended actions are pending.
+- An Employment questionnaire for Key Employee Retention and Employment Terms with a prose summary and up to three key deal implications; risk scoring and recommended actions are pending.
 - Deal-specific answers, transaction-side settings, recommended actions and a Deal Hub with summary, task board, table and deal settings.
 - An Action Library, Company Radar and optional account sync.
 

@@ -7,7 +7,7 @@ const source = await readFile(new URL('../dist/employees.js', import.meta.url), 
 const issues = JSON.parse(await readFile(new URL('../dist/issues.json', import.meta.url), 'utf8'));
 const employee = issues.find(issue => issue.category === 'employees');
 function setup() {
-  const card = { innerHTML: '', classList: { add() {} } };
+  const card = { innerHTML: '', classList: { add() {}, remove() {} } };
   let report;
   const context = vm.createContext({
     answers: {}, current: () => employee, areas: {employees: 'Employment'},
@@ -17,7 +17,7 @@ function setup() {
     URL: { createObjectURL: () => 'blob:test', revokeObjectURL() {} },
     document: { querySelector: selector => selector === '#logic-card' ? card : null, createElement: () => ({click() {}}) }
   });
-  vm.runInContext(source.replace(/\}\)\(\);\s*$/, 'globalThis.employeeTest = { fields, ids, visibleIds, normalize }; })();'), context);
+  vm.runInContext(source.replace(/\}\)\(\);\s*$/, 'globalThis.employeeTest = { fields, ids, visibleIds, normalize, buildAnalysis, summaryCopy, implicationCopy }; })();'), context);
   return { context, card, getReport: () => report, ...context.employeeTest };
 }
 test('progressive reveal stops at unanswered, invalid or confirmed absence', () => {
@@ -43,7 +43,7 @@ test('exports use visible current labels and never borrow litigation analysis', 
   assert.match(getReport(), /Response: No/);
   assert.doesNotMatch(getReport(), /Difficult|Risk score|litigation/i);
   context.renderLogic(employee);
-  assert.match(card.innerHTML, /Answer all relevant questions/);
+  assert.match(card.innerHTML, /Key deal implications/);
   assert.doesNotMatch(card.innerHTML, /Recommended actions|Limitation periods/);
   context.renderLogic({id:'other'});
   assert.equal(card.innerHTML, 'Existing issue');
@@ -58,4 +58,56 @@ test('legacy uncertainty selections migrate without losing later answers', () =>
     [ids[0]]: 'unknown', [ids[1]]: 'manageable', [ids[2]]: 'unknown',
     [ids[3]]: 'unknown', [ids[4]]: 'unclear', [ids[5]]: 'unknown'
   });
+});
+
+test('all answer permutations produce complete prose or standby with at most three stable implications', () => {
+  const {ids, fields, buildAnalysis, summaryCopy, implicationCopy} = setup();
+  const stable = new Set(Object.values(implicationCopy));
+  let checked = 0;
+  function visit(index, responses) {
+    if (index < ids.length) {
+      const id = ids[index];
+      for (const value of ['', ...fields[id].options.map(pair => pair[0])]) visit(index + 1, {...responses, [id]:value});
+      return;
+    }
+    checked++;
+    const result = buildAnalysis(responses);
+    const complete = responses[ids[0]] === 'no' || ids.every(id => responses[id]);
+    assert.equal(Boolean(result), Boolean(complete));
+    if (!result) return;
+    assert.ok(result.implications.length >= 1 && result.implications.length <= 3);
+    assert.equal(new Set(result.implications).size, result.implications.length);
+    result.implications.forEach(text => assert.ok(stable.has(text)));
+    assert.doesNotMatch(result.summary, /undefined|Unanswered|not-assessed/);
+    const active = responses[ids[0]] === 'no' ? ids.slice(0,1) : ids;
+    assert.equal(result.summary, active.map(id => summaryCopy[id][responses[id]]).join(' '));
+  }
+  visit(0, {});
+  assert.equal(checked, 15000);
+});
+test('adverse, uncertain and clear cases retain distinct consequence themes', () => {
+  const {ids, buildAnalysis, implicationCopy} = setup();
+  const responses = values => Object.fromEntries(ids.map((id,i) => [id, values[i]]));
+  const adverse = buildAnalysis(responses(['yes','difficult','some-leaving','no','yes','none-agreed']));
+  assert.deepEqual(Array.from(adverse.implications), [implicationCopy.continuity, implicationCopy.arrangements, implicationCopy.payments]);
+  const uncertain = buildAnalysis(responses(['unknown','unknown','unknown','unknown','unclear','unknown']));
+  assert.deepEqual(Array.from(uncertain.implications), [implicationCopy.dependenceUnknown, implicationCopy.arrangements, implicationCopy.paymentsUnknown]);
+  const clear = buildAnalysis(responses(['partly','easy','all-staying','yes','no','not-needed']));
+  assert.deepEqual(Array.from(clear.implications), [implicationCopy.clear]);
+  const inconsistent = buildAnalysis(responses(['yes','difficult','some-leaving','no','no','not-needed']));
+  assert.ok(inconsistent.implications.includes(implicationCopy.reassess));
+});
+test('cleared answers restore standby and report matches the completed analysis', () => {
+  const {context, ids, buildAnalysis, card, getReport} = setup();
+  context.answers = Object.fromEntries(ids.map((id,i) => [id, ['yes','manageable','some-undecided','partly','unclear','some-outstanding'][i]]));
+  const result = buildAnalysis(context.answers);
+  context.renderLogic(employee);
+  assert.ok(card.innerHTML.includes(result.summary));
+  context.exportReport();
+  assert.ok(getReport().includes(result.summary));
+  result.implications.forEach(text => assert.ok(getReport().includes(text)));
+  context.answers = {};
+  context.renderLogic(employee);
+  assert.match(card.innerHTML, /Answer all relevant questions/);
+  assert.doesNotMatch(card.innerHTML, /Key deal implications/);
 });

@@ -152,6 +152,79 @@
   const labelFor = id => fields[id].options.find(([key]) => key === answers[id])?.[1] || "Unanswered";
   const questionMarkup = ({ id, question }) => `<div class="question"><div class="question-top"><label for="${id}">${escape(question)}</label><button class="info" type="button" aria-label="Guidance: ${escape(question)}">i<span class="tooltip" role="tooltip">${escape(fields[id].guidance)}</span></button></div><select id="${id}"><option value="">Unanswered</option>${fields[id].options.map(([key, label]) => `<option value="${key}" ${answers[id] === key ? "selected" : ""}>${escape(label)}</option>`).join("")}</select></div>`;
 
+  const summaryCopy = {
+    "employee-dependence": {
+      yes: "The target depends on particular employees for its operations or value.",
+      partly: "The target depends to some extent on particular employees for its operations or value.",
+      no: "No material dependence on particular employees has been identified. This does not establish that there are no wider employment liabilities or transaction payments.",
+      unknown: "It is unclear whether the target depends on particular employees for its operations or value."
+    },
+    "employee-replacement": {
+      easy: "It may be easy to replace the key employees without disrupting the business.",
+      manageable: "Replacing the key employees without disrupting the business appears manageable.",
+      difficult: "It may be difficult to replace the key employees without disrupting the business.",
+      unknown: "The difficulty of replacing the key employees without disrupting the business is unknown."
+    },
+    "employee-intentions": {
+      "all-staying": "All identified key employees intend to remain with the target after completion, although their intentions do not guarantee retention.",
+      "some-undecided": "Some key employees remain undecided about staying after completion.",
+      "some-leaving": "Some key employees plan to leave the target.",
+      unknown: "The key employees’ intentions about remaining after completion are unknown."
+    },
+    "employee-terms": {
+      yes: "Their employment terms allow enough time for replacement and handover.",
+      partly: "Their employment terms allow only some of the time needed for replacement and handover.",
+      no: "Their employment terms do not allow enough time for replacement and handover.",
+      unknown: "It is unclear whether their employment terms allow enough time for replacement and handover."
+    },
+    "employee-payments": {
+      yes: "The transaction will trigger bonuses, severance or other employee payments, with the amounts and cost allocation requiring confirmation.",
+      no: "No transaction-triggered bonuses, severance or other employee payments have been identified.",
+      unclear: "It is unclear whether the transaction will trigger bonuses, severance or other employee payments."
+    },
+    "employee-arrangements": {
+      "all-agreed": "All necessary retention or handover arrangements are agreed, but their implementation remains to be confirmed.",
+      "some-outstanding": "Some necessary retention or handover arrangements remain outstanding.",
+      "none-agreed": "None of the necessary retention or handover arrangements are agreed.",
+      "not-needed": "No retention or handover arrangements are considered necessary on the recorded assessment.",
+      unknown: "It is unclear whether the necessary retention or handover arrangements are agreed."
+    }
+  };
+  // One stable consequence per theme, rather than a second account of the answers.
+  const implicationCopy = {
+    absent: "No key-employee continuity issue is currently indicated; wider employment matters remain outside this assessment.",
+    continuity: "Loss of key people could disrupt operations or reduce transaction value; continuity planning should inform the deal timetable.",
+    dependenceUnknown: "Key-person dependence needs to be established before the continuity requirements of the acquisition can be settled.",
+    continuityUnknown: "Uncertainty about replacement or employee intentions prevents continuity readiness from being confirmed.",
+    arrangements: "Unresolved employment terms or retention and handover arrangements remain a transaction dependency.",
+    implementation: "Agreed retention and handover arrangements need to be implemented; they do not guarantee continued employment.",
+    reassess: "The decision that no retention or handover arrangements are needed should be checked against the identified continuity concerns.",
+    payments: "Employee transaction payments need to be quantified and allocated in the deal economics and completion funding.",
+    paymentsUnknown: "Potential employee transaction payments leave an unresolved cost exposure for the acquisition.",
+    clear: "No unresolved key-employee continuity issue is currently indicated by the recorded answers; intentions to stay do not guarantee retention."
+  };
+  const buildAnalysis = responses => {
+    const visible = visibleIds(responses);
+    if (!visible.every(id => valid(id, responses[id]))) return null;
+    const [dependence, replacement, intentions, terms, payments, arrangements] = ids.map(id => visible.includes(id) ? responses[id] : "");
+    const summary = visible.map(id => summaryCopy[id][responses[id]]).join(" ");
+    if (dependence === "no") return { summary, implications: [implicationCopy.absent] };
+    const implications = [];
+    const continuityConcern = replacement === "difficult" || intentions === "some-undecided" || intentions === "some-leaving";
+    if (dependence === "unknown") implications.push(implicationCopy.dependenceUnknown);
+    else if (continuityConcern) implications.push(implicationCopy.continuity);
+    else if (replacement === "unknown" || intentions === "unknown") implications.push(implicationCopy.continuityUnknown);
+
+    if (arrangements === "not-needed" && (continuityConcern || terms !== "yes" || dependence === "unknown" || replacement === "unknown" || intentions === "unknown")) implications.push(implicationCopy.reassess);
+    else if (terms !== "yes" || ["some-outstanding", "none-agreed", "unknown"].includes(arrangements)) implications.push(implicationCopy.arrangements);
+    else if (arrangements === "all-agreed") implications.push(implicationCopy.implementation);
+
+    if (payments === "yes") implications.push(implicationCopy.payments);
+    else if (payments === "unclear") implications.push(implicationCopy.paymentsUnknown);
+    if (!implications.length) implications.push(implicationCopy.clear);
+    return { summary, implications };
+  };
+
   // Keep this questionnaire independent of the litigation scoring and protections.
   const previousRiskScore = riskScore;
   riskScore = function () { return isEmployees(current()) ? 1 : previousRiskScore(); };
@@ -187,8 +260,15 @@
     if (!isEmployees(issue)) return previousRenderLogic(issue);
     document.querySelector("#recommendations-card")?.remove();
     const card = document.querySelector("#logic-card");
-    card.classList.add("coc-deal-logic", "logic-standby");
-    card.innerHTML = `<h3>Apply deal logic</h3><p>Answer all relevant questions to generate your deal analysis.</p>`;
+    card.classList.add("coc-deal-logic");
+    const analysis = buildAnalysis(answers);
+    if (!analysis) {
+      card.classList.add("logic-standby");
+      card.innerHTML = `<h3>Apply deal logic</h3><p>Answer all relevant questions to generate your deal analysis.</p>`;
+      return;
+    }
+    card.classList.remove("logic-standby");
+    card.innerHTML = `<h3>Apply deal logic</h3><section class="logic-section"><h4>Summary</h4><p class="logic-conclusion">${escape(analysis.summary)}</p></section><section class="logic-section"><h4>Key deal implications</h4><ul>${analysis.implications.map(text => `<li>${escape(text)}</li>`).join("")}</ul></section>`;
   };
   const previousExportReport = exportReport;
   exportReport = function () {
@@ -197,7 +277,9 @@
     normalize(answers);
     const visible = visibleIds(answers);
     const lines = issue.key_questions.filter(question => visible.includes(question.id)).map(({id, question}) => `- ${question}\n  Response: ${labelFor(id)}`);
-    const report = ["DEALLOGIC ISSUE REPORT", "", issue.title, `${areas[issue.category]} · ${issue.jurisdiction.primary}`, issue.summary, "", "DILIGENCE ANSWERS", ...lines, "", "Assessment and recommended actions are not yet configured for this questionnaire.", "", "NOTE", "Prototype content only. Obtain transaction-specific legal advice."].join("\n");
+    const analysis = buildAnalysis(answers);
+    const analysisLines = analysis ? ["", "SUMMARY", analysis.summary, "", "KEY DEAL IMPLICATIONS", ...analysis.implications.map(text => `- ${text}`)] : [];
+    const report = ["DEALLOGIC ISSUE REPORT", "", issue.title, `${areas[issue.category]} · ${issue.jurisdiction.primary}`, issue.summary, "", "DILIGENCE ANSWERS", ...lines, ...analysisLines, "", "Risk scoring and recommended actions are not yet configured for this questionnaire.", "", "NOTE", "Prototype content only. Obtain transaction-specific legal advice."].join("\n");
     const url = URL.createObjectURL(new Blob([report], { type: "text/plain" }));
     const link = document.createElement("a");
     link.href = url;
