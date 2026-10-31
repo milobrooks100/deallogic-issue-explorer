@@ -27,13 +27,13 @@ Every control is single-select with an empty Unanswered placeholder. Each valid 
 
 Answers use existing issue/deal-scoped DealLogicStorage, reset and account sync. Reports contain only reachable questions and current answer labels, plus the introduction. The shared alphabetical area map also populates the landing cards.
 
-Employee risk scoring, recommended actions, side differences and legal notes are deferred to the next authoring stage. Apply deal logic stays in standby until every reachable answer is valid; selecting No at question 1 completes the early-exit branch. Completed questionnaires show Summary followed by Key deal implications. No registered employee actions or Hub selection are supplied at this stage. Reports reproduce the same summary and implications when complete and omit them when incomplete. Existing Buyer/Seller/Balanced settings remain available globally.
+Recommended actions, side differences and legal notes are deferred to the next authoring stage. Apply deal logic stays in standby until every reachable answer is valid; selecting No at question 1 completes the early-exit branch. Completed questionnaires show Summary followed by Key deal implications. No registered employee actions or Hub selection are supplied at this stage. Reports reproduce the same summary and implications when complete and omit them when incomplete. Existing Buyer/Seller/Balanced settings remain available globally.
 
-The shared risk assessment bar is displayed, as requested, with the initial 1/5 No risk state. Employee-specific scoring remains pending; the current score stays at its initial value and is omitted from the questionnaire report. Do not reuse litigation risk rules. Full issue authoring must complete the risk table, actions, sources and Hub integration before this issue is treated as complete.
+The shared risk assessment bar is displayed, as requested, with the initial 1/5 No risk state. Employee-specific scoring updates from active answers and the calculated score and risk level are included in the report. Do not reuse litigation risk rules. Full issue authoring must complete actions, sources and Hub integration before this issue is treated as complete.
 
 ## Verification
 
-Automated checks cover progressive visibility, partial/unknown responses and migration of legacy uncertainty selections, confirmed-absence exit, invalid responses, hidden-answer removal, export labels, standby and delegation to other issue renderers. All 18,000 combinations of current options and unanswered states are checked for completion, exact summary composition, stable implication membership, uniqueness and the three-point cap. Scenario tests cover adverse, uncertain, clear and inconsistent positions, clearing answers, and report parity. Verify question selection, reload, reset, tooltips and the new Employment navigation in the browser. Material/remediated scores, action sides, Hub snapshots and legal-note verification are inapplicable to this questionnaire-only stage and remain future work.
+Automated checks cover progressive visibility, partial/unknown responses and migration of legacy uncertainty selections, confirmed-absence exit, invalid responses, hidden-answer removal, export labels, standby and delegation to other issue renderers. All 18,000 combinations of current options and unanswered states are checked for completion, exact summary composition, stable implication membership, uniqueness and the three-point cap. Scenario tests cover adverse, uncertain, clear and inconsistent positions, clearing answers, and report parity. Verify question selection, reload, reset, tooltips and the new Employment navigation in the browser. Material/remediated scores and report parity are tested. Action sides, Hub snapshots and legal-note verification remain future work.
 
 ## Summary and implication rules
 
@@ -47,4 +47,31 @@ Question 2 uses “business”: “How difficult would it be to replace those em
 2. Terms and arrangements: Not needed alongside continuity concerns, unknown dependence/replacement/intentions or inadequate/unknown terms prompts reassessment. Otherwise inadequate/unknown terms or outstanding/unknown arrangements create a transaction dependency. Fully agreed arrangements with adequate terms require implementation without guaranteeing retention.
 3. Payments: confirmed payments require quantification/allocation; unclear payments leave unresolved cost exposure.
 
-If no theme applies, use one qualified clear-position statement. No dependence uses a separate single early-exit implication. The maximum of three follows from these three themes, without truncating a longer list. Changing or clearing upstream answers removes unreachable summary content and implications. This stage does not determine risk scores, suggest legal remedies or introduce actions.
+If no theme applies, use one qualified clear-position statement. No dependence uses a separate single early-exit implication. The maximum of three follows from these three themes, without truncating a longer list. Changing or clearing upstream answers removes unreachable summary content and implications. Risk scoring is defined below. This stage does not suggest legal remedies or introduce actions.
+
+## Agreed risk decision table
+
+`assessRisk` computes from reachable, valid answers only; no accumulated state or transaction-side adjustment is used. Unanswered fields supply neither adjustments nor favourable assumptions. No selection or No dependence returns 1; otherwise the minimum overall score is 2. The completed prose gate remains separate from the live score.
+
+| Order | Answer | Adjustment / protected minimum |
+| --- | --- | --- |
+| 1 | Dependence Yes / Partly / Unknown | Start 3 / 2 / 3; Unknown minimum 3 |
+| 2 | Replacement Easy / Manageable | −1 / none |
+| 2 | Replacement Difficult / Unknown | +1 and minimum 3 / minimum 3 |
+| 3 | All staying / Some undecided / Unknown intentions | −1 / minimum 3 / minimum 3 |
+| 3 | Some leaving | +1; minimum 4 if replacement difficult, otherwise 3 |
+| 3 | All leaving | +2; minimum 3 if replacement easy, otherwise 4 |
+| 4 | Terms Yes / Partly / No / Unknown | None / minimum 3 / +1 and minimum 3 / minimum 3 |
+| 5 | Payments Yes / No / Unclear | Minimum 2 / none / minimum 3 |
+| 6 | All arrangements agreed | −1 only when dependence is Yes/Partly, replacement is known and intentions are known |
+| 6 | Some outstanding / None agreed / Unknown arrangements | Minimum 3 |
+| 6 | None agreed with undecided or leaving employees, or Partly/No handover time | Additional +1 |
+| 6 | Not needed | No adjustment or reduction |
+| 7 | All adjustments applied | Apply protected minimums after reductions; cap ordinary result at 4 |
+| 8 | Dependence Yes + replacement Difficult + All leaving + terms No + an answered arrangement other than All agreed | Override to 5 |
+
+The 5 override requires an actual valid arrangement answer: an unanswered final question does not establish an absence of agreed arrangements. Explicit Unknown or Not needed qualifies in this severe combination because no agreed mitigation is established. All agreed reduces that severe case to 4. Uncertainty alone normally holds at 3, without additive escalation to 5. Hidden and stale answers never affect the score.
+
+Worked outcomes: No dependence → 1; Yes/Easy/All staying/Yes/No/All agreed → 2; same with Unclear payments → 3; Yes/Difficult/Some leaving/Yes/No/All agreed → 4; Yes/Easy/All leaving/Yes/No/All agreed → 3; Yes/Difficult/All leaving/No/Yes/None agreed → 5; changing only None agreed to All agreed → 4; all explicit uncertainties → 3.
+
+Risk checks cover all 18,000 combinations of current choices and unanswered states, integer bounds, hidden-answer exclusion, uncertainty and departure floors, the exclusive 5 trigger and non-increasing risk when outstanding arrangements become agreed. Focused scenarios verify each agreed example, remediation, export score parity and delegation to other issues.

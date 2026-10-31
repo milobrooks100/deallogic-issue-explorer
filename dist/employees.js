@@ -230,9 +230,53 @@
     return { summary, implications };
   };
 
-  // Keep this questionnaire independent of the litigation scoring and protections.
+  const assessRisk = responses => {
+    const visible = visibleIds(responses);
+    const active = id => visible.includes(id) && valid(id, responses[id]) ? responses[id] : "";
+    const [dependence, replacement, intentions, terms, payments, arrangements] = ids.map(active);
+    if (!dependence || dependence === "no") return 1;
+    let score = dependence === "partly" ? 2 : 3;
+    let floor = dependence === "unknown" ? 3 : 2;
+    const atLeast = minimum => { floor = Math.max(floor, minimum); };
+
+    if (replacement === "easy") score -= 1;
+    if (replacement === "difficult") { score += 1; atLeast(3); }
+    if (replacement === "unknown") atLeast(3);
+
+    if (intentions === "all-staying") score -= 1;
+    if (intentions === "some-undecided" || intentions === "unknown") atLeast(3);
+    if (intentions === "some-leaving") {
+      score += 1;
+      atLeast(replacement === "difficult" ? 4 : 3);
+    }
+    if (intentions === "all-leaving") {
+      score += 2;
+      atLeast(replacement === "easy" ? 3 : 4);
+    }
+
+    if (terms === "partly" || terms === "unknown") atLeast(3);
+    if (terms === "no") { score += 1; atLeast(3); }
+    if (payments === "yes") atLeast(2);
+    if (payments === "unclear") atLeast(3);
+
+    const knownContinuity = ["yes", "partly"].includes(dependence)
+      && ["easy", "manageable", "difficult"].includes(replacement)
+      && ["all-staying", "some-undecided", "some-leaving", "all-leaving"].includes(intentions);
+    if (arrangements === "all-agreed" && knownContinuity) score -= 1;
+    if (["some-outstanding", "none-agreed", "unknown"].includes(arrangements)) atLeast(3);
+    const needIndicated = ["some-undecided", "some-leaving", "all-leaving"].includes(intentions)
+      || ["partly", "no"].includes(terms);
+    if (arrangements === "none-agreed" && needIndicated) score += 1;
+
+    // Only this concentrated departure/continuity combination can reach 5.
+    if (dependence === "yes" && replacement === "difficult" && intentions === "all-leaving"
+      && terms === "no" && arrangements && arrangements !== "all-agreed") return 5;
+    return Math.min(4, Math.max(floor, score));
+  };
+
+  // Employee-specific scoring; other issues retain their own rules.
   const previousRiskScore = riskScore;
-  riskScore = function () { return isEmployees(current()) ? 1 : previousRiskScore(); };
+  riskScore = function () { return isEmployees(current()) ? assessRisk(answers) : previousRiskScore(); };
   const previousRenderPanel = renderPanel;
   renderPanel = function () {
     if (isEmployees(current())) {
@@ -284,7 +328,7 @@
     const lines = issue.key_questions.filter(question => visible.includes(question.id)).map(({id, question}) => `- ${question}\n  Response: ${labelFor(id)}`);
     const analysis = buildAnalysis(answers);
     const analysisLines = analysis ? ["", "SUMMARY", analysis.summary, "", "KEY DEAL IMPLICATIONS", ...analysis.implications.map(text => `- ${text}`)] : [];
-    const report = ["DEALLOGIC ISSUE REPORT", "", issue.title, `${areas[issue.category]} · ${issue.jurisdiction.primary}`, issue.summary, "", "DILIGENCE ANSWERS", ...lines, ...analysisLines, "", "Risk scoring and recommended actions are not yet configured for this questionnaire.", "", "NOTE", "Prototype content only. Obtain transaction-specific legal advice."].join("\n");
+    const report = ["DEALLOGIC ISSUE REPORT", "", issue.title, `${areas[issue.category]} · ${issue.jurisdiction.primary}`, issue.summary, `Risk score: ${assessRisk(answers)}/5 — ${riskNames[assessRisk(answers) - 1]}`, "", "DILIGENCE ANSWERS", ...lines, ...analysisLines, "", "Recommended actions are not yet configured for this issue.", "", "NOTE", "Prototype content only. Obtain transaction-specific legal advice."].join("\n");
     const url = URL.createObjectURL(new Blob([report], { type: "text/plain" }));
     const link = document.createElement("a");
     link.href = url;

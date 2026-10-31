@@ -11,13 +11,13 @@ function setup() {
   let report;
   const context = vm.createContext({
     answers: {}, current: () => employee, areas: {employees: 'Employment'},
-    riskScore: () => 4, renderPanel() {}, renderLogic() { card.innerHTML = 'Existing issue'; },
+    riskScore: () => 4, riskNames: ['No risk','Low risk','Medium risk','High risk','Very high risk'], renderPanel() {}, renderLogic() { card.innerHTML = 'Existing issue'; },
     exportReport() { report = 'Existing export'; },
     Blob: class { constructor(parts) { report = parts.join(''); } },
     URL: { createObjectURL: () => 'blob:test', revokeObjectURL() {} },
     document: { querySelector: selector => selector === '#logic-card' ? card : null, createElement: () => ({click() {}}) }
   });
-  vm.runInContext(source.replace(/\}\)\(\);\s*$/, 'globalThis.employeeTest = { fields, ids, visibleIds, normalize, buildAnalysis, summaryCopy, implicationCopy }; })();'), context);
+  vm.runInContext(source.replace(/\}\)\(\);\s*$/, 'globalThis.employeeTest = { fields, ids, visibleIds, normalize, buildAnalysis, summaryCopy, implicationCopy, assessRisk }; })();'), context);
   return { context, card, getReport: () => report, ...context.employeeTest };
 }
 test('progressive reveal stops at unanswered, invalid or confirmed absence', () => {
@@ -41,7 +41,7 @@ test('exports use visible current labels and never borrow litigation analysis', 
   context.answers = {[ids[0]]:'no', [ids[1]]:'difficult'};
   context.exportReport();
   assert.match(getReport(), /Response: No/);
-  assert.doesNotMatch(getReport(), /Difficult|Risk score|litigation/i);
+  assert.doesNotMatch(getReport(), /Difficult|litigation/i);
   context.renderLogic(employee);
   assert.match(card.innerHTML, /Key deal implications/);
   assert.doesNotMatch(card.innerHTML, /Recommended actions|Limitation periods/);
@@ -121,4 +121,66 @@ test('all planned departures appear in prose and trigger continuity implications
   assert.ok(!result.implications.includes(implicationCopy.clear));
   responses[ids[5]] = 'not-needed';
   assert.ok(buildAnalysis(responses).implications.includes(implicationCopy.reassess));
+});
+
+test('risk matrix matches agreed examples and protected floors', () => {
+  const {ids, assessRisk} = setup();
+  const score = values => assessRisk(Object.fromEntries(ids.map((id,i) => [id, values[i]])));
+  assert.equal(assessRisk({}), 1);
+  assert.equal(score(['no']), 1);
+  assert.equal(score(['yes','easy','all-staying','yes','no','all-agreed']), 2);
+  assert.equal(score(['yes','easy','all-staying','yes','unclear','all-agreed']), 3);
+  assert.equal(score(['yes','difficult','some-leaving','yes','no','all-agreed']), 4);
+  assert.equal(score(['yes','easy','all-leaving','yes','no','all-agreed']), 3);
+  assert.equal(score(['yes','difficult','all-leaving','no','yes','none-agreed']), 5);
+  assert.equal(score(['yes','difficult','all-leaving','no','yes','all-agreed']), 4);
+  assert.equal(score(['unknown','unknown','unknown','unknown','unclear','unknown']), 3);
+  assert.equal(score(['partly','easy','all-staying','yes','no','not-needed']), 2);
+  assert.equal(score(['yes','difficult','all-staying','yes','no','all-agreed']), 3);
+});
+test('all 18000 permutations respect bounds, active answers, floors and the exclusive very-high trigger', () => {
+  const {ids, fields, assessRisk, visibleIds} = setup();
+  let checked = 0;
+  function visit(index, responses) {
+    if (index < ids.length) {
+      const id = ids[index];
+      for (const value of ['', ...fields[id].options.map(pair => pair[0])]) visit(index+1, {...responses,[id]:value});
+      return;
+    }
+    checked++;
+    const visible = visibleIds(responses);
+    const active = Object.fromEntries(ids.map(id => [id, visible.includes(id) ? responses[id] : '']));
+    const score = assessRisk(responses);
+    assert.equal(score, assessRisk(active));
+    assert.ok(Number.isInteger(score) && score >= 1 && score <= 5);
+    const [dependence,replacement,intentions,terms,payments,arrangements] = ids.map(id => active[id]);
+    if (!dependence || dependence === 'no') { assert.equal(score,1); return; }
+    assert.ok(score >= 2);
+    const severe = dependence === 'yes' && replacement === 'difficult' && intentions === 'all-leaving'
+      && terms === 'no' && arrangements && arrangements !== 'all-agreed';
+    assert.equal(score === 5, Boolean(severe));
+    if (dependence === 'unknown' || replacement === 'unknown' || intentions === 'unknown' || terms === 'unknown'
+      || payments === 'unclear' || ['some-outstanding','none-agreed','unknown'].includes(arrangements)) assert.ok(score >= 3);
+    if (intentions === 'some-leaving' && replacement === 'difficult') assert.ok(score >= 4);
+    if (intentions === 'all-leaving') assert.ok(score >= (replacement === 'easy' ? 3 : 4));
+    if (arrangements === 'all-agreed') {
+      const without = assessRisk({...responses,[ids[5]]:'some-outstanding'});
+      assert.ok(score <= without);
+    }
+  }
+  visit(0,{});
+  assert.equal(checked,18000);
+});
+test('risk recomputes after remediation and matches the exported score', () => {
+  const {context, ids, assessRisk, getReport} = setup();
+  context.answers = Object.fromEntries(ids.map((id,i) => [id,['yes','difficult','all-leaving','no','yes','none-agreed'][i]]));
+  assert.equal(context.riskScore(),5);
+  context.exportReport();
+  assert.match(getReport(), /Risk score: 5\/5 — Very high risk/);
+  context.answers[ids[5]] = 'all-agreed';
+  assert.equal(context.riskScore(),4);
+  context.answers = {[ids[0]]:'no'};
+  assert.equal(context.riskScore(),1);
+  context.current = () => ({id:'other'});
+  assert.equal(context.riskScore(),4);
 });
