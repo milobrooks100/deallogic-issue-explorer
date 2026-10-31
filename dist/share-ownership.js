@@ -158,6 +158,54 @@
     return { summary, implications };
   };
 
+  const priorityRank = { Required: 3, Recommended: 2, Consider: 1 };
+  const actionOrder = ["SO01", "SO02", "SO03", "SO04", "SO05", "SO09", "SO10", "SO07", "SO06", "SO08"];
+  const chooseActions = (responses, side = "Balanced") => {
+    if (!buildAnalysis(responses)) return [];
+    const selected = [];
+    const add = (id, buyer, seller = buyer, balanced = buyer, description) => {
+      const priority = { Buyer: buyer, Seller: seller, Balanced: balanced }[side] || balanced;
+      selected.push({ id, priority, ...(description ? { description } : {}) });
+    };
+    const ownership = responses["share-ownership-verified"];
+    const participation = responses["share-seller-participation"];
+    const restrictions = responses["share-transfer-restrictions"];
+    const addressed = responses["share-restrictions-addressed"];
+    const security = responses["share-security-exists"];
+    const release = responses["share-security-release"];
+    const titleIssue = ["evidence-gaps", "disputed"].includes(ownership);
+
+    if (ownership === "verified") add("SO01", "Recommended", "Consider", "Recommended");
+    else add("SO01", "Required");
+    if (titleIssue) add("SO02", "Required", "Required", "Required", ownership === "disputed"
+      ? "Resolve the ownership dispute through corrective documents, settlement or appropriate register rectification before completion."
+      : "Obtain missing ownership evidence and correct gaps in the share records before completion.");
+    if (participation !== "all-agreed") add("SO03", "Required", "Required", "Required", participation === "some-refusing" ? undefined
+      : "Confirm participation with outstanding shareholders and agree the steps needed to deliver the intended shareholding.");
+    if (restrictions === "yes" && addressed !== "all-addressed") add("SO04", "Required");
+    else if (["partly-unclear", "unchecked"].includes(restrictions)) add("SO04", "Required", "Recommended", "Required",
+      "Review the transfer restrictions and confirm which approvals, waivers or other clearances are required.");
+    if (security === "yes") {
+      if (release === "release-agreed") add("SO05", "Recommended", "Recommended", "Recommended",
+        "Confirm that the agreed security releases will take effect with the share transfer at completion.");
+      else add("SO05", "Required");
+    }
+    add("SO06", "Required", "Recommended", "Recommended");
+    if (titleIssue || ["yes", "partly-unclear"].includes(restrictions) || security === "yes") add("SO07", "Recommended", "Required", "Recommended");
+    if (ownership === "disputed") add("SO08", "Recommended", "Consider", "Recommended");
+    else if (ownership === "evidence-gaps") add("SO08", "Consider", "Consider", "Consider",
+      "Assess whether the ownership evidence gaps expose the buyer to a specific loss requiring an indemnity or supporting security.");
+    const score = assessRisk(responses).score;
+    if (score >= 4) add("SO09", "Required", "Recommended", "Recommended");
+    else if (score === 3) add("SO09", "Recommended", "Consider", "Recommended");
+    add("SO10", "Required");
+    return selected.sort((left, right) => priorityRank[right.priority] - priorityRank[left.priority]
+      || actionOrder.indexOf(left.id) - actionOrder.indexOf(right.id)).slice(0, 8);
+  };
+  const actionsFor = (responses, side) => chooseActions(responses, side).map(choice => ({
+    ...window.DealLogicActionRegistry.actionFor(issueId, "", "", choice.id), ...choice
+  }));
+
   const previousRenderLogic = renderLogic;
   renderLogic = function (issue) {
     if (!isShareOwnership(issue)) return previousRenderLogic(issue);
@@ -166,9 +214,14 @@
     const analysis = buildAnalysis(answers);
     card.classList.add("coc-deal-logic");
     card.classList.toggle("logic-standby", !analysis);
-    card.innerHTML = analysis
-      ? `<h3>Apply deal logic</h3><section class="logic-section"><h4>Summary</h4><p class="logic-conclusion">${escape(analysis.summary)}</p></section><section class="logic-section"><h4>Key deal implications</h4><ul>${analysis.implications.map(item => `<li>${escape(item)}</li>`).join("")}</ul></section>`
-      : `<h3>Apply deal logic</h3><p>Answer all relevant questions to generate your deal analysis.</p>`;
+    if (analysis) {
+      const side = getTransactionSide();
+      const actions = actionsFor(answers, side);
+      const sidePicker = `<div class="logic-side-picker" aria-label="Transaction side selector"><button type="button" class="active" data-logic-side-toggle>${escape(side)}</button></div>`;
+      const actionMarkup = actions.map(({ id, priority, title, description }) => `<div class="logic-action" data-action-id="${id}"><span class="logic-icon" aria-hidden="true"></span><div><span class="logic-priority" data-level="${priority.toLowerCase()}">${priority}</span><strong>${escape(title)}</strong><span>${escape(description)}</span></div></div>`).join("");
+      card.innerHTML = `<h3>Apply deal logic</h3><section class="logic-section"><h4>Summary</h4><p class="logic-conclusion">${escape(analysis.summary)}</p></section><section class="logic-section"><h4>Key deal implications</h4><ul>${analysis.implications.map(item => `<li>${escape(item)}</li>`).join("")}</ul></section><section class="logic-section"><div class="logic-section-heading"><h4>Recommended actions</h4>${sidePicker}</div>${actionMarkup}</section>`;
+    } else card.innerHTML = `<h3>Apply deal logic</h3><p>Answer all relevant questions to generate your deal analysis.</p>`;
+    document.dispatchEvent(new CustomEvent("share-ownership-logic-rendered"));
   };
 
   const previousRenderPanel = renderPanel;
@@ -208,7 +261,8 @@
     if (!isShareOwnership(issue)) return previousExportReport();
     const analysis = buildAnalysis(answers);
     const report = ["DEALLOGIC ISSUE REPORT", "", issue.title, `${areas[issue.category]} · ${issue.jurisdiction.primary}`, `Risk assessment: ${riskText(assessRisk(answers))}`, "", "DILIGENCE ANSWERS", ...visibleQuestions(issue).map(({ id, question }) => `- ${question}\n  Response: ${labelFor(id)}`),
-      ...(analysis ? ["", "SUMMARY", analysis.summary, "", "KEY DEAL IMPLICATIONS", ...analysis.implications.map(item => `- ${item}`)] : []),
+      ...(analysis ? ["", "SUMMARY", analysis.summary, "", "KEY DEAL IMPLICATIONS", ...analysis.implications.map(item => `- ${item}`),
+        "", `RECOMMENDED ACTIONS (${getTransactionSide()})`, ...actionsFor(answers, getTransactionSide()).map(action => `- ${action.title} (${action.priority})\n  ${action.description}`)] : []),
       "", "NOTE", "Prototype content only. Obtain transaction-specific legal advice."].join("\n");
     const url = URL.createObjectURL(new Blob([report], { type: "text/plain" }));
     const link = document.createElement("a");

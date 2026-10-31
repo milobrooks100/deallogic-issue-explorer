@@ -4,16 +4,21 @@ import vm from "node:vm";
 import test from "node:test";
 
 const source = await readFile(new URL("../dist/share-ownership.js", import.meta.url), "utf8");
+const registrySource = await readFile(new URL("../dist/action-registry.js", import.meta.url), "utf8");
+const registryContext = vm.createContext({ window: {} });
+vm.runInContext(registrySource, registryContext);
 const classes = new Set();
 const card = { innerHTML: "", classList: {
   add: value => classes.add(value),
   toggle: (value, active) => active ? classes.add(value) : classes.delete(value)
 } };
 const context = vm.createContext({
+  window: registryContext.window, getTransactionSide: () => "Balanced",
+  CustomEvent: class { constructor(type) { this.type = type; } },
   answers: {}, current: () => ({ id: "share-ownership-and-transfer-restrictions" }),
   riskScore: () => 1, renderPanel: () => {}, exportReport: () => {},
   renderLogic: () => { card.innerHTML = "Other issue"; },
-  document: { querySelector: selector => selector === "#logic-card" ? card : null }
+  document: { dispatchEvent: () => {}, querySelector: selector => selector === "#logic-card" ? card : null }
 });
 vm.runInContext(source.replace(/\}\)\(\);\s*$/, "globalThis.analysisTest = { buildAnalysis, fields, visibleIds }; })();"), context);
 const { buildAnalysis, fields, visibleIds } = context.analysisTest;
@@ -136,7 +141,8 @@ test("renderer shows standby until complete, and replaces analysis after answers
   context.renderLogic(issue);
   assert.match(card.innerHTML, /<h4>Summary<\/h4>/);
   assert.match(card.innerHTML, /<h4>Key deal implications<\/h4>/);
-  assert.doesNotMatch(card.innerHTML, /Recommended actions|<h4>Notes/);
+  assert.match(card.innerHTML, /Recommended actions/);
+  assert.doesNotMatch(card.innerHTML, /<h4>Notes/);
   assert.equal(classes.has("logic-standby"), false);
   context.answers = { ...clean, "share-seller-participation": "" };
   context.renderLogic(issue);

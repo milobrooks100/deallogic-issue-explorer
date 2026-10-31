@@ -52,7 +52,7 @@
     const issue = currentIssue();
     if (!issue) return [];
     const card = document.querySelector("#logic-card");
-    if (["customer-change-of-control", "missing-ip-assignment", "option-holders", "threatened-litigation", "debt-facilities-repayment"].includes(issue.id) && card?.querySelector(".logic-section-heading")) {
+    if (["customer-change-of-control", "missing-ip-assignment", "option-holders", "threatened-litigation", "debt-facilities-repayment", "share-ownership-and-transfer-restrictions"].includes(issue.id) && card?.querySelector(".logic-section-heading")) {
       return [...card.querySelectorAll(".logic-action")].map(row => ({
         issueId: issue.id, side: getTransactionSide(),
         actionId: stableActionIdFor(issue.id,row.querySelector("strong")?.textContent.trim(),row.querySelector("span:last-child")?.textContent.trim(),row.dataset.actionId),
@@ -166,7 +166,7 @@
       if (hasEquivalentAction(item)) continue;
       state.actions.push({id:uid(),sourceKey:key,stableActionId:item.actionId||"",issueId:item.issueId,side:item.side,priority:item.priority,
         title:item.title,instruction:item.instruction,originalTitle:item.title,originalInstruction:item.instruction,
-        status:statuses[0],dealPhase:phaseFor(item.title,item.instruction),
+        status:statuses[0],dealPhase:item.issueId === "share-ownership-and-transfer-restrictions" ? libraryPhase(window.DealLogicActionRegistry.actionFor(item.issueId,"","",item.actionId)?.phase) : phaseFor(item.title,item.instruction),
         urgency:"Medium",notes:"",createdAt:new Date().toISOString(),manual:false});
       added++;
     }
@@ -329,6 +329,18 @@
   document.addEventListener("option-holders-logic-rendered",decorateRecommendations);
   document.addEventListener("threatened-litigation-logic-rendered",decorateRecommendations);
   document.addEventListener("debt-facilities-logic-rendered",decorateRecommendations);
+  document.addEventListener("share-ownership-logic-rendered", () => {
+    // Keep deliberate selections, but refresh their side, priority and snapshot.
+    const issue = currentIssue();
+    if (issue?.id !== "share-ownership-and-transfer-restrictions") return;
+    const latest = new Map(available().map(item => [actionKey(item.issueId,item.side,item.title,item.instruction,item.actionId), item]));
+    for (const [key, item] of picks) {
+      if (item.issueId !== issue.id) continue;
+      if (latest.has(key)) picks.set(key, { ...latest.get(key), issueSnapshot: snapshot(issue) });
+      else picks.delete(key);
+    }
+    decorateRecommendations();
+  });
   renderProjectRail();
   renderHub();
   if(currentIssue())decorateRecommendations();

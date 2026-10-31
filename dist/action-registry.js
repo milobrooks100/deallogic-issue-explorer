@@ -94,6 +94,24 @@
     }
   ];
 
+  topics.push({
+    id: "share-ownership-and-transfer-restrictions",
+    label: "Share ownership and transfer restrictions",
+    shortLabel: "Share Ownership",
+    actions: [
+      ["SO01", "Verify share ownership", "Reconcile the register of members, cap table and supporting title documents to confirm each seller’s ownership of the sale shares.", "search", "Due diligence"],
+      ["SO02", "Rectify title defects", "Obtain missing ownership evidence and resolve title defects or competing claims through corrective documents, settlement or appropriate register rectification.", "wrench", "Due diligence"],
+      ["SO03", "Secure seller participation", "Agree participation with outstanding shareholders and verify any drag-along route before relying on compulsory transfer.", "handshake", "Signing"],
+      ["SO04", "Obtain transfer consents and waivers", "Secure the approvals, pre-emption waivers and other clearances required under the articles, shareholders’ agreement and relevant contractual arrangements.", "handshake", "Signing"],
+      ["SO05", "Release security over the shares", "Obtain binding release arrangements covering the sale shares, with any repayment requirements coordinated through the completion funds flow.", "wrench", "Closing condition"],
+      ["SO06", "Title and capacity warranties", "Obtain warranties covering each seller’s ownership, capacity and authority to sell, and the absence of undisclosed encumbrances over their shares.", "shield-check", "SPA drafting"],
+      ["SO07", "Specific disclosure", "Clearly disclose known ownership gaps, competing claims, transfer restrictions and security arrangements against the relevant SPA warranties.", "file-search", "SPA drafting"],
+      ["SO08", "Specific title indemnity and security", "Allocate losses from identified title defects or competing claims through a specific indemnity, supported by escrow or retention where appropriate.", "banknote", "SPA drafting"],
+      ["SO09", "Completion conditions and longstop", "Make material title, participation or release requirements objective completion conditions, with an agreed longstop and proportionate termination rights.", "circle-check", "Closing condition"],
+      ["SO10", "Share transfer completion mechanics", "Agree transfer documents, certificate delivery, registration steps and any interim voting arrangements pending registration.", "calendar-check", "Closing condition"]
+    ]
+  });
+
   const coreActionIcons = Object.freeze({
     "Further diligence": "search",
     "Rectification": "wrench",
