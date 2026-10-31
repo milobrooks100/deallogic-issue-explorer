@@ -61,6 +61,10 @@
         "Some plan to leave"
       ],
       [
+        "all-leaving",
+        "All plan to leave"
+      ],
+      [
         "unknown",
         "Unknown"
       ]
@@ -169,6 +173,7 @@
       "all-staying": "All identified key employees intend to remain with the target after completion, although their intentions do not guarantee retention.",
       "some-undecided": "Some key employees remain undecided about staying after completion.",
       "some-leaving": "Some key employees plan to leave the target.",
+      "all-leaving": "All identified key employees plan to leave the target.",
       unknown: "The key employees’ intentions about remaining after completion are unknown."
     },
     "employee-terms": {
@@ -210,7 +215,7 @@
     const summary = visible.map(id => summaryCopy[id][responses[id]]).join(" ");
     if (dependence === "no") return { summary, implications: [implicationCopy.absent] };
     const implications = [];
-    const continuityConcern = replacement === "difficult" || intentions === "some-undecided" || intentions === "some-leaving";
+    const continuityConcern = replacement === "difficult" || intentions === "some-undecided" || intentions === "some-leaving" || intentions === "all-leaving";
     if (dependence === "unknown") implications.push(implicationCopy.dependenceUnknown);
     else if (continuityConcern) implications.push(implicationCopy.continuity);
     else if (replacement === "unknown" || intentions === "unknown") implications.push(implicationCopy.continuityUnknown);

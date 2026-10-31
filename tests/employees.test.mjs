@@ -83,7 +83,7 @@ test('all answer permutations produce complete prose or standby with at most thr
     assert.equal(result.summary, active.map(id => summaryCopy[id][responses[id]]).join(' '));
   }
   visit(0, {});
-  assert.equal(checked, 15000);
+  assert.equal(checked, 18000);
 });
 test('adverse, uncertain and clear cases retain distinct consequence themes', () => {
   const {ids, buildAnalysis, implicationCopy} = setup();
@@ -110,4 +110,15 @@ test('cleared answers restore standby and report matches the completed analysis'
   context.renderLogic(employee);
   assert.match(card.innerHTML, /Answer all relevant questions/);
   assert.doesNotMatch(card.innerHTML, /Key deal implications/);
+});
+
+test('all planned departures appear in prose and trigger continuity implications', () => {
+  const {ids, buildAnalysis, implicationCopy} = setup();
+  const responses = Object.fromEntries(ids.map((id,i) => [id, ['yes','easy','all-leaving','yes','no','all-agreed'][i]]));
+  const result = buildAnalysis(responses);
+  assert.match(result.summary, /All identified key employees plan to leave the target/);
+  assert.ok(result.implications.includes(implicationCopy.continuity));
+  assert.ok(!result.implications.includes(implicationCopy.clear));
+  responses[ids[5]] = 'not-needed';
+  assert.ok(buildAnalysis(responses).implications.includes(implicationCopy.reassess));
 });

@@ -16,7 +16,7 @@ Question text lives in `dist/issues.json`; stable answer values, labels and the 
 | --- | --- | --- |
 | employee-dependence | Dependence on particular employees | yes → Yes; no → No; partly → Partly; unknown → Unknown |
 | employee-replacement | Replacement difficulty | easy → Easy; manageable → Manageable; difficult → Difficult; unknown → Unknown |
-| employee-intentions | Intention to remain | all-staying → All intend to stay; some-undecided → Some undecided; some-leaving → Some plan to leave; unknown → Unknown |
+| employee-intentions | Intention to remain | all-staying → All intend to stay; some-undecided → Some undecided; some-leaving → Some plan to leave; all-leaving → All plan to leave; unknown → Unknown |
 | employee-terms | Time for replacement and handover | yes → Yes; partly → Partly; no → No; unknown → Unknown |
 | employee-payments | Transaction-triggered payments | yes → Yes; no → No; unclear → Unclear |
 | employee-arrangements | Retention/handover arrangements | all-agreed → All agreed; some-outstanding → Some still outstanding; none-agreed → None agreed; not-needed → Not needed; unknown → Unknown |
@@ -33,7 +33,7 @@ The shared risk assessment bar is displayed, as requested, with the initial 1/5 
 
 ## Verification
 
-Automated checks cover progressive visibility, partial/unknown responses and migration of legacy uncertainty selections, confirmed-absence exit, invalid responses, hidden-answer removal, export labels, standby and delegation to other issue renderers. All 15,000 combinations of current options and unanswered states are checked for completion, exact summary composition, stable implication membership, uniqueness and the three-point cap. Scenario tests cover adverse, uncertain, clear and inconsistent positions, clearing answers, and report parity. Verify question selection, reload, reset, tooltips and the new Employment navigation in the browser. Material/remediated scores, action sides, Hub snapshots and legal-note verification are inapplicable to this questionnaire-only stage and remain future work.
+Automated checks cover progressive visibility, partial/unknown responses and migration of legacy uncertainty selections, confirmed-absence exit, invalid responses, hidden-answer removal, export labels, standby and delegation to other issue renderers. All 18,000 combinations of current options and unanswered states are checked for completion, exact summary composition, stable implication membership, uniqueness and the three-point cap. Scenario tests cover adverse, uncertain, clear and inconsistent positions, clearing answers, and report parity. Verify question selection, reload, reset, tooltips and the new Employment navigation in the browser. Material/remediated scores, action sides, Hub snapshots and legal-note verification are inapplicable to this questionnaire-only stage and remain future work.
 
 ## Summary and implication rules
 
@@ -43,7 +43,7 @@ Question 2 uses “business”: “How difficult would it be to replace those em
 
 `implicationCopy` supplies a fixed set of consequence statements. Select at most one per theme, in this order:
 
-1. Continuity: unknown dependence takes priority; otherwise difficult replacement or undecided/leaving staff indicates disruption/value exposure; otherwise unknown replacement or intentions leaves readiness uncertain.
+1. Continuity: unknown dependence takes priority; otherwise difficult replacement or undecided staff or some/all planned departures indicates disruption/value exposure; otherwise unknown replacement or intentions leaves readiness uncertain.
 2. Terms and arrangements: Not needed alongside continuity concerns, unknown dependence/replacement/intentions or inadequate/unknown terms prompts reassessment. Otherwise inadequate/unknown terms or outstanding/unknown arrangements create a transaction dependency. Fully agreed arrangements with adequate terms require implementation without guaranteeing retention.
 3. Payments: confirmed payments require quantification/allocation; unclear payments leave unresolved cost exposure.
 
