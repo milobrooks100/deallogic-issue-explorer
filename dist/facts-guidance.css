@@ -1,3 +1,7 @@
+/* Raise the open explainer's button too: hover filters create a stacking context. */
+.info:hover,
+.info:focus { z-index: 20; }
+
 /* Both heading tooltips use the Deal Map treatment and timing. */
 .map-title,
 .facts-title { position: relative; display: inline-block; cursor: default; outline: none; }
