@@ -24,6 +24,24 @@ test('notification follow-up appears only on the three applicable routes',()=>{
  for(const kind of ['personal-data-breach','both','unknown']){const r={...full,'dp-type':kind};assert.ok(visibleIds(r).includes('dp-notifications'));delete r['dp-notifications'];assert.equal(complete(r),false);assert.equal(visibleIds(r).at(-1),'dp-notifications');}
  const r={...full,'dp-type':'compliance-gap'};normalize(r);assert.ok(!('dp-notifications' in r));assert.equal(complete(r),true);
 });
+test('ongoing or partly ongoing issues show notifications for every issue type',()=>{
+ const {visibleIds,complete,normalize}=setup();
+ for(const kind of ['compliance-gap','personal-data-breach','both','unknown']) for(const ongoing of ['yes','partly']) {
+  const r={...full,'dp-type':kind,'dp-ongoing':ongoing};
+  assert.ok(visibleIds(r).includes('dp-notifications'));
+  delete r['dp-notifications']; assert.equal(complete(r),false);
+ }
+ const r={...full,'dp-type':'compliance-gap','dp-ongoing':'no'}; normalize(r);
+ assert.ok(!('dp-notifications' in r)); assert.equal(complete(r),true);
+});
+test('multiple-choice question uses the shared label and tooltip row',()=>{
+ const {questionMarkup}=setup();const q=issue.key_questions.find(q=>q.id==='dp-proceedings');
+ const markup=questionMarkup(q);
+ assert.match(markup,/regulatory enquiries\? \(select all that apply\)/);
+ assert.match(markup,/<div class="question-top"><label id="dp-proceedings-label">/);
+ assert.match(markup,/<\/label><button class="info"/);
+ assert.doesNotMatch(markup,/fieldset|legend|field-hint|None and Unknown are exclusive/);
+});
 test('progression and normalization exclude invalid, hidden and downstream answers',()=>{
  const {ids,visibleIds,normalize}=setup();
  const r={...full,'dp-ongoing':''};normalize(r);assert.deepEqual(Object.keys(r),['dp-issue','dp-type']);assert.deepEqual(Array.from(visibleIds(r)),Array.from(ids.slice(0,3)));

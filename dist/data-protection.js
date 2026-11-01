@@ -183,7 +183,7 @@
   const visibleIds = responses => {
     const visible = [];
     for (const id of ids) {
-      if (id === "dp-notifications" && !["personal-data-breach", "both", "unknown"].includes(responses["dp-type"])) continue;
+      if (id === "dp-notifications" && !["yes", "partly"].includes(responses["dp-ongoing"]) && !["personal-data-breach", "both", "unknown"].includes(responses["dp-type"])) continue;
       visible.push(id);
       if (!valid(id, responses[id]) || (id === "dp-issue" && ["no", "unknown"].includes(responses[id]))) break;
     }
@@ -202,7 +202,7 @@
   const questionMarkup = ({id, question}) => {
     const field = fields[id], label = `${field.number}. ${question}`;
     const info = `<button class="info" type="button" aria-label="${escape(`Guidance: ${question}`)}">i<span class="tooltip" role="tooltip">${escape(field.guidance)}</span></button>`;
-    if (field.multiple) return `<fieldset class="question" style="border:0;padding:0;margin:0 0 18px;min-width:0"><legend class="question-top">${escape(label)} ${info}</legend><div class="choice-grid">${field.options.map(([key,text]) => `<label><input type="checkbox" data-dp-choice value="${key}" ${(answers[id] || []).includes(key) ? "checked" : ""}> ${escape(text)}</label>`).join("")}</div><p class="field-hint">Select all that apply. None and Unknown are exclusive.</p></fieldset>`;
+    if (field.multiple) return `<div class="question" role="group" aria-labelledby="${id}-label"><div class="question-top"><label id="${id}-label">${escape(label)}</label>${info}</div><div class="choice-grid">${field.options.map(([key,text]) => `<label><input type="checkbox" data-dp-choice value="${key}" ${(answers[id] || []).includes(key) ? "checked" : ""}> ${escape(text)}</label>`).join("")}</div></div>`;
     return `<div class="question"><div class="question-top"><label for="${id}">${escape(label)}</label>${info}</div><select id="${id}"><option value="">Unanswered</option>${field.options.map(([key,text]) => `<option value="${key}" ${answers[id] === key ? "selected" : ""}>${escape(text)}</option>`).join("")}</select></div>`;
   };
   // Questionnaire stage only: substantive risk and action rules are authored separately.

@@ -408,7 +408,7 @@
       },
       {
         "id": "dp-proceedings",
-        "question": "Are there related complaints, claims or regulatory enquiries?"
+        "question": "Are there related complaints, claims or regulatory enquiries? (select all that apply)"
       },
       {
         "id": "dp-impact",
