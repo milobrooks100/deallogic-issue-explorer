@@ -280,6 +280,8 @@
   const actionOrder = ["ER03", "ER07", "ER13", "ER01", "ER02", "ER05", "ER04", "ER09", "ER08", "ER15", "ER14", "ER11"];
   const chooseActions = (responses, side = "Balanced", consolidate = true) => {
     if (!buildAnalysis(responses) || responses[ids[0]] === "no") return [];
+    side = ["Buyer", "Seller", "Balanced"].includes(side) ? side : "Balanced";
+    const perspective = (buyer, seller, balanced) => ({ Buyer: buyer, Seller: seller, Balanced: balanced }[side]);
     const [dependence,replacement,intentions,terms,payments,arrangements] = ids.map(id => responses[id]);
     const unresolved = ["some-outstanding", "none-agreed", "unknown"].includes(arrangements);
     const departing = ["some-leaving", "all-leaving"].includes(intentions);
@@ -297,7 +299,7 @@
     if ((departing || undecided) && unresolved) add("ER14","Consider","Consider","Consider");
     if ((departing || undecided) && unresolved) add("ER01","Required","Recommended","Required");
     else if (intentions === "all-staying" && replacement === "difficult" && unresolved) add("ER01","Recommended","Consider","Recommended");
-    if (arrangements === "not-needed" && (departing || undecided || ["no","partly"].includes(terms))) add("ER01","Recommended","Recommended","Recommended", "Reassess whether retention or handover arrangements are needed and document any necessary agreements.");
+    if (arrangements === "not-needed" && (departing || undecided || ["no","partly"].includes(terms))) add("ER01","Recommended","Recommended","Recommended", perspective("Reassess the decision that no retention or handover arrangements are needed and require any necessary agreements.", "Reassess whether retention or handover arrangements are needed and document proportionate, agreed seller commitments.", "Reassess whether retention or handover arrangements are needed and document any necessary agreements."));
     if (departing || undecided) add("ER15","Consider","Consider","Consider");
     if (terms === "no") add("ER02","Required","Recommended","Required");
     else if (terms === "partly") add("ER02","Recommended","Consider","Recommended");
@@ -307,27 +309,39 @@
     const adverse = intentions !== "all-staying" || terms !== "yes" || payments !== "no" || unresolved;
     add("ER05","Recommended",adverse ? "Required" : "Recommended","Recommended");
     if (payments === "yes") add("ER07","Required","Required","Required");
-    else if (payments === "unclear") add("ER07","Required","Recommended","Required", "Establish potential employee payments and agree their allocation, including employer taxes, in the price mechanism and completion payments.");
+    else if (payments === "unclear") add("ER07","Required","Recommended","Required", perspective("Establish potential employee payments and employer taxes and seek clear allocation of agreed seller costs in the price and completion payments.", "Establish potential employee payments and employer taxes before accepting defined seller costs in the price and completion payments.", "Establish potential employee payments and agree their allocation, including employer taxes, in the price mechanism and completion payments."));
     if (payments !== "no" || ["no","partly"].includes(terms) || departing) add("ER08","Consider","Consider","Consider");
     if (departing || undecided || replacement === "difficult" || unresolved) add("ER09",null,"Consider","Consider");
     add("ER11","Consider","Consider","Consider");
 
     const registry = window.DealLogicActionRegistry;
-    const items = [...choices.values()].map(choice => ({...registry.actionFor(issueId,"","",choice.id), ...choice, description:choice.description || registry.actionFor(issueId,"","",choice.id).description}));
-    const merge = (first, second, title, description) => {
+    const items = [...choices.values()].map(choice => {
+      const action = registry.forSide(registry.actionFor(issueId,"","",choice.id), side);
+      return { ...action, ...choice, description: choice.description || action.description };
+    });
+    const merge = (first, second, title, buyer, seller, balanced) => {
       if (items.length <= 9) return;
       const a = items.find(item => item.id === first), b = items.find(item => item.id === second);
       if (!a || !b) return;
       a.title = title;
-      a.description = description;
+      a.description = perspective(buyer, seller, balanced);
       a.constituentIds.push(...b.constituentIds);
       if (priorityRank[b.priority] > priorityRank[a.priority]) a.priority = b.priority;
       items.splice(items.indexOf(b),1);
     };
     if (consolidate) {
-      merge("ER13","ER02","Review and strengthen employment terms", "Review contracts and agree necessary changes to notice, handover, confidentiality and reasonable competition restrictions, with employee consent and regard to TUPE.");
-      merge("ER01","ER14","Review pay and agree retention", "Agree retention payments linked to service or handover, with clear early-leaver terms, and consider pay improvements if remuneration contributes to departure risk, allocating the costs.");
-      merge("ER04","ER09","Agree interim controls and seller limits", "If signing precedes completion, agree buyer consent controls over material employment changes, while limiting seller retention commitments to defined efforts and excluding buyer-caused departures after completion.");
+      merge("ER13","ER02","Review and strengthen employment terms",
+        "Review contracts and seek necessary notice, handover, confidentiality and reasonable competition protections, with employee consent and regard to TUPE.",
+        "Review contracts and agree proportionate notice, handover, confidentiality and reasonable competition terms, with employee consent and regard to TUPE.",
+        "Review contracts and agree necessary changes to notice, handover, confidentiality and reasonable competition restrictions, with employee consent and regard to TUPE.");
+      merge("ER01","ER14","Review pay and agree retention",
+        "Seek retention payments tied to service or handover, with clear early-leaver terms, and assess targeted pay improvements where remuneration drives departure risk, allocating the costs.",
+        "Agree proportionate retention payments tied to service or handover, with clear early-leaver terms, and limit any pay improvements and related costs to justified retention needs.",
+        "Agree retention payments linked to service or handover, with clear early-leaver terms, and consider pay improvements if remuneration contributes to departure risk, allocating the costs.");
+      merge("ER04","ER09","Agree interim controls and seller limits",
+        "If signing precedes completion, seek consent controls over material employment changes and define seller retention duties without guaranteeing outcomes beyond the seller’s control.",
+        "If signing precedes completion, limit employment consent controls to material changes and seller retention duties to defined efforts, excluding buyer-caused departures after completion.",
+        "If signing precedes completion, agree buyer consent controls over material employment changes, while limiting seller retention commitments to defined efforts and excluding buyer-caused departures after completion.");
     }
     return items.sort((a,b) => priorityRank[b.priority]-priorityRank[a.priority] || actionOrder.indexOf(a.id)-actionOrder.indexOf(b.id));
   };

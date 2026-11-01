@@ -129,14 +129,22 @@
       "Review pay and incentives",
       "If remuneration is contributing to departure risk, consider salary increases, bonuses or improved benefits, taking account of recurring costs and who funds them.",
       "wrench",
-      "Due diligence"
+      "Due diligence",
+      {
+        "Buyer": "If remuneration contributes to departure risk, assess targeted pay improvements and require agreement on recurring costs and who funds them.",
+        "Seller": "If remuneration contributes to departure risk, assess proportionate pay improvements and limit new funding commitments to those expressly agreed."
+      }
     ],
     [
       "ER01",
       "Binding retention arrangements",
       "Tie retention payments to an agreed period of service or handover, with clear rules for employees who leave early.",
       "handshake",
-      "Signing"
+      "Signing",
+      {
+        "Buyer": "Seek binding retention payments linked to service or handover, with clear early-leaver terms and agreed funding.",
+        "Seller": "Agree proportionate retention payments linked to service or handover, with clear early-leaver terms and defined seller funding commitments."
+      }
     ],
     [
       "ER15",
@@ -150,56 +158,88 @@
       "Strengthen employment terms",
       "Agree suitable notice, handover, confidentiality and reasonable competition restrictions, with employee consent and regard to TUPE.",
       "wrench",
-      "Signing"
+      "Signing",
+      {
+        "Buyer": "Seek suitable notice, handover, confidentiality and reasonable competition protections, with employee consent and regard to TUPE.",
+        "Seller": "Agree proportionate changes to notice, handover, confidentiality and reasonable competition terms, with employee consent and regard to TUPE."
+      }
     ],
     [
       "ER03",
       "Key employee completion protections",
       "Where retention is essential, make completion conditional on agreed employee arrangements, with a deadline and clear rights to waive the condition or terminate.",
       "circle-check",
-      "Closing condition"
+      "Closing condition",
+      {
+        "Buyer": "Where retention is essential, seek objective employee completion conditions with a deadline and clear waiver and termination rights.",
+        "Seller": "Where retention is essential, limit employee completion conditions to defined milestones and deadlines rather than open-ended guarantees that employees will stay."
+      }
     ],
     [
       "ER04",
       "Pre-completion employment covenant",
       "If signing precedes completion, require buyer consent for material changes to key employees’ terms, bonuses or departure arrangements, subject to appropriate exceptions.",
       "file-pen-line",
-      "SPA drafting"
+      "SPA drafting",
+      {
+        "Buyer": "If signing precedes completion, seek consent rights over material changes to key employees’ terms, bonuses or departure arrangements, subject to appropriate exceptions.",
+        "Seller": "If signing precedes completion, limit buyer consent rights to material employment changes, with exceptions for ordinary business needs and legal duties."
+      }
     ],
     [
       "ER05",
       "Employment warranties and disclosure",
       "Obtain assurances about employment terms, payments and resignation notices, supported by clear disclosure of known issues and knowledge-qualified statements about departure intentions.",
       "shield-check",
-      "SPA drafting"
+      "SPA drafting",
+      {
+        "Buyer": "Seek employment warranties supported by clear disclosure, covering terms, payments and resignation notices, with knowledge-qualified statements about departure intentions.",
+        "Seller": "Give accurate employment warranties supported by fair disclosure and appropriate knowledge qualifications, without guaranteeing employees’ future intentions."
+      }
     ],
     [
       "ER07",
       "Allocate employee payments",
       "Agree who bears bonuses, severance, retention payments and employer taxes, reflecting these in the price and completion payments without double counting.",
       "calendar-check",
-      "Closing condition"
+      "Closing condition",
+      {
+        "Buyer": "Identify employee transaction payments and employer taxes and seek clear seller responsibility for agreed pre-completion costs without double counting.",
+        "Seller": "Identify employee transaction payments and employer taxes and limit seller funding to agreed amounts, separating buyer-led retention costs without double counting."
+      }
     ],
     [
       "ER08",
       "Specific indemnity and security",
       "If an identified employee liability requires protection, agree which losses the seller will reimburse and consider escrow or a price holdback where recovery is a concern.",
       "banknote",
-      "SPA drafting"
+      "SPA drafting",
+      {
+        "Buyer": "If an identified employee liability requires protection, seek a specific indemnity and consider escrow or retention where recovery is a concern.",
+        "Seller": "If an identified employee liability requires protection, resist broad indemnities and limit any agreed liability, duration and security to the identified exposure."
+      }
     ],
     [
       "ER09",
       "Limit seller retention obligations",
       "If the buyer seeks retention guarantees, require defined seller efforts instead and exclude departures caused by buyer decisions after completion.",
       "file-pen-line",
-      "SPA drafting"
+      "SPA drafting",
+      {
+        "Buyer": "If seller retention duties are negotiated, require defined efforts and allocate responsibility for departures caused by buyer decisions.",
+        "Seller": "If the buyer seeks retention guarantees, limit commitments to defined seller efforts and exclude departures caused by buyer decisions after completion."
+      }
     ],
     [
       "ER11",
       "TUPE protections",
       "If TUPE applies to a business transfer, allocate employee information, consultation and transfer obligations, together with responsibility for losses caused by each party’s failures.",
       "file-pen-line",
-      "SPA drafting"
+      "SPA drafting",
+      {
+        "Buyer": "If TUPE applies, verify employee information and consultation steps and seek protection for seller failures while addressing the buyer’s own duties.",
+        "Seller": "If TUPE applies, fulfil the seller’s information and consultation duties and limit liability for failures caused by the buyer."
+      }
     ]
   ]
 });
