@@ -27,7 +27,7 @@ Every control is single-select with an empty Unanswered placeholder. Each valid 
 
 Answers use existing issue/deal-scoped DealLogicStorage, reset and account sync. Reports contain only reachable questions and current answer labels, plus the introduction. The shared alphabetical area map also populates the landing cards.
 
-Perspective-specific actions and conditional deal facts are implemented below; legal notes remain a separate authoring step. Apply deal logic stays in standby until every reachable answer is valid; selecting No at question 1 completes the early-exit branch. Completed questionnaires show Summary, Key deal implications, Additional deal facts (unless no dependence), and Recommended actions. All 12 employee actions are registered in the Action Library; users can select recommendations for Deal Hub. Reports reproduce the same summary, implications, conditional facts, perspective and displayed actions when complete and omit them when incomplete. Existing Buyer/Seller/Balanced settings remain available globally.
+Perspective-specific actions and conditional wording are implemented below; legal notes remain a separate authoring step. Apply deal logic stays in standby until every reachable answer is valid; selecting No at question 1 completes the early-exit branch. Completed questionnaires show Summary, Key deal implications, and Recommended actions. All 12 employee actions are registered in the Action Library; users can select recommendations for Deal Hub. Reports reproduce the same summary, implications, perspective and displayed actions when complete and omit them when incomplete. Existing Buyer/Seller/Balanced settings remain available globally.
 
 The shared risk assessment bar is displayed, as requested, with the initial 1/5 No risk state. Employee-specific scoring updates from active answers and the calculated score and risk level are included in the report. Do not reuse litigation risk rules. The action registry, shared icons, selection controls and Hub integration are implemented. Legal notes and their authorities remain a separate authoring step.
 
@@ -78,39 +78,38 @@ Risk checks cover all 18,000 combinations of current choices and unanswered stat
 
 Question 1 Unknown starts at 2/5 Low risk, as requested. Later answered questions can independently impose higher floors; unknown dependence alone does not impose a minimum of 3.
 
-## Approved action matrix and additional facts
+## Approved action matrix and conditional protections
 
-`chooseActions` implements the reviewed matrix, with canonical ER01–ER12 entries in `dist/action-registry.js`. Priorities below are Buyer / Seller / Balanced. Highest applicable priority wins, with one instance per action. Unanswered main questions show standby and no actions; confirmed no dependence shows an explicit no-active-actions message.
+`chooseActions` implements perspective rules using only the six main answers. ER01–ER12 remain canonical registry entries, with shared icons and phases. No additional-facts questionnaire is shown. Existing supplementary answers are removed on normalization and never influence scoring, summaries, actions or reports. Buyer / Seller / Balanced priorities follow below; highest applicable priority wins.
 
-| ID | Trigger | Priority |
+| ID | Trigger | Priority: Buyer / Seller / Balanced |
 | --- | --- | --- |
 | ER01 Retention agreements | Undecided/departing staff + unresolved arrangements | Required / Recommended / Required |
 | ER01 | All staying + difficult replacement + unresolved arrangements | Recommended / Consider / Recommended |
-| ER01 | Not needed despite departure/undecided staff or Partly/No handover time | Recommended / Recommended / Recommended; reassess need before documenting agreements |
+| ER01 | Not needed despite departure/undecided staff or Partly/No handover time | Recommended for all; reassess need |
 | ER02 Employment terms | No time for replacement/handover | Required / Recommended / Required |
 | ER02 | Partly adequate time | Recommended / Consider / Recommended |
 | ER02 | Unknown terms | Recommended for all; review before changing terms |
-| ER03 Completion condition | Difficult replacement + planned departures + unresolved arrangements | Required / Consider / Recommended |
+| ER03 Completion condition | Difficult replacement + departures + unresolved arrangements | Required / Consider / Recommended |
 | ER03 | Manageable replacement + all leaving + unresolved arrangements | Recommended / Consider / Recommended |
-| ER04 Interim covenant | Confirmed signing gap | Recommended / Consider / Recommended |
-| ER04 | Signing gap + difficult replacement + planned departures | Required / Consider / Recommended |
+| ER04 Interim covenant | Completed assessment other than No dependence | Consider for all; if signing precedes completion, preserve the employment position |
 | ER05 Warranties | Completed assessment other than No dependence | Recommended / Consider / Recommended |
-| ER06 Disclosure | Intentions other than All staying, terms other than Yes, payments other than No, or unresolved arrangements | Recommended / Required / Recommended |
+| ER06 Disclosure | Intentions not All staying, terms not Yes, payments not No, or unresolved arrangements | Recommended / Required / Recommended |
 | ER07 Payment allocation | Payments Yes | Required for all |
 | ER07 | Payments Unclear | Required / Recommended / Required; establish and allocate exposure |
-| ER08 Indemnity | Specific exposure confirmed | Recommended / Consider / Recommended |
-| ER09 Seller limits | Broad buyer retention demand confirmed | Absent / Required / Recommended |
-| ER10 Security | Specific exposure and recovery concern confirmed | Recommended / Consider / Consider |
-| ER11 TUPE | Applicability and outstanding obligations/allocation both confirmed | Required for all |
+| ER08 Indemnity | Payments Yes/Unclear, terms Partly/No/Unknown, or departures | Consider for all; if a specific liability or breach is identified, allocate the loss |
+| ER09 Seller limits | Departing/undecided staff, difficult replacement or unresolved arrangements | Absent / Consider / Consider; if broad buyer guarantees are sought, limit seller obligations |
+| ER10 Security | ER08 relevant and risk at least 4 or payments Yes | Consider for all; if an indemnity is agreed and recovery is a concern, secure payment |
+| ER11 TUPE | Completed assessment other than No dependence | Consider for all; if TUPE applies to a business transfer and obligations remain outstanding, allocate compliance and related losses |
 | ER12 Renegotiate/exit | Risk 5 | Recommended / Consider / Recommended |
 | ER12 | Risk 4 + difficult replacement + departures + unresolved arrangements | Consider for all |
 
-All agreed suppresses requests to obtain the same agreements and the associated unresolved-arrangement completion/exit triggers. Unknown alone never establishes a specific exposure, recovery concern, signing gap, broad buyer demand or TUPE applicability. The independently confirmed facts can still support protections when the main assessment is uncertain. No guarantee that employees will remain is inferred.
+Conditional actions begin with If and explain the purpose of the protection. They never imply that TUPE, signing gaps, specific breaches, buyer demands or recovery concerns are established by the questionnaire. Their Consider priority reflects that applicability needs assessment. The same wording appears in the Action Library and reports.
 
-The optional Additional deal facts panel has Yes/No/Unknown selectors for signing gap, established exposure, broad buyer demand and TUPE applicability; confirmed exposure reveals seller recovery, and confirmed TUPE applicability reveals outstanding obligations. These facts use the existing issue/deal answer key and do not affect the agreed risk matrix or the six-question completion gate. Unknown is the default. Invalid or inapplicable dependent facts are removed, and No dependence clears all additional facts. Reports and saved Hub snapshots retain applicable context.
+All agreed suppresses requests to obtain the same agreements and unresolved-arrangement completion/exit triggers. The six-question completion gate and risk rules are unchanged. No dependence ends this focused issue and shows no active actions.
 
-Sort Required, Recommended, Consider; within a priority: completion condition, TUPE, retention, terms, payments, interim covenant, seller limits, disclosure, warranties, indemnity, security, exit. If more than nine cards are active, consolidate in order: ER08+ER10 indemnity/security; ER04+ER09 covenant/seller limits; ER03+ER12 completion/exit. Keep the highest constituent priority and both instructions. No slice truncation hides triggered protections. Each card uses the lead action's registered icon.
+Sort Required, Recommended, Consider; within a priority: completion condition, TUPE, retention, terms, payments, interim covenant, seller limits, disclosure, warranties, indemnity, security, exit. If over nine, consolidate ER08+ER10, ER04+ER09, then ER03+ER12, preserving instructions and the highest priority. No slice truncation hides a triggered protection. A consolidated card uses its lead registered icon; Hub saving expands constituent actions to stable IDs and preserves existing edited actions and duplicate prevention.
 
-Hub selection reuses select-all, deselection, count, cancel, disabled empty confirmation and save feedback. On rerender, retained picks receive the current side, instructions and snapshot; no-longer-relevant picks are removed. Consolidated cards save their constituent actions under separate stable IDs so prior library additions cannot cause duplicates or overwrite user edits. Already-saved snapshots become stale after answer/fact changes until explicitly refreshed. Registry phases and plain Hub icons are preserved. All 12 entries remain individually available from the Action Library.
+Hub selection keeps select-all, deselection, count, cancel, disabled empty confirmation and save feedback. On rerender, retained picks get current side, instruction and snapshot; irrelevant picks are removed. Existing saved Hub actions are preserved, with the normal stale snapshot indication after answer cleanup. All 12 actions remain individually available in the Action Library.
 
-Verification includes 108,000 answer/perspective/fact-extreme combinations, all 64 applicability combinations on the severe case across three sides, the cap, priority preservation and exact coverage after consolidation, conditional gates, report/action parity, valid registry icons, and constituent-saving duplicate prevention. Browser verification covers Seller priorities, conditional TUPE activation, saving five actions to Hub and disabled library buttons for those saved identities. The full suite has one pre-existing core action colour test failure unrelated to this change.
+Checks cover 54,000 answer/perspective combinations, the nine-card cap, exact protection coverage and priority preservation after consolidation, conditional wording and Consider priorities, absence of supplementary UI/report content, removal of retired saved answers, registry icons, export parity and constituent-saving duplicate prevention. The repository retains one pre-existing unrelated core action colour test failure.

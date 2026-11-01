@@ -141,7 +141,7 @@
     [
       "ER04",
       "Pre-completion employment covenant",
-      "Restrict material changes to terms, bonuses, dismissals and agreed departures without buyer consent, subject to appropriate exceptions.",
+      "If signing precedes completion, restrict material employment changes without buyer consent to preserve the agreed position, subject to appropriate exceptions.",
       "file-pen-line",
       "SPA drafting"
     ],
@@ -169,28 +169,28 @@
     [
       "ER08",
       "Specific employment indemnity",
-      "Allocate identified payment liabilities or pre-completion breaches, with clear limits and claims procedures.",
+      "If a specific payment liability or pre-completion breach is identified, agree a defined indemnity to allocate the resulting loss.",
       "banknote",
       "SPA drafting"
     ],
     [
       "ER09",
       "Limit seller retention obligations",
-      "Require defined retention efforts rather than guaranteed outcomes; exclude departures caused by post-completion buyer decisions.",
+      "If the buyer seeks broad retention guarantees, limit the seller’s obligations to defined efforts and exclude departures caused by buyer decisions after completion.",
       "file-pen-line",
       "SPA drafting"
     ],
     [
       "ER10",
       "Escrow or price retention",
-      "Secure an agreed indemnity with proportionate retained funds and clear release arrangements.",
+      "If an indemnity is agreed and seller recovery is a concern, use proportionate escrow or price retention to secure payment, with clear release terms.",
       "lock-keyhole",
       "SPA drafting"
     ],
     [
       "ER11",
       "TUPE protections",
-      "Where applicable, allocate information, consultation and employee-transfer obligations, with indemnities reflecting each party\u2019s responsibility.",
+      "If TUPE applies to a business transfer and obligations remain outstanding, allocate compliance duties and related losses to address transfer risk.",
       "file-pen-line",
       "SPA drafting"
     ],

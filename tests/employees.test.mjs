@@ -19,7 +19,7 @@ function setup() {
     document: { dispatchEvent() {}, getElementById() {return null;}, querySelector: selector => selector === '#logic-card' ? card : null, createElement: () => ({click() {}}) }
   });
   vm.runInContext(registrySource, context);
-  vm.runInContext(source.replace(/\}\)\(\);\s*$/, 'globalThis.employeeTest = { fields, ids, visibleIds, normalize, buildAnalysis, summaryCopy, implicationCopy, assessRisk, chooseActions, contextFields, contextIds }; })();'), context);
+  vm.runInContext(source.replace(/\}\)\(\);\s*$/, 'globalThis.employeeTest = { fields, ids, visibleIds, normalize, buildAnalysis, summaryCopy, implicationCopy, assessRisk, chooseActions }; })();'), context);
   return { context, card, getReport: () => report, ...context.employeeTest };
 }
 test('progressive reveal stops at unanswered, invalid or confirmed absence', () => {
@@ -196,75 +196,56 @@ test('unknown dependence starts at low risk while later concerns retain their fl
   assert.equal(assessRisk(Object.fromEntries(ids.map((id,i) => [id,['unknown','easy','all-staying','yes','no','not-needed'][i]]))),2);
 });
 
-test('action triggers respect perspective, facts and the agreed protections', () => {
-  const {ids, chooseActions} = setup();
-  const response = values => Object.fromEntries(ids.map((id,i) => [id,values[i]]));
-  const serious = response(['yes','difficult','all-leaving','no','yes','none-agreed']);
-  const priorities = side => new Map(chooseActions(serious,side).map(action => [action.id,action.priority]));
-  assert.equal(priorities('Buyer').get('ER03'),'Required');
-  assert.equal(priorities('Seller').get('ER03'),'Consider');
-  assert.equal(priorities('Seller').get('ER06'),'Required');
-  assert.equal(priorities('Balanced').get('ER01'),'Required');
-  assert.equal(priorities('Buyer').has('ER11'),false);
-  assert.equal(priorities('Buyer').has('ER08'),false);
-  assert.equal(priorities('Buyer').has('ER10'),false);
-  assert.equal(priorities('Buyer').has('ER04'),false);
-  const agreed = {...serious,[ids[5]]:'all-agreed'};
-  const agreedIds = chooseActions(agreed,'Buyer').map(action => action.id);
-  assert.ok(!agreedIds.includes('ER01') && !agreedIds.includes('ER03') && !agreedIds.includes('ER12'));
-  assert.ok(chooseActions({...serious,'employee-tupe-applies':'yes'},'Balanced').every(action => action.id !== 'ER11'));
-  assert.ok(chooseActions({...serious,'employee-tupe-applies':'yes','employee-tupe-outstanding':'yes'},'Balanced').some(action => action.id === 'ER11' && action.priority === 'Required'));
-  const facts = {...serious,'employee-specific-exposure':'yes','employee-recovery-concern':'yes','employee-signing-gap':'yes','employee-seller-guarantee':'yes'};
-  assert.ok(chooseActions(facts,'Seller').some(action => action.constituentIds.includes('ER09') && action.priority === 'Required'));
-  assert.ok(chooseActions(facts,'Buyer').every(action => !action.constituentIds.includes('ER09')));
+test('conditional protections do not assume unrecorded facts', () => {
+  const {ids, chooseActions, normalize, context, card, getReport} = setup();
+  const responses = Object.fromEntries(ids.map((id,i) => [id,['yes','difficult','all-leaving','no','yes','none-agreed'][i]]));
+  for (const side of ['Buyer','Seller','Balanced']) {
+    const raw = chooseActions(responses,side,false);
+    for (const id of ['ER04','ER08','ER10','ER11',...(side === 'Buyer' ? [] : ['ER09'])]) {
+      const action = raw.find(item => item.id === id);
+      assert.equal(action.priority,'Consider');
+      assert.match(action.description,/^If /);
+    }
+    assert.equal(raw.some(item => item.id === 'ER09'),side !== 'Buyer');
+  }
+  assert.equal(chooseActions(responses,'Buyer',false).find(item => item.id === 'ER03').priority,'Required');
+  assert.equal(chooseActions(responses,'Seller',false).find(item => item.id === 'ER06').priority,'Required');
+  const retired = ['employee-signing-gap','employee-specific-exposure','employee-seller-guarantee','employee-recovery-concern','employee-tupe-applies','employee-tupe-outstanding'];
+  const old = {...responses,...Object.fromEntries(retired.map(id => [id,'yes']))};
+  assert.equal(JSON.stringify(chooseActions(old,'Balanced')),JSON.stringify(chooseActions(responses,'Balanced')));
+  normalize(old);
+  retired.forEach(id => assert.equal(old[id],undefined));
+  context.answers = old;
+  context.renderLogic(employee);
+  context.exportReport();
+  assert.doesNotMatch(card.innerHTML,/Additional deal facts|employee-deal-facts|employee-tupe-applies/);
+  assert.doesNotMatch(getReport(),/ADDITIONAL DEAL FACTS|Does TUPE apply/);
 });
 
-test('all answer combinations and perspectives stay within nine and preserve every triggered protection', () => {
-  const {ids, fields, chooseActions, contextFields} = setup();
-  const confirmed = Object.fromEntries(Object.keys(contextFields).map(id => [id,'yes']));
+test('all 54000 answer and perspective combinations retain protections within nine cards', () => {
+  const {ids,fields,chooseActions} = setup();
   let checked = 0;
-  function verify(responses) {
-    for (const facts of [{},confirmed]) for (const side of ['Buyer','Seller','Balanced']) {
-      const combined = {...responses,...facts};
-      const cards = chooseActions(combined,side);
-      const original = chooseActions(combined,side,false);
+  function visit(index,responses) {
+    if (index < ids.length) {
+      const id = ids[index];
+      for (const value of ['',...fields[id].options.map(pair => pair[0])]) visit(index+1,{...responses,[id]:value});
+      return;
+    }
+    for (const side of ['Buyer','Seller','Balanced']) {
+      const cards = chooseActions(responses,side);
+      const original = chooseActions(responses,side,false);
       assert.ok(cards.length <= 9);
       assert.equal(new Set(cards.map(card => card.id)).size,cards.length);
       const covered = cards.flatMap(card => Array.from(card.constituentIds));
       assert.deepEqual([...covered].sort(),Array.from(original, action => action.id).sort());
-      for (const action of original) {
-        const card = cards.find(card => card.constituentIds.includes(action.id));
-        const ranks = {Required:3,Recommended:2,Consider:1};
-        assert.ok(ranks[card.priority] >= ranks[action.priority]);
-      }
+      const ranks = {Required:3,Recommended:2,Consider:1};
+      for (const action of original) assert.ok(ranks[cards.find(card => card.constituentIds.includes(action.id)).priority] >= ranks[action.priority]);
       if (responses[ids[0]] === 'no') assert.equal(cards.length,0);
       checked++;
     }
   }
-  function visit(index,responses) {
-    if (index === ids.length) {verify(responses); return;}
-    const id = ids[index];
-    for (const value of ['',...fields[id].options.map(pair => pair[0])]) visit(index+1,{...responses,[id]:value});
-  }
   visit(0,{});
-  assert.equal(checked,108000);
-});
-
-test('all additional-fact combinations preserve the cap and respect applicability gates', () => {
-  const {ids,chooseActions,contextFields,normalize} = setup();
-  const factIds = Object.keys(contextFields);
-  for (let bits=0;bits<64;bits++) for (const side of ['Buyer','Seller','Balanced']) {
-    const responses = Object.fromEntries(ids.map((id,i)=>[id,['yes','difficult','all-leaving','no','yes','none-agreed'][i]]));
-    factIds.forEach((id,i)=>{responses[id] = bits & (1<<i) ? 'yes':'no';});
-    const cards = chooseActions(responses,side);
-    assert.ok(cards.length<=9);
-    const covered = cards.flatMap(card=>Array.from(card.constituentIds));
-    assert.equal(covered.includes('ER11'),responses['employee-tupe-applies']==='yes' && responses['employee-tupe-outstanding']==='yes');
-    assert.equal(covered.includes('ER10'),responses['employee-specific-exposure']==='yes' && responses['employee-recovery-concern']==='yes');
-    normalize(responses);
-    if (responses['employee-specific-exposure'] !== 'yes') assert.equal(responses['employee-recovery-concern'],undefined);
-    if (responses['employee-tupe-applies'] !== 'yes') assert.equal(responses['employee-tupe-outstanding'],undefined);
-  }
+  assert.equal(checked,54000);
 });
 
 test('registry icons, rendered actions and report priorities use the same canonical actions', () => {
