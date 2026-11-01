@@ -1,4 +1,4 @@
-/* Data Protection questionnaire: Threatened Litigation form and shared panel template. */
+/* Data Protection questionnaire, risk assessment and deal analysis. */
 (() => {
   const issueId = "compliance-gaps-and-personal-data-breaches";
   const isDataProtection = issue => issue?.id === issueId;
@@ -225,6 +225,101 @@
     // Only an explicit Fundamental impact can produce 5; reductions cannot erase floors.
     return Math.max(floor, Math.min(4, score));
   };
+  const summaryCopy = {
+    "dp-ongoing": {
+      yes: "The issue is reported to be ongoing.",
+      partly: "The issue is reported to be partly ongoing.",
+      no: "The issue is reported to have stopped.",
+      unknown: "It is unclear whether the issue is still ongoing."
+    },
+    "dp-notifications": {
+      "all-made": "All required breach notifications are reported to have been made.",
+      "some-outstanding": "Some required breach notifications remain outstanding.",
+      "none-made": "No required breach notifications have been made.",
+      "none-required": "The recorded assessment is that no breach notifications are required.",
+      unknown: "It is unclear whether required breach notifications have been made."
+    },
+    "dp-impact": {
+      minimal: "The likely impact on the target or deal is assessed as minimal.",
+      manageable: "The likely impact on the target or deal is assessed as manageable.",
+      significant: "The likely impact on the target or deal is assessed as significant.",
+      fundamental: "The likely impact on the target or deal is assessed as fundamental.",
+      unknown: "The likely impact on the target or deal is unknown."
+    },
+    "dp-remediation": {
+      completed: "All necessary remedial steps are reported to have been completed.",
+      yes: "All necessary remedial steps are expected to be achievable before completion.",
+      partly: "Only some necessary remedial steps can be completed before completion.",
+      no: "The necessary remedial steps cannot all be completed before completion.",
+      unknown: "It is unclear whether all necessary remedial steps can be completed before completion."
+    }
+  };
+  // Reuse consequence statements by theme; answer-level detail belongs in the summary.
+  const implicationCopy = {
+    absent: "No issue-specific completion protection is currently indicated by the recorded answer; this does not establish wider data protection compliance.",
+    fundamental: "The issue may undermine the basis of the acquisition; transaction viability and the terms on which the deal could proceed need to be reassessed.",
+    significant: "The exposure may materially affect value, operations or completion certainty and should inform the deal economics and risk allocation.",
+    uncertain: "Uncertainty about the issue or its impact prevents the transaction exposure from being settled.",
+    inconsistent: "Reported completion of remediation needs to be reconciled with the ongoing issue or outstanding notifications before completion readiness can be relied on.",
+    readiness: "Containment, outstanding notification requirements and remediation should be addressed in the completion plan, with responsibility and funding agreed for any work continuing afterwards.",
+    readinessUnknown: "Completion readiness remains uncertain until the response position and the timing of necessary remedial work are established.",
+    planned: "The completion timetable depends on delivery of the planned remediation; the ability to complete the work does not establish that it has been done.",
+    external: "Complaints, claims or regulatory enquiries may leave residual exposure after remediation; that exposure should inform disclosure and the allocation of risk and costs.",
+    externalUnknown: "Uncertainty about complaints, claims or regulatory enquiries leaves potential residual exposure unresolved for the deal.",
+    clear: "No unresolved issue-specific completion dependency is indicated by the recorded answers; completed remediation does not itself establish that historical exposure has ended."
+  };
+  const buildAnalysis = responses => {
+    if (!complete(responses)) return null;
+    const visible = visibleIds(responses);
+    const existence = responses["dp-issue"];
+    if (existence === "no") return {
+      summary: "No data protection issue has been identified on the recorded assessment. This does not establish that the target is fully compliant with data protection requirements.",
+      implications: [implicationCopy.absent]
+    };
+    const type = responses["dp-type"];
+    const ongoing = responses["dp-ongoing"];
+    const notifications = visible.includes("dp-notifications") ? responses["dp-notifications"] : undefined;
+    const proceedings = responses["dp-proceedings"];
+    const impact = responses["dp-impact"];
+    const remediation = responses["dp-remediation"];
+    const subject = {
+      "compliance-gap": "a compliance gap",
+      "personal-data-breach": "a personal data breach",
+      both: "both a compliance gap and a personal data breach",
+      unknown: "a data protection issue of an unknown type"
+    }[type];
+    const opening = existence === "yes" ? `The target has identified ${subject}.`
+      : existence === "suspected" ? `The target suspects ${subject}, but this has not been confirmed.`
+        : `It is unclear whether a data protection issue exists; the recorded concern relates to ${subject}.`;
+    const external = fields["dp-proceedings"].options
+      .filter(([key]) => proceedings.includes(key) && !["none", "unknown"].includes(key))
+      .map(([, label]) => label.toLowerCase());
+    const list = external.length > 1 ? `${external.slice(0, -1).join(", ")} and ${external.at(-1)}` : external[0];
+    const proceedingsText = proceedings.includes("none") ? "No related complaints, claims or regulatory enquiries have been reported."
+      : proceedings.includes("unknown") ? "It is unclear whether there are related complaints, claims or regulatory enquiries."
+        : `Related ${list} have been reported.`;
+    const summary = [opening, summaryCopy["dp-ongoing"][ongoing],
+      notifications ? summaryCopy["dp-notifications"][notifications] : "",
+      proceedingsText, summaryCopy["dp-impact"][impact], summaryCopy["dp-remediation"][remediation]]
+      .filter(Boolean).join(" ");
+
+    // At most one implication per theme, so no material theme is lost to truncation.
+    const implications = [];
+    if (impact === "fundamental") implications.push(implicationCopy.fundamental);
+    else if (impact === "significant") implications.push(implicationCopy.significant);
+    else if (existence !== "yes" || type === "unknown" || impact === "unknown") implications.push(implicationCopy.uncertain);
+
+    const responseOpen = ["yes", "partly"].includes(ongoing) || ["some-outstanding", "none-made"].includes(notifications);
+    if (remediation === "completed" && responseOpen) implications.push(implicationCopy.inconsistent);
+    else if (responseOpen || ["partly", "no"].includes(remediation)) implications.push(implicationCopy.readiness);
+    else if (ongoing === "unknown" || notifications === "unknown" || remediation === "unknown") implications.push(implicationCopy.readinessUnknown);
+    else if (remediation === "yes") implications.push(implicationCopy.planned);
+
+    if (external.length) implications.push(implicationCopy.external);
+    else if (proceedings.includes("unknown")) implications.push(implicationCopy.externalUnknown);
+    if (!implications.length) implications.push(implicationCopy.clear);
+    return { summary, implications };
+  };
   const previousRiskScore = riskScore;
   riskScore = function () { return isDataProtection(current()) ? assessRisk(answers) : previousRiskScore(); };
   const previousRenderPanel = renderPanel;
@@ -266,11 +361,12 @@
     if (!isDataProtection(issue)) return previousRenderLogic(issue);
     document.querySelector("#recommendations-card")?.remove();
     const card = document.querySelector("#logic-card");
-    card.classList.add("coc-deal-logic", "logic-standby");
-    const message = complete(answers)
-      ? 'Your answers are recorded. Deal analysis and recommendations are not yet configured for this issue.'
-      : 'Answer all relevant questions to generate your deal analysis.';
-    card.innerHTML = `<h3>Apply deal logic</h3><p>${message}</p>`;
+    const analysis = buildAnalysis(answers);
+    card.classList.add("coc-deal-logic");
+    card.classList.toggle("logic-standby", !analysis);
+    card.innerHTML = analysis
+      ? `<h3>Apply deal logic</h3><section class="logic-section"><h4>Summary</h4><p class="logic-conclusion">${escape(analysis.summary)}</p></section><section class="logic-section"><h4>Key deal implications</h4><ul>${analysis.implications.map(text => `<li>${escape(text)}</li>`).join("")}</ul></section>`
+      : `<h3>Apply deal logic</h3><p>Answer all relevant questions to generate your deal analysis.</p>`;
   };
   const previousExportReport = exportReport;
   exportReport = function () {
@@ -278,7 +374,8 @@
     if (!isDataProtection(issue)) return previousExportReport();
     normalize(answers);
     const lines = issue.key_questions.filter(q => visibleIds(answers).includes(q.id)).map(({id,question}) => `${question}\n  Response: ${labelFor(id, answers[id])}`);
-    const report = ["DEALLOGIC ISSUE REPORT", "", issue.title, `${areas[issue.category]} · ${issue.jurisdiction.primary}`, issue.summary, `Risk score: ${assessRisk(answers)}/5 — ${riskNames[assessRisk(answers) - 1]}`, "", "DILIGENCE ANSWERS", ...lines, "", "NOTE", "Deal analysis, recommended actions and legal notes are not yet configured.", "Prototype content only. Obtain transaction-specific legal advice."].join("\n");
+    const analysis = buildAnalysis(answers);
+    const report = ["DEALLOGIC ISSUE REPORT", "", issue.title, `${areas[issue.category]} · ${issue.jurisdiction.primary}`, issue.summary, `Risk score: ${assessRisk(answers)}/5 — ${riskNames[assessRisk(answers) - 1]}`, "", "DILIGENCE ANSWERS", ...lines, "", ...(analysis ? ["SUMMARY", analysis.summary, "", "KEY DEAL IMPLICATIONS", ...analysis.implications.map(text => `- ${text}`)] : ["Answer all relevant questions to generate your deal analysis."]), "", "NOTE", "Recommended actions and legal notes are not yet configured.", "Prototype content only. Obtain transaction-specific legal advice."].join("\n");
     const url = URL.createObjectURL(new Blob([report], {type:"text/plain"}));
     const link = document.createElement("a");link.href=url;link.download=`${issue.id}-report.txt`;link.click();URL.revokeObjectURL(url);
   };
