@@ -62,3 +62,5 @@ Share Ownership actions now resolve canonical Buyer/Seller/Balanced wording and 
 [Option Holders](issues/option-holders.md) uses seven perspective-specific actions and two neutral factual reviews from the canonical registry, with all triggered actions retained within the nine-card limit. Reports and Deal Hub capture share the selected instructions and existing priorities.
 
 [Missing IP Assignment](issues/missing-ip-assignment.md) uses nine perspective-specific actions and two neutral reviews from the shared registry, preserving the existing six profiles and at most six live recommendations. Reports and Hub capture share the selected copy; incomplete upstream answers cannot trigger stale analysis.
+
+[Change of Control](issues/customer-change-of-control.md) uses seven perspective-specific actions and two neutral checks from the canonical registry, preserving its eighteen matrix profiles and at most three live actions. Reports use current active-deal answers and the same selected wording as the UI and Hub capture.

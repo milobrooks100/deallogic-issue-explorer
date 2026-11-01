@@ -122,23 +122,27 @@
       exportReport = function () {
         const issue = current();
         if (issue.id !== "customer-change-of-control") return baseExportReport();
-        const saved = JSON.parse(DealLogicStorage.getItem(`deallogic:${issue.id}`) || "{}");
+        const saved = answers, clause = saved["contract-provision-exists"] || "Unanswered", trigger = saved["transaction-triggers-provision"] || "Unanswered";
         const importance = { "1": "Low importance", "2": "Moderate importance", "3": "High importance" };
-        const lines = [
-          `- ${issue.key_questions[0].question}\n  Response: ${saved["contract-provision-exists"] || "Unanswered"}`,
-          `- ${issue.key_questions[1].question}\n  Response: ${saved["transaction-triggers-provision"] || "Unanswered"}`,
-          `- ${issue.key_questions[2].question}\n  Response: ${saved["triggered-provision-consequences"] === "Other" ? (saved["other-consequence"] || "Other") : (saved["triggered-provision-consequences"] || "Unanswered")}`
-        ];
-        if (saved["triggered-provision-consequences"] === "Third party must provide consent") {
-          lines.push("- Is consent subject to a reasonableness standard?\n  Response: " + (saved["consent-reasonableness"] || "Unanswered"));
+        const lines = [`- ${issue.key_questions[0].question}\n  Response: ${clause}`];
+        if (clause !== "No" && clause !== "Unanswered") {
+          lines.push(`- ${issue.key_questions[1].question}\n  Response: ${trigger}`);
+          if (trigger !== "No" && trigger !== "Unanswered") {
+            const consequence = saved["triggered-provision-consequences"] || "Unanswered";
+            lines.push(`- ${issue.key_questions[2].question}\n  Response: ${consequence === "Other" ? (saved["other-consequence"] || "Other") : consequence}`);
+            if (consequence === "Third party must provide consent") lines.push(`- Is consent subject to a reasonableness standard?\n  Response: ${saved["consent-reasonableness"] || "Unanswered"}`);
+            lines.push(`- ${issue.key_questions[3].question}\n  Response: ${importance[String(saved["contract-importance"])] || "Unanswered"}`);
+            if (["Third party must provide consent", "Other"].includes(consequence)) {
+              const prospects = (saved["consent-prospects"] || []).map(value => value === "Other" ? (saved["other-consent-prospects"] || "Other") : value);
+              lines.push(`- ${issue.key_questions[4].question}\n  Response: ${prospects.join(", ") || "Unanswered"}`);
+            }
+          }
         }
-        lines.push(`- ${issue.key_questions[3].question}\n  Response: ${importance[String(saved["contract-importance"] || 1)]}`);
-        if (["Third party must provide consent", "Other"].includes(saved["triggered-provision-consequences"])) {
-          const prospects = (saved["consent-prospects"] || []).map((value) => value === "Other" ? (saved["other-consent-prospects"] || "Other") : value);
-          lines.push(`- ${issue.key_questions[4].question}\n  Response: ${prospects.join(", ") || "Unanswered"}`);
-        }
+        const side = getTransactionSide(), analysis = buildCocAnalysis(side);
         const score = riskScore();
-        const report = ["DEALLOGIC ISSUE REPORT", "", issue.title, `${areas[issue.category]} · ${issue.jurisdiction.primary}`, `Risk score: ${score}/5 — ${riskNames[score - 1]}`, "", "DILIGENCE ANSWERS", ...lines, "", "NOTE", "Prototype content only. Obtain transaction-specific legal advice."].join("\n");
+        const report = ["DEALLOGIC ISSUE REPORT", "", issue.title, `${areas[issue.category]} · ${issue.jurisdiction.primary}`, `Risk score: ${score}/5 — ${riskNames[score - 1]}`, "", "DILIGENCE ANSWERS", ...lines,
+          ...(analysis.ready ? ["", "SUMMARY", analysis.summary, "", "KEY DEAL IMPLICATIONS", ...analysis.implications.map(text => `- ${text}`),
+            "", `RECOMMENDED ACTIONS (${side})`, ...(analysis.actions.length ? analysis.actions.map(action => `- ${action.title} (${action.priority})\n  ${action.description}`) : ["There are no active transaction actions on the information recorded."])] : ["", "Answer all relevant questions to generate your deal analysis."]), "", "NOTE", "Prototype content only. Obtain transaction-specific legal advice."].join("\n");
         const blob = new Blob([report], { type: "text/plain" }); const url = URL.createObjectURL(blob); const link = document.createElement("a"); link.href = url; link.download = `${issue.id}-report.txt`; link.click(); URL.revokeObjectURL(url);
       };
     </script>
@@ -342,7 +346,7 @@
       const consentOutlookSentence = (factors, customText) => {
         if (factors.includes("Other")) {
           const text = customText.trim().replace(/[.!?]+$/, "");
-          return text ? `Obtaining consent or a waiver may be ${escapeLogicText(text.charAt(0).toLowerCase() + text.slice(1))}.` : "";
+          return text ? `Obtaining consent or a waiver may be ${text.charAt(0).toLowerCase() + text.slice(1)}.` : "";
         }
         const cost = factors.includes("Expensive") ? "costly" : factors.includes("Inexpensive") ? "inexpensive" : "";
         const likelihood = factors.includes("Unlikely") ? "difficult" : factors.includes("Likely") ? "straightforward" : "";
@@ -351,51 +355,47 @@
       };
       const getTransactionSide = () => activeDealProject()?.side || "Balanced";
       const setTransactionSide = (side) => {const store=getDealProjects(),project=store.projects.find(item=>item.id===store.activeProjectId);if(project){project.side=side;saveDealProjects(store);}};
-      const cocAction = (priority, title, instruction) => [priority, title, instruction];
+      const cocAction = (priority, id) => [priority, id];
       const cocActionMatrix = {
         Low: {
           notification: {
-            Seller: [cocAction("Required", "Post-completion action", "Serve contractual CoC notice post-closing."), cocAction("Recommended", "Warranty", "Include standard CoC warranty in SPA and disclose in Disclosure Letter.")],
-            Buyer: [cocAction("Recommended", "Warranty", "Include standard CoC warranty in SPA and disclose in Disclosure Letter."), cocAction("Consider", "Pre-completion covenant", "Jointly draft and agree CoC communication text pre-closing.")],
-            Balanced: [cocAction("Required", "Post-completion action", "Serve contractual CoC notice post-closing."), cocAction("Recommended", "Warranty", "Include standard CoC warranty in SPA and disclose in Disclosure Letter.")]
+            Seller: [cocAction("Required", "coc-serve-notice"), cocAction("Recommended", "coc-warranty-disclosure")],
+            Buyer: [cocAction("Recommended", "coc-warranty-disclosure"), cocAction("Consider", "coc-agree-communication")],
+            Balanced: [cocAction("Required", "coc-serve-notice"), cocAction("Recommended", "coc-warranty-disclosure")]
           },
           consent: {
-            Seller: [cocAction("Recommended", "Warranty", "Include standard CoC warranty in SPA and disclose in Disclosure Letter."), cocAction("Recommended", "Pre-completion covenant", "Include covenant in SPA to use commercially reasonable endeavors to seek consent."), cocAction("Consider", "Condition precedent", "Resist making consent a Condition Precedent (CP) to closing.")],
-            Buyer: [cocAction("Recommended", "Warranty", "Include standard CoC warranty in SPA and disclose in Disclosure Letter."), cocAction("Recommended", "Pre-completion covenant", "Include covenant in SPA to use commercially reasonable endeavors to seek consent.")],
-            Balanced: [cocAction("Recommended", "Warranty", "Include standard CoC warranty in SPA and disclose in Disclosure Letter."), cocAction("Recommended", "Pre-completion covenant", "Include covenant in SPA to use commercially reasonable endeavors to seek consent.")]
+            Seller: [cocAction("Recommended", "coc-warranty-disclosure"), cocAction("Recommended", "coc-seek-consent-covenant"), cocAction("Consider", "coc-consent-cp")],
+            Buyer: [cocAction("Recommended", "coc-warranty-disclosure"), cocAction("Recommended", "coc-seek-consent-covenant")],
+            Balanced: [cocAction("Recommended", "coc-warranty-disclosure"), cocAction("Recommended", "coc-seek-consent-covenant")]
           }
         },
         Moderate: {
           notification: {
-            Seller: [cocAction("Required", "Post-completion action", "Serve contractual CoC notice post-closing."), cocAction("Recommended", "Pre-completion covenant", "Jointly draft and agree CoC communication text pre-closing."), cocAction("Recommended", "Warranty", "Include standard CoC warranty in SPA and disclose in Disclosure Letter.")],
-            Buyer: [cocAction("Recommended", "Pre-completion covenant", "Jointly draft and agree CoC communication text pre-closing."), cocAction("Recommended", "Warranty", "Include standard CoC warranty in SPA and disclose in Disclosure Letter.")],
-            Balanced: [cocAction("Required", "Post-completion action", "Serve contractual CoC notice post-closing."), cocAction("Recommended", "Pre-completion covenant", "Jointly draft and agree CoC communication text pre-closing."), cocAction("Recommended", "Warranty", "Include standard CoC warranty in SPA and disclose in Disclosure Letter.")]
+            Seller: [cocAction("Required", "coc-serve-notice"), cocAction("Recommended", "coc-agree-communication"), cocAction("Recommended", "coc-warranty-disclosure")],
+            Buyer: [cocAction("Recommended", "coc-agree-communication"), cocAction("Recommended", "coc-warranty-disclosure")],
+            Balanced: [cocAction("Required", "coc-serve-notice"), cocAction("Recommended", "coc-agree-communication"), cocAction("Recommended", "coc-warranty-disclosure")]
           },
           consent: {
-            Seller: [cocAction("Recommended", "Pre-completion covenant", "Include covenant in SPA to use commercially reasonable endeavors to seek consent."), cocAction("Recommended", "Warranty", "Include standard CoC warranty in SPA and disclose in Disclosure Letter."), cocAction("Consider", "Condition precedent", "Resist making consent a Condition Precedent (CP) to closing.")],
-            Buyer: [cocAction("Recommended", "Pre-completion covenant", "Include covenant in SPA to use commercially reasonable endeavors to seek consent."), cocAction("Recommended", "Specific indemnity", "Include specific indemnity in SPA for third-party termination or losses."), cocAction("Consider", "Condition precedent", "Make obtaining third-party CoC consent a Condition Precedent (CP) to closing.")],
-            Balanced: [cocAction("Recommended", "Pre-completion covenant", "Include covenant in SPA to use commercially reasonable endeavors to seek consent."), cocAction("Recommended", "Specific indemnity", "Include specific indemnity in SPA for third-party termination or losses."), cocAction("Recommended", "Warranty", "Include standard CoC warranty in SPA and disclose in Disclosure Letter.")]
+            Seller: [cocAction("Recommended", "coc-seek-consent-covenant"), cocAction("Recommended", "coc-warranty-disclosure"), cocAction("Consider", "coc-consent-cp")],
+            Buyer: [cocAction("Recommended", "coc-seek-consent-covenant"), cocAction("Recommended", "coc-specific-indemnity"), cocAction("Consider", "coc-consent-cp")],
+            Balanced: [cocAction("Recommended", "coc-seek-consent-covenant"), cocAction("Recommended", "coc-specific-indemnity"), cocAction("Recommended", "coc-warranty-disclosure")]
           }
         },
         High: {
           notification: {
-            Seller: [cocAction("Required", "Post-completion action", "Serve contractual CoC notice post-closing."), cocAction("Recommended", "Pre-completion covenant", "Jointly draft and agree CoC communication text pre-closing."), cocAction("Recommended", "Warranty", "Include standard CoC warranty in SPA and disclose in Disclosure Letter.")],
-            Buyer: [cocAction("Recommended", "Pre-completion covenant", "Jointly draft and agree CoC communication text pre-closing."), cocAction("Recommended", "Warranty", "Include standard CoC warranty in SPA and disclose in Disclosure Letter."), cocAction("Consider", "Walk away or renegotiate", "Set a Longstop Date with walk-away rights if notice triggers termination rights.")],
-            Balanced: [cocAction("Required", "Post-completion action", "Serve contractual CoC notice post-closing."), cocAction("Recommended", "Pre-completion covenant", "Jointly draft and agree CoC communication text pre-closing."), cocAction("Recommended", "Warranty", "Include standard CoC warranty in SPA and disclose in Disclosure Letter.")]
+            Seller: [cocAction("Required", "coc-serve-notice"), cocAction("Recommended", "coc-agree-communication"), cocAction("Recommended", "coc-warranty-disclosure")],
+            Buyer: [cocAction("Recommended", "coc-agree-communication"), cocAction("Recommended", "coc-warranty-disclosure"), cocAction("Consider", "coc-longstop-rights")],
+            Balanced: [cocAction("Required", "coc-serve-notice"), cocAction("Recommended", "coc-agree-communication"), cocAction("Recommended", "coc-warranty-disclosure")]
           },
           consent: {
-            Seller: [cocAction("Recommended", "Pre-completion covenant", "Include covenant in SPA to use commercially reasonable endeavors to seek consent."), cocAction("Consider", "Walk away or renegotiate", "Set a Longstop Date with walk-away rights if consent is withheld."), cocAction("Consider", "Pre-completion covenant", "Jointly draft and agree CoC communication text pre-closing.")],
-            Buyer: [cocAction("Required", "Condition precedent", "Make obtaining third-party CoC consent a Condition Precedent (CP) to closing."), cocAction("Recommended", "Specific indemnity", "Include specific indemnity in SPA for third-party termination or losses."), cocAction("Consider", "Walk away or renegotiate", "Set a Longstop Date with walk-away rights if consent is withheld.")],
-            Balanced: [cocAction("Required", "Condition precedent", "Make obtaining third-party CoC consent a Condition Precedent (CP) to closing."), cocAction("Recommended", "Pre-completion covenant", "Include covenant in SPA to use commercially reasonable endeavors to seek consent."), cocAction("Consider", "Walk away or renegotiate", "Set a Longstop Date with walk-away rights if consent is withheld.")]
+            Seller: [cocAction("Recommended", "coc-seek-consent-covenant"), cocAction("Consider", "coc-longstop-rights"), cocAction("Consider", "coc-agree-communication")],
+            Buyer: [cocAction("Required", "coc-consent-cp"), cocAction("Recommended", "coc-specific-indemnity"), cocAction("Consider", "coc-longstop-rights")],
+            Balanced: [cocAction("Required", "coc-consent-cp"), cocAction("Recommended", "coc-seek-consent-covenant"), cocAction("Consider", "coc-longstop-rights")]
           }
         }
       };
-      renderLogic = function (issue) {
-        if (issue.id !== "customer-change-of-control") return standardDealLogic(issue);
-        const logicCard = document.querySelector("#logic-card");
-        const protectionsCard = document.querySelector("#recommendations-card");
-        protectionsCard?.remove();
-        logicCard.classList.add("coc-deal-logic");
+      const buildCocAnalysis = (transactionSide = getTransactionSide()) => {
+        transactionSide = ["Buyer", "Seller", "Balanced"].includes(transactionSide) ? transactionSide : "Balanced";
         const clause = answers["contract-provision-exists"] || "Unanswered";
         const trigger = answers["transaction-triggers-provision"] || "Unanswered";
         const consequence = answers["triggered-provision-consequences"] || "Unanswered";
@@ -406,57 +406,58 @@
         const customProspect = answers["other-consent-prospects"] || "";
         const consentRequired = consequence === "Third party must provide consent";
         const highImpact = importanceValue === 3;
-        const hasCompleteConsentOutlook = prospects.includes("Other") || prospects.some((factor) => ["Likely", "Unlikely", "Expensive", "Inexpensive"].includes(factor));
-        const challengingConsent = hasCompleteConsentOutlook && (prospects.includes("Unlikely") || prospects.includes("Expensive"));
         const consequenceComplete = consequence !== "Unanswered" && (consequence !== "Other" || Boolean(customConsequence.trim()));
         const downstreamComplete = consequenceComplete && Boolean(answers["contract-importance"]);
         const readyForLogic = clause === "No" || (clause !== "Unanswered" && trigger === "No") || (clause !== "Unanswered" && trigger !== "Unanswered" && downstreamComplete);
-        if (!readyForLogic) {
-          logicCard.classList.add("logic-standby");
-          logicCard.innerHTML = `<h3>Apply deal logic</h3><p>Answer all relevant questions to generate your deal analysis.</p>`;
-          return;
-        }
-        logicCard.classList.remove("logic-standby");
+        if (!readyForLogic) return { ready: false, actions: [] };
         let actions = [];
-        const transactionSide = getTransactionSide();
         let conclusion = "Record whether a relevant contractual provision exists to generate the transaction response.";
         let implications = ["The executed contract and transaction structure must be reviewed before a final deal response is determined."];
-        let residual = "The position remains unassessed until the contract and transaction trigger have been reviewed.";
         if (clause === "No") {
           conclusion = "No relevant change-of-control, assignment, termination or analogous provision has been identified. On the information recorded, this issue presents no transaction risk.";
           implications = ["No consent-related completion step is currently indicated."];
-          residual = "No residual risk is currently indicated, subject to confirming the contract review is complete.";
         } else if (clause !== "Unanswered" && trigger === "No") {
           conclusion = "A relevant provision exists, but it is not engaged by the proposed transaction. No consent-related completion risk has been identified.";
           implications = ["The deal structure should be retained in the diligence record with the trigger analysis."];
-          residual = "No residual transaction risk is currently indicated, subject to the recorded trigger analysis remaining correct.";
         } else if (clause !== "Unanswered" && trigger !== "Unanswered") {
           const consequenceText = consequence === "Third party must provide consent" ? "third-party consent" : consequence === "Third party must be notified" ? "notification of the third party" : consequence === "Other" ? (customConsequence || "a further contractual consequence") : consequence.toLowerCase();
           const importancePhrase = { Low: "marginally important", Moderate: "moderately important", High: "highly important" }[importance];
           const customConsequenceText = customConsequence ? `${customConsequence.charAt(0).toLowerCase()}${customConsequence.slice(1)}` : "a further contractual consequence";
           const triggerPhrase = trigger === "Partly / unclear" ? "may be triggered" : "is likely to be triggered";
-          const consequenceSentence = `A change-of-control clause which requires ${escapeLogicText(consequence === "Other" ? customConsequenceText : consequenceText)} ${triggerPhrase} by the transaction.`;
+          const consequenceSentence = `A change-of-control clause which requires ${(consequence === "Other" ? customConsequenceText : consequenceText)} ${triggerPhrase} by the transaction.`;
           conclusion = `${consequenceSentence} The contract is ${importancePhrase} for the target's business.${consentRequired ? ` ${consentOutlookSentence(prospects, customProspect)}` : ""}`;
           implications = consequence === "Other"
             ? ["Review the user-defined consequence against the contract and transaction timetable to determine the appropriate response."]
-            : [consentRequired ? "Completion timing may depend on obtaining consent or a waiver." : `The recorded consequence is ${escapeLogicText(consequenceText)} and should be built into the transaction plan.`];
+            : [consentRequired ? "Completion timing may depend on obtaining consent or a waiver." : `The recorded consequence is ${consequenceText} and should be built into the transaction plan.`];
           if (consequence !== "Other" && highImpact) implications.splice(1, 0, "The contract may materially affect revenue continuity, operations or valuation.");
           const matrixRequirement = consentRequired ? "consent" : consequence === "Third party must be notified" ? "notification" : "other";
           actions = matrixRequirement === "other"
-            ? [cocAction("Recommended", "Other", "Review the user-defined consequence and agree a tailored contractual and transaction response.")]
+            ? [cocAction("Recommended", "coc-tailored-response")]
             : cocActionMatrix[importance][matrixRequirement][transactionSide].map((action) => [...action]);
-          residual = challengingConsent || highImpact ? "Residual risk remains material until the required step is completed or adequate contractual and financial protection is agreed." : "Residual risk should reduce once the required contractual step and supporting evidence are completed.";
-          if (prospects.includes("Other") && customProspect) implications.push(`Additional recorded consideration: ${escapeLogicText(customProspect)}.`);
-        } else if (clause !== "Unanswered") {
-          conclusion = "A relevant provision has been identified, but it is not yet clear whether the proposed transaction triggers it.";
-          implications = ["The transaction structure and the clause definition require targeted review before a completion response is selected."];
-          actions.push(["Required", "Further diligence", "Confirm whether the proposed transaction falls within the clause definition and any exceptions."]);
-          residual = "Residual risk remains unresolved until the trigger analysis is complete.";
+          if (["Third party must provide consent", "Other"].includes(consequence) && prospects.includes("Other") && customProspect) implications.push(`Additional recorded consideration: ${customProspect}.`);
         }
+        const registry = window.DealLogicActionRegistry;
+        return { ready: true, summary: conclusion, implications, actions: actions.map(([priority, id]) => ({ ...registry.forSide(registry.actionFor("customer-change-of-control", "", "", id), transactionSide), priority })) };
+      };
+      renderLogic = function (issue) {
+        if (issue.id !== "customer-change-of-control") return standardDealLogic(issue);
+        const logicCard = document.querySelector("#logic-card");
+        document.querySelector("#recommendations-card")?.remove();
+        logicCard.classList.add("coc-deal-logic");
+        const transactionSide = getTransactionSide(), analysis = buildCocAnalysis(transactionSide);
+        if (!analysis.ready) {
+          logicCard.classList.add("logic-standby");
+          logicCard.innerHTML = `<h3>Apply deal logic</h3><p>Answer all relevant questions to generate your deal analysis.</p>`;
+          document.dispatchEvent(new CustomEvent("change-of-control-logic-rendered"));
+          return;
+        }
+        logicCard.classList.remove("logic-standby");
+        const { summary, implications, actions } = analysis;
         const cocNotes = `<div class="logic-note"><strong>Triggers:</strong> Change of Control triggers vary widely, ranging from share transfers to voting power reorganisations. Review key commercial contracts early to determine whether the proposed transaction structure actually triggers the clause.</div><div class="logic-note"><strong>Reasonableness:</strong> Where consent must not be unreasonably withheld, assess the refusal against the clause and its commercial context. Porton confirms that a party may reasonably withhold consent by considering its own relevant interest, such as the buyer being a direct competitor or lacking financial standing. <a href="https://caselaw.nationalarchives.gov.uk/ewhc/comm/2011/2895" target="_blank" rel="noopener noreferrer">Porton Capital v 3M [2011] EWHC 2895 (Comm), paragraphs 223 and 228</a></div>`;
-        const actionMarkup = actions.length ? actions.map(([priority, title, rationale]) => `<div class="logic-action" data-action-id="${escapeLogicText(window.DealLogicActionRegistry?.actionFor(issue.id, title, rationale)?.id || "")}"><span class="logic-icon" aria-hidden="true"></span><div><span class="logic-priority">${priority}</span><strong>${title}</strong><span>${rationale}</span></div></div>`).join("") : `<p>There are no active transaction actions on the information recorded.</p>`;
+        const actionMarkup = actions.length ? actions.map(action => `<div class="logic-action" data-action-id="${action.id}"><span class="logic-icon" aria-hidden="true"></span><div><span class="logic-priority" data-level="${action.priority.toLowerCase()}">${action.priority}</span><strong>${escapeLogicText(action.title)}</strong><span>${escapeLogicText(action.description)}</span></div></div>`).join("") : `<p>There are no active transaction actions on the information recorded.</p>`;
         const sidePicker = `<div class="logic-side-picker" aria-label="Transaction side selector"><button type="button" class="active" data-logic-side-toggle>${transactionSide}</button></div>`;
-        logicCard.innerHTML = `<h3>Apply deal logic</h3><section class="logic-section"><h4>Summary</h4><p class="logic-conclusion">${conclusion}</p></section><section class="logic-section"><h4>Key deal implications</h4><ul>${implications.map((item) => `<li>${item}</li>`).join("")}</ul></section><section class="logic-section"><div class="logic-section-heading"><h4>Recommended actions</h4>${sidePicker}</div>${actionMarkup}</section><section class="logic-section"><h4>Notes</h4>${cocNotes}</section>`;
+        logicCard.innerHTML = `<h3>Apply deal logic</h3><section class="logic-section"><h4>Summary</h4><p class="logic-conclusion">${escapeLogicText(summary)}</p></section><section class="logic-section"><h4>Key deal implications</h4><ul>${implications.map((item) => `<li>${escapeLogicText(item)}</li>`).join("")}</ul></section><section class="logic-section"><div class="logic-section-heading"><h4>Recommended actions</h4>${sidePicker}</div>${actionMarkup}</section><section class="logic-section"><h4>Notes</h4>${cocNotes}</section>`;
+        document.dispatchEvent(new CustomEvent("change-of-control-logic-rendered"));
       };
     </script>
     <script>
