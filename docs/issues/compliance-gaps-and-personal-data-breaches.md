@@ -74,3 +74,7 @@ Implications use reusable, transaction-focused statements with at most one state
 If no theme triggers, show one qualified statement that no unresolved issue-specific completion dependency is indicated. These statements are independent of transaction side and risk score: an all-Unknown assessment retains the agreed 1/5 score but explicitly identifies uncertainty in all three themes. No recommendations, notes or Hub actions are inferred from these implications.
 
 Validation covers incomplete and absent routes, hidden answers, suspected/unknown prose, every external-matter combination, serious impact, remediation inconsistencies, stable implications, live/report parity and all 72,000 combinations (including every valid Q4 subset, normalized to the reachable branch). Existing risk checks remain unchanged.
+
+## Proposed action matrix
+
+The [researched action matrix](data-protection-action-matrix.md) sets out 13 consolidated action types, concise Buyer/Seller/Balanced instructions, exact answer triggers and conditional priorities, worked scenarios and the legal/practice sources checked on 1 November 2026. This is an authoring proposal; recommended actions and their Hub/report integration are not yet implemented in the live interface.
