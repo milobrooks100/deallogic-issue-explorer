@@ -56,3 +56,5 @@ Employment actions now use canonical perspective-specific wording in Apply deal 
 Share Ownership actions now resolve canonical Buyer/Seller/Balanced wording and answer-specific variants across Apply deal logic, reports and Hub capture; ownership verification and transfer mechanics remain neutral, and the shared Actions by Issue toggles apply to its full ten-action catalogue.
 
 [Debt Facilities](issues/debt-facilities-repayment.md) uses the shared registry for all 14 actions, with nine perspective-specific instructions and five neutral practical checks, up to nine consolidated recommendation cards, and matching reports and Hub component capture.
+
+[Threatened Litigation](issues/threatened-litigation.md) uses eleven perspective-specific actions and three neutral factual reviews from the canonical registry. At most nine recommendation cards preserve all triggered components through five documented consolidation pairs; reports and Deal Hub capture use the selected perspective.

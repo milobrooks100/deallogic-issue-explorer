@@ -1202,9 +1202,14 @@
       exportReport = function () {
         const issue = current();
         if (!isThreatenedLitigation(issue)) return exportReportBeforeThreatenedLitigation();
-        const lines = litigationQuestions.map((question, index) => `- ${question}\n  Response: ${answers[litigationQuestionIds[index]] || "Unanswered"}`);
+        const lines = litigationQuestions.flatMap((question, index) => index > 0 && ![2, 3].includes(litigationAnswerIndex(litigationQuestionIds[0])) ? [] : [`- ${question}\n  Response: ${answers[litigationQuestionIds[index]] || "Unanswered"}`]);
+        const complete = litigationAnswerComplete(), side = getTransactionSide();
+        const actions = complete ? litigationActions(issue, side) : [];
         const score = riskScore();
-        const report = ["DEALLOGIC ISSUE REPORT", "", issue.title, `${areas[issue.category]} · ${issue.jurisdiction.primary}`, `Risk score: ${score}/5 — ${riskNames[score - 1]}`, "", "DILIGENCE ANSWERS", ...lines, "", "NOTE", "Prototype content only. Obtain transaction-specific legal advice."].join("\n");
+        const report = ["DEALLOGIC ISSUE REPORT", "", issue.title, `${areas[issue.category]} · ${issue.jurisdiction.primary}`, `Risk score: ${score}/5 — ${riskNames[score - 1]}`, "", "DILIGENCE ANSWERS", ...lines,
+          ...(complete ? ["", "SUMMARY", litigationSummary(), "", "KEY DEAL IMPLICATIONS", ...litigationImplications().map(text => `- ${text}`),
+            "", `RECOMMENDED ACTIONS (${side})`, ...(actions.length ? actions.map(action => `- ${action.title} (${action.priority})\n  ${action.description}`) : ["There are no active transaction actions on the information recorded."])]
+            : ["", "Answer all relevant questions to generate your deal analysis."]), "", "NOTE", "Prototype content only. Obtain transaction-specific legal advice."].join("\n");
         const blob = new Blob([report], { type: "text/plain" });
         const url = URL.createObjectURL(blob);
         const link = document.createElement("a");
@@ -1228,7 +1233,7 @@
         "litigation-risk-transfer": ["", "Cover or recovery is confirmed, and required notices and approvals have been satisfied.", "Notice has been given, but coverage or recovery remains undecided.", "Cover or recovery may exist, but notice, consent or other steps remain outstanding.", "Cover or recovery is unavailable, denied or insufficient.", "Insurance and other recovery rights have not been reviewed or remain unknown."],
         "litigation-resolution": ["", "The matter is resolved through a binding settlement, withdrawal or full release.", "Resolution documents are signed, but final steps remain outstanding.", "A credible resolution route is likely before completion, but it is not yet binding.", "Resolution is possible, but timing or terms are uncertain.", "Resolution before completion is unlikely or no viable route has been identified.", "The prospect of resolution before completion has not been assessed."]
       };
-      const litigationSummary = () => litigationQuestionIds
+      const litigationSummary = () => ([2, 3].includes(litigationAnswerIndex(litigationQuestionIds[0])) ? litigationQuestionIds : litigationQuestionIds.slice(0, 1))
         .map((id) => litigationSummaryCopy[id]?.[litigationAnswerIndex(id)] || "")
         .filter(Boolean)
         .join(" ");
@@ -1244,22 +1249,6 @@
         return implications.slice(0, 4);
       };
       const litigationPriorityRank = { Consider: 1, Recommended: 2, Required: 3 };
-      const litigationActionTitles = {
-        "conduct-dispute-diligence": "Further diligence",
-        "obtain-contentious-advice": "Specialist legal assessment",
-        "specific-litigation-disclosure": "Specific disclosure",
-        "confirm-insurance-and-recovery-rights": "Confirm insurance and recovery rights",
-        "resolve-claim-before-completion": "Resolve before completion",
-        "litigation-resolution-condition-precedent": "Condition precedent",
-        "pre-completion-litigation-covenant": "Pre-completion conduct covenant",
-        "litigation-warranty": "Specific warranty",
-        "specific-litigation-indemnity": "Specific indemnity",
-        "litigation-ring-fencing-retention": "Ring-fencing or purchase-price retention",
-        "litigation-purchase-price-adjustment": "Purchase-price adjustment",
-        "litigation-closing-loss-reserve": "Closing balance-sheet loss reserve or net working capital true-up",
-        "litigation-wi-insurance": "Warranty and indemnity insurance",
-        "specific-mae-mac-walk-right": "Specific MAE/MAC walk-right"
-      };
       const litigationActionOrder = [
         "resolve-claim-before-completion",
         "litigation-resolution-condition-precedent",
@@ -1282,18 +1271,71 @@
         const current = actions.get(id);
         if (!current || litigationPriorityRank[priority] > litigationPriorityRank[current]) actions.set(id, priority);
       };
-      const limitLitigationFamily = (actions, ids, maximum, preference) => {
-        const active = ids.filter((id) => actions.has(id));
-        if (active.length <= maximum) return;
-        const preferenceIndex = new Map(preference.map((id, index) => [id, index]));
-        const retained = active
-          .sort((left, right) => litigationPriorityRank[actions.get(right)] - litigationPriorityRank[actions.get(left)]
-            || (preferenceIndex.get(left) ?? 99) - (preferenceIndex.get(right) ?? 99))
-          .slice(0, maximum);
-        active.filter((id) => !retained.includes(id)).forEach((id) => actions.delete(id));
-      };
-      const litigationActions = (issue, side) => {
-        const actionsById = new Map((issue.recommended_actions || []).map((action) => [action.id, action]));
+      const litigationConsolidations = [
+  [
+    [
+      "conduct-dispute-diligence",
+      "obtain-contentious-advice"
+    ],
+    "Dispute review and legal advice",
+    {
+      "Buyer": "Review the claim, deadlines and exposure, and obtain privileged legal advice on defences, remedies and settlement options.",
+      "Seller": "Review the claim, deadlines and exposure, and obtain privileged legal advice on defences, remedies and settlement options.",
+      "Balanced": "Review the claim, deadlines and exposure, and obtain privileged legal advice on defences, remedies and settlement options."
+    }
+  ],
+  [
+    [
+      "specific-litigation-disclosure",
+      "litigation-warranty"
+    ],
+    "Dispute warranties and disclosure",
+    {
+      "Buyer": "Seek warranties covering the dispute position and related undisclosed claims, supported by specific disclosure of exposure and developments while protecting privilege.",
+      "Seller": "Give appropriately qualified dispute warranties and make fair, specific disclosure of claims, exposure and developments while protecting privilege.",
+      "Balanced": "Agree appropriately qualified dispute warranties and specific disclosure of claims, exposure and developments while protecting privilege."
+    }
+  ],
+  [
+    [
+      "resolve-claim-before-completion",
+      "litigation-resolution-condition-precedent"
+    ],
+    "Resolution and completion conditions",
+    {
+      "Buyer": "Require effective resolution and evidence of completed settlement steps, backed by objective completion conditions, a longstop date and clear waiver and termination rights.",
+      "Seller": "Complete agreed settlement steps and releases, limiting completion conditions to material, measurable milestones with an agreed longstop and proportionate termination rights.",
+      "Balanced": "Implement agreed settlement steps and releases, backed by objective completion conditions, an agreed longstop date and proportionate waiver and termination rights."
+    }
+  ],
+  [
+    [
+      "specific-litigation-indemnity",
+      "litigation-ring-fencing-retention"
+    ],
+    "Litigation indemnity and security",
+    {
+      "Buyer": "Seek a specific litigation indemnity supported by proportionate escrow or retention, with clear claims control, release triggers and no double recovery.",
+      "Seller": "Limit any litigation indemnity and supporting retention to defined exposure, with agreed caps, claim periods, claims control, recovery credits and release triggers.",
+      "Balanced": "Agree a specific litigation indemnity and proportionate escrow or retention, with defined limits, claims control, recovery credits and release triggers."
+    }
+  ],
+  [
+    [
+      "litigation-purchase-price-adjustment",
+      "litigation-closing-loss-reserve"
+    ],
+    "Litigation price and accounts treatment",
+    {
+      "Buyer": "Seek an appropriate price reduction and litigation reserve or completion accounts adjustment for substantiated exposure, allowing for recoveries and avoiding duplicate deductions.",
+      "Seller": "Limit litigation price reductions and reserves or completion accounts deductions to substantiated exposure and agreed accounting policies, allowing for recoveries and avoiding double counting.",
+      "Balanced": "Agree litigation price adjustments and reserves or completion accounts treatment for substantiated exposure, with clear accounting policies, recovery credits and no double counting."
+    }
+  ]
+];
+      const litigationActions = (issue, side, consolidate = true) => {
+        side = ["Buyer", "Seller", "Balanced"].includes(side) ? side : "Balanced";
+        const registry = window.DealLogicActionRegistry;
         const actions = new Map();
         const add = (id, buyer, balanced, seller) => addLitigationAction(actions, id, litigationSidePriority(side, buyer, balanced, seller));
         const [threat, stage, merits, impact, transfer, resolution] = litigationQuestionIds.map(litigationAnswerIndex);
@@ -1473,30 +1515,30 @@
           }
         }
 
-        const economicPreference = fundamental
-          ? ["litigation-purchase-price-adjustment", "litigation-ring-fencing-retention", "litigation-closing-loss-reserve"]
-          : (noRecovery || recoveryStepsOpen || transfer === 5 || resolutionUncertain || resolutionUnlikely)
-            ? ["litigation-ring-fencing-retention", "litigation-purchase-price-adjustment", "litigation-closing-loss-reserve"]
-            : ["litigation-closing-loss-reserve", "litigation-purchase-price-adjustment", "litigation-ring-fencing-retention"];
-        limitLitigationFamily(actions, ["litigation-ring-fencing-retention", "litigation-purchase-price-adjustment", "litigation-closing-loss-reserve"], 2, economicPreference);
-        const completionPreference = fundamental || resolutionUnlikely
-          ? ["litigation-resolution-condition-precedent", "specific-mae-mac-walk-right", "resolve-claim-before-completion"]
-          : ["resolve-claim-before-completion", "litigation-resolution-condition-precedent", "specific-mae-mac-walk-right"];
-        limitLitigationFamily(actions, ["resolve-claim-before-completion", "litigation-resolution-condition-precedent", "specific-mae-mac-walk-right"], 2, completionPreference);
-
+        let result = [...actions.entries()].map(([id, priority]) => {
+          const action = registry.forSide(registry.actionFor(issue.id, "", "", id), side);
+          return { ...action, recommendation: action.description, priority, constituentIds: [id] };
+        });
+        // Merge only when needed; every triggered step and its stable identity survives.
+        if (consolidate) for (const [ids, title, descriptions] of litigationConsolidations) {
+          if (result.length <= 9) break;
+          const components = result.filter(action => ids.includes(action.id));
+          if (components.length < 2) continue;
+          const priority = components.reduce((best, action) => litigationPriorityRank[action.priority] > litigationPriorityRank[best] ? action.priority : best, "Consider");
+          const description = descriptions[side];
+          result = result.filter(action => !ids.includes(action.id));
+          result.push({ ...components.find(action => action.id === ids[0]), title, description, recommendation: description, priority, constituentIds: ids });
+        }
         const orderIndex = new Map(litigationActionOrder.map((id, index) => [id, index]));
-        return [...actions.entries()]
-          .map(([id, priority]) => ({ ...actionsById.get(id), priority }))
-          .filter((action) => action.id)
-          .sort((left, right) => litigationPriorityRank[right.priority] - litigationPriorityRank[left.priority]
-            || (orderIndex.get(left.id) ?? 99) - (orderIndex.get(right.id) ?? 99))
-          .slice(0, 9);
+        return result.sort((left, right) => litigationPriorityRank[right.priority] - litigationPriorityRank[left.priority]
+          || (orderIndex.get(left.id) ?? 99) - (orderIndex.get(right.id) ?? 99));
       };
+      window.DealLogicLitigationActions = (issue, side) => litigationActions(issue, side, false);
       const litigationActionMarkup = (actions) => actions.length
         ? actions.map((action) => {
           const priority = action.priority || (action.relevance === "required" ? "Required" : action.relevance === "recommended" ? "Recommended" : "Consider");
-          const title = litigationActionTitles[action.id] || titleCase(action.type);
-          return `<div class="logic-action" data-action-id="${escapeLogicText(action.id)}"><span class="logic-icon" aria-hidden="true"></span><div><span class="logic-priority" data-level="${priority.toLowerCase()}">${priority}</span><strong>${escapeLogicText(title)}</strong><span>${escapeLogicText(action.recommendation)}</span></div></div>`;
+          const title = action.title;
+          return `<div class="logic-action" data-action-id="${escapeLogicText(action.id)}" data-constituent-ids="${escapeLogicText(action.constituentIds.join(","))}"><span class="logic-icon" aria-hidden="true"></span><div><span class="logic-priority" data-level="${priority.toLowerCase()}">${priority}</span><strong>${escapeLogicText(title)}</strong><span>${escapeLogicText(action.recommendation)}</span></div></div>`;
         }).join("")
         : `<p>There are no active transaction actions on the information recorded.</p>`;
 
@@ -1510,6 +1552,7 @@
         if (!litigationAnswerComplete()) {
           logicCard.classList.add("logic-standby");
           logicCard.innerHTML = `<h3>Apply deal logic</h3><p>Answer all relevant questions to generate your deal analysis.</p>`;
+          document.dispatchEvent(new CustomEvent("threatened-litigation-logic-rendered"));
           return;
         }
         logicCard.classList.remove("logic-standby");
