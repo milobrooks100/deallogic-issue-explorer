@@ -198,9 +198,35 @@
     if (field.multiple) return `<div class="question" role="group" aria-labelledby="${id}-label"><div class="question-top"><label id="${id}-label">${escape(label)}</label>${info}</div><div class="choice-grid">${field.options.map(([key,text]) => `<label><input type="checkbox" data-dp-choice value="${key}" ${(answers[id] || []).includes(key) ? "checked" : ""}> ${escape(text)}</label>`).join("")}</div></div>`;
     return `<div class="question"><div class="question-top"><label for="${id}">${escape(label)}</label>${info}</div><select id="${id}"><option value="">Unanswered</option>${field.options.map(([key,text]) => `<option value="${key}" ${answers[id] === key ? "selected" : ""}>${escape(text)}</option>`).join("")}</select></div>`;
   };
-  // Questionnaire stage only: substantive risk and action rules are authored separately.
+  // Recompute from reachable valid answers; Unknown never adds points or a floor.
+  const assessRisk = responses => {
+    const visible = visibleIds(responses);
+    const active = id => visible.includes(id) && valid(id, responses[id]) ? responses[id] : undefined;
+    const existence = active("dp-issue");
+    if (!existence || existence === "no") return 1;
+    const ongoing = active("dp-ongoing");
+    const notifications = active("dp-notifications");
+    const proceedings = active("dp-proceedings") || [];
+    const impact = active("dp-impact");
+    const remediation = active("dp-remediation");
+    let score = existence === "yes" ? 3 : existence === "suspected" ? 2 : 1;
+    let floor = ["yes", "suspected"].includes(existence) ? 2 : 1;
+    const atLeast = value => { floor = Math.max(floor, value); };
+    if (ongoing === "yes") { score += 1; atLeast(3); }
+    if (ongoing === "partly") atLeast(3);
+    if (["some-outstanding", "none-made"].includes(notifications)) { score += 1; atLeast(3); }
+    if (proceedings.some(value => ["complaints", "claims", "regulatory-enquiries"].includes(value))) atLeast(3);
+    if (impact === "minimal") score -= 1;
+    if (impact === "significant") atLeast(4);
+    if (impact === "fundamental") atLeast(5);
+    if (["partly", "no"].includes(remediation)) atLeast(3);
+    const notificationsAddressed = !visible.includes("dp-notifications") || ["all-made", "none-required"].includes(notifications);
+    if (remediation === "completed" && ongoing === "no" && notificationsAddressed && proceedings.includes("none")) score -= 1;
+    // Only an explicit Fundamental impact can produce 5; reductions cannot erase floors.
+    return Math.max(floor, Math.min(4, score));
+  };
   const previousRiskScore = riskScore;
-  riskScore = function () { return isDataProtection(current()) ? 1 : previousRiskScore(); };
+  riskScore = function () { return isDataProtection(current()) ? assessRisk(answers) : previousRiskScore(); };
   const previousRenderPanel = renderPanel;
   renderPanel = function () {
     if (isDataProtection(current())) {
@@ -233,8 +259,6 @@
         : previous.filter(v => v !== input.value);
       save("dp-proceedings", value);
     });
-    const riskWrap = document.querySelector(".risk-wrap");
-    riskWrap?.insertAdjacentHTML("beforeend", '<p class="risk-outcome">Questionnaire only: risk assessment is not yet configured.</p>');
     renderLogic(issue);
   };
   const previousRenderLogic = renderLogic;
@@ -254,7 +278,7 @@
     if (!isDataProtection(issue)) return previousExportReport();
     normalize(answers);
     const lines = issue.key_questions.filter(q => visibleIds(answers).includes(q.id)).map(({id,question}) => `${question}\n  Response: ${labelFor(id, answers[id])}`);
-    const report = ["DEALLOGIC ISSUE REPORT", "", issue.title, `${areas[issue.category]} · ${issue.jurisdiction.primary}`, issue.summary, "Risk assessment: not yet configured", "", "DILIGENCE ANSWERS", ...lines, "", "NOTE", "Questionnaire only. Deal analysis, recommended actions and legal notes are not yet configured.", "Prototype content only. Obtain transaction-specific legal advice."].join("\n");
+    const report = ["DEALLOGIC ISSUE REPORT", "", issue.title, `${areas[issue.category]} · ${issue.jurisdiction.primary}`, issue.summary, `Risk score: ${assessRisk(answers)}/5 — ${riskNames[assessRisk(answers) - 1]}`, "", "DILIGENCE ANSWERS", ...lines, "", "NOTE", "Deal analysis, recommended actions and legal notes are not yet configured.", "Prototype content only. Obtain transaction-specific legal advice."].join("\n");
     const url = URL.createObjectURL(new Blob([report], {type:"text/plain"}));
     const link = document.createElement("a");link.href=url;link.download=`${issue.id}-report.txt`;link.click();URL.revokeObjectURL(url);
   };

@@ -6,7 +6,7 @@ Area: Data Protection (`data-protection`). Issue: `compliance-gaps-and-personal-
 
 The target may have compliance gaps or personal data breaches affecting how it collects, uses or protects personal data. Review the issues, potential exposure and remedial steps to identify any effect on the transaction and work needed before completion.
 
-This delivery is the questionnaire stage only. Reuse Threatened Litigation’s shared issue header, facts card, question/top/info/select markup, progressive reveal, reset control and standby card. Do not copy its litigation risk, legal notes, actions or analysis. Full compliance audits and transaction-specific data-transfer planning are outside this focused issue.
+This delivery includes the questionnaire and agreed risk assessment. Reuse Threatened Litigation’s shared issue header, facts card, question/top/info/select markup, progressive reveal, reset control and standby card. Do not copy its litigation risk, legal notes, actions or analysis. Full compliance audits and transaction-specific data-transfer planning are outside this focused issue.
 
 ## Canonical questionnaire
 
@@ -30,12 +30,33 @@ Completion requires valid answers to all visible questions. Changing an answer c
 
 ## Outputs, risk and actions
 
-Initial shared indicator remains 1/5 No risk, with an explicit questionnaire-only message stating assessment is not configured; this value is a UI placeholder and does not assess recorded facts. Report exports explicitly state Risk assessment: not yet configured, and include only visible questions with current labels. Incomplete forms retain the shared standby message. Complete forms confirm answers are recorded and analysis/recommendations are not yet configured. No summary, implications, action recommendations or legal notes are authored at this stage. No actions can be added to Deal Hub for this draft; registry, action playbooks, Hub extraction and perspective rules are inapplicable until that work is commissioned. Do not infer a favourable legal conclusion from Q1 Unknown or completed remediation.
+The risk indicator updates live using `assessRisk` in `dist/data-protection.js`, and report exports use the same function. The initial display remains 1/5 No risk. The questionnaire-only message beneath the risk bar is removed. Incomplete forms retain the shared standby message; completed forms confirm answers are recorded while analysis/recommendations remain unconfigured. Summary, implications, action recommendations, legal notes and Deal Hub action integration remain a separate authoring stage. Buyer/Seller/Balanced does not affect the score.
+
+## Agreed risk decision table
+
+Only reachable valid answers contribute. Unanswered and Unknown give no adjustments or minimums. Unknown continues the questionnaire; all Unknown returns 1. Each calculation starts afresh, with no accumulated score.
+
+| Order | Condition | Operation |
+| --- | --- | --- |
+| 1 | First answer absent or No | Return 1; ignore later answers |
+| 2 | First answer Yes / Suspected / Unknown | Start 3 / 2 / 1; minimum 2 / 2 / 1 |
+| 3 | Issue type, any answer | No adjustment or minimum |
+| 4 | Ongoing Yes | +1 and minimum 3 |
+| 4 | Ongoing Partly | Minimum 3 |
+| 5 | Notifications Some outstanding or None made | +1 and minimum 3 |
+| 6 | Any complaints, claims or regulatory enquiries | Minimum 3 once, regardless of selection count |
+| 7 | Impact Minimal | −1 |
+| 7 | Impact Significant / Fundamental | Minimum 4 / 5 |
+| 8 | Remediation Partly or No | Minimum 3 |
+| 8 | Remediation Already completed | −1 only with Ongoing No, proceedings None, and notifications All made / None required / legitimately hidden |
+| 9 | Apply adjustments | Cap adjusted score at 4, then apply highest protected minimum |
+
+All other answers are neutral. Planned remediation Yes does not reduce risk. Completed remediation cannot erase a protected minimum; uncertain confirmations do not qualify for the reduction. Only Fundamental impact reaches 5, and ordinary adjustments cannot. Invalid/hidden answers never supply adverse effects or favourable assumptions.
+
+Worked cases: No issue → 1; all Unknown → 1; Suspected plus all later Unknown → 2; Yes plus later Unknown → 3; Yes/Ongoing Yes → 4; Yes/stopped/notifications addressed/no external matters/Manageable/completed → 2; same with Significant → 4 or Fundamental → 5; Minimal impact with Yes never drops below 2; Ongoing Yes and outstanding notifications can reach 4 despite Minimal impact.
 
 ## Validation
 
-Focused checks exercise the confirmed-absence early exit and all-Unknown progression, progressive reveal, all three notification triggers and the gap-only skip, compatible/exclusive multiple selection, invalid answers, upstream invalidation, reports and isolation from existing issue outputs. Shared build and runtime checks cover data and script loading. Visual and interaction QA checks the template layout, tooltips, reset and narrow viewport. Substantive risk, remediated-risk reductions, transaction-side actions, Hub selection and snapshots are not applicable to this questionnaire-only stage.
-
-Verified on 1 November 2026: build and 12-script runtime check pass; seven focused questionnaire/data tests pass; full suite 107 pass with the existing unrelated core action-colour assertion failing. Browser QA at the narrow in-app viewport confirmed area navigation, title/introduction, progressive reveal, Q3b, compatible selection, None exclusivity, upstream clearing, gap-only skip, reset and first tooltip text. The shared per-deal storage path is reused; cross-deal/reload persistence was inspected in source but not separately exercised in this browser pass. No 21st CLI is installed; existing project template components were reused as explicitly requested.
+Thirteen focused tests verify questionnaire progression, neutral Unknown answers, starting scores, one-point adjustments, protected floors, notification applicability, grouped external matters, remediation preconditions, hidden-answer exclusion, score/export parity and all 48,000 valid combinations. Shared runtime checks pass; full suite: 115 pass and the existing unrelated core action-colour assertion fails. Scenarios involving transaction-side recommendations, Hub action selection and snapshots remain inapplicable until actions are implemented.
 
 Question numbers in this specification identify the agreed flow only. On-screen questions and downloaded reports display the question text without numeric prefixes.
