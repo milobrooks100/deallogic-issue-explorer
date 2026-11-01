@@ -3,8 +3,9 @@
   const library=document.querySelector(".action-library");
   if(!registry||!library)return;
   const esc=value=>String(value??"").replace(/[&<>"']/g,char=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[char]));
+  const topics=[...registry.topics].sort((a,b)=>a.shortLabel.localeCompare(b.shortLabel,"en",{sensitivity:"base"}));
   const coreItems=library.querySelector(".action-items");
-  let activeArea="core",activeTopic=registry.topics[0].id;
+  let activeArea="core",activeTopic=topics[0].id;
   const header=document.querySelector(".library-view .view-header");
   const sideControl=window.createTransactionSideControl();
   sideControl.hidden=true;
@@ -17,7 +18,7 @@
   corePanel.innerHTML='<div class="library-section-heading"><h3>Core M&amp;A toolkit</h3><p>Common M&amp;A responses and their shorthand symbols.</p></div>';
   if(coreItems)corePanel.append(coreItems);
   const playbooksPanel=document.createElement("section");playbooksPanel.id="library-panel-playbooks";playbooksPanel.className="library-panel";playbooksPanel.setAttribute("role","tabpanel");playbooksPanel.setAttribute("aria-labelledby","library-tab-playbooks");playbooksPanel.hidden=true;
-  playbooksPanel.innerHTML=`<div class="playbook-tabs" role="tablist" aria-label="Actions by issue">${registry.topics.map((topic,index)=>`<button type="button" role="tab" id="playbook-tab-${esc(topic.id)}" aria-controls="playbook-panel-active" aria-selected="${index===0}" tabindex="${index===0?0:-1}" data-playbook-topic="${esc(topic.id)}">${esc(topic.shortLabel)}</button>`).join("")}</div><section class="playbook-panel" id="playbook-panel-active" role="tabpanel"></section>`;
+  playbooksPanel.innerHTML=`<div class="playbook-tabs" role="tablist" aria-label="Actions by issue">${topics.map((topic,index)=>`<button type="button" role="tab" id="playbook-tab-${esc(topic.id)}" aria-controls="playbook-panel-active" aria-selected="${index===0}" tabindex="${index===0?0:-1}" data-playbook-topic="${esc(topic.id)}">${esc(topic.shortLabel)}</button>`).join("")}</div><section class="playbook-panel" id="playbook-panel-active" role="tabpanel"></section>`;
   library.replaceChildren(areaTabs,corePanel,playbooksPanel);
 
   const focusTab=(tabs,next)=>{tabs[next].focus();tabs[next].click();};
@@ -31,7 +32,7 @@
   wireTabs(areaTabs);wireTabs(playbooksPanel.querySelector(".playbook-tabs"));
 
   function renderTopic(){
-    const topic=registry.byTopic.get(activeTopic)||registry.topics[0];activeTopic=topic.id;
+    const topic=registry.byTopic.get(activeTopic)||topics[0];activeTopic=topic.id;
     playbooksPanel.querySelectorAll("[data-playbook-topic]").forEach(button=>{const selected=button.dataset.playbookTopic===topic.id;button.setAttribute("aria-selected",String(selected));button.tabIndex=selected?0:-1;});
     const panel=playbooksPanel.querySelector(".playbook-panel");
     panel.setAttribute("aria-labelledby",`playbook-tab-${topic.id}`);
