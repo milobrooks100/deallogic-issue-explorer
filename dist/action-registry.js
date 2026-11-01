@@ -204,6 +204,157 @@
   ]
 });
 
+  topics.push({
+  "id": "compliance-gaps-and-personal-data-breaches",
+  "label": "Compliance Gaps and Personal Data Breaches",
+  "shortLabel": "Data Protection",
+  "actions": [
+    [
+      "DP01",
+      "Targeted diligence",
+      "Confirm the issue’s scope, affected data and legal position, using specialist advice where needed.",
+      "search",
+      "Due diligence",
+      {
+        "Buyer": "Investigate the issue’s scope, affected data and legal position, using specialist advice where needed.",
+        "Seller": "Assemble the issue records and obtain advice on unresolved facts before presenting the position to the buyer."
+      }
+    ],
+    [
+      "DP02",
+      "Containment and remediation",
+      "Agree and implement a proportionate plan to contain any ongoing harm and remedy confirmed gaps or breaches.",
+      "wrench",
+      "Due diligence",
+      {
+        "Buyer": "Require a proportionate plan to contain any ongoing harm and remedy confirmed gaps or breaches.",
+        "Seller": "Procure prompt containment and proportionate remedial work for confirmed gaps or breaches."
+      }
+    ],
+    [
+      "DP03",
+      "Breach notifications",
+      "Check the notification assessment and ensure any required notices are made promptly with reasons recorded for any delay.",
+      "circle-arrow-right",
+      "Due diligence",
+      {
+        "Buyer": "Obtain the notification assessment and evidence that the responsible party has made any required notices promptly.",
+        "Seller": "Procure prompt notification by the responsible party where required and document the assessment and any delay."
+      }
+    ],
+    [
+      "DP04",
+      "Verify remediation",
+      "Verify the completed remedial work against supporting evidence and resolve any conflicting answers.",
+      "circle-check",
+      "Due diligence",
+      {
+        "Buyer": "Obtain evidence that the remedial work is complete and resolve any conflicting answers before relying on it.",
+        "Seller": "Assemble evidence of completed remedial work and correct any inconsistent records."
+      }
+    ],
+    [
+      "DP05",
+      "Complaints and claims response",
+      "Confirm the response to complaints, claims and regulatory enquiries and agree responsibility for any remaining steps.",
+      "calendar-check",
+      "Due diligence",
+      {
+        "Buyer": "Review complaints, claims and regulatory enquiries and require a plan for any outstanding response or obligations.",
+        "Seller": "Confirm complaints, claims and regulatory enquiries are properly handled and meet any remaining obligations or deadlines."
+      }
+    ],
+    [
+      "DP06",
+      "Costs and recoveries",
+      "Quantify likely costs and liabilities and check available insurance or third-party recoveries.",
+      "search",
+      "Due diligence",
+      {
+        "Buyer": "Quantify likely exposure and confirm available insurance or third-party recoveries before agreeing the price.",
+        "Seller": "Substantiate likely costs and preserve available insurance or third-party recoveries to support the proposed price."
+      }
+    ],
+    [
+      "DP07",
+      "Specific disclosure",
+      "Record the issue, response and remaining exposure in specific disclosures while protecting personal data and privilege.",
+      "file-search",
+      "SPA drafting",
+      {
+        "Buyer": "Require specific disclosure of the issue, response and remaining exposure without unnecessary personal data or privileged advice.",
+        "Seller": "Make fair, specific disclosure of the issue and response while protecting personal data and privilege."
+      }
+    ],
+    [
+      "DP08",
+      "Data protection warranties",
+      "Agree proportionate warranties on compliance, incident records and regulatory correspondence, subject to specific disclosure.",
+      "shield-check",
+      "SPA drafting",
+      {
+        "Buyer": "Seek tailored warranties on compliance, incident records and regulatory correspondence without relying on them to cover disclosed issues.",
+        "Seller": "Limit data protection warranties to an accurate, appropriately qualified position supported by specific disclosure."
+      }
+    ],
+    [
+      "DP09",
+      "Remediation and conduct covenants",
+      "Document outstanding response duties, milestones, reporting and cost allocation in the sale agreement.",
+      "file-pen-line",
+      "SPA drafting",
+      {
+        "Buyer": "Require enforceable response and remediation duties with milestones, reporting and clear allocation of continuing costs.",
+        "Seller": "Limit response and remediation covenants to defined tasks, deadlines and costs within the seller’s control."
+      }
+    ],
+    [
+      "DP10",
+      "Completion condition",
+      "Agree objective completion conditions for material unresolved issues, with a longstop date and clear termination rights.",
+      "circle-check",
+      "Closing condition",
+      {
+        "Buyer": "Make completion conditional on objective milestones for material unresolved issues, with a longstop date and termination rights.",
+        "Seller": "Limit any completion condition to material, measurable steps within the seller’s control and resist open-ended buyer discretion."
+      }
+    ],
+    [
+      "DP11",
+      "Specific indemnity and security",
+      "Agree a targeted indemnity for identified losses, with suitable limits and security where justified.",
+      "banknote",
+      "SPA drafting",
+      {
+        "Buyer": "Seek a specific indemnity for identified losses, backed by escrow or retention where justified.",
+        "Seller": "Resist a broad indemnity and, if agreed, limit covered losses, duration and any escrow or retention."
+      }
+    ],
+    [
+      "DP12",
+      "Price treatment",
+      "Reflect material exposure in the price or completion accounts without duplicating other recoveries.",
+      "arrow-down-up",
+      "SPA drafting",
+      {
+        "Buyer": "Seek a price adjustment for material exposure not already addressed through agreed protections or recoveries.",
+        "Seller": "Resist duplicate price reductions and ensure agreed protections and recoveries are reflected in the valuation."
+      }
+    ],
+    [
+      "DP13",
+      "Reassess the transaction",
+      "Reassess whether the deal can proceed on acceptable terms or should be restructured or abandoned.",
+      "arrow-left-right",
+      "Signing",
+      {
+        "Buyer": "Reassess the price, structure and ability to proceed, including walking away if the issue undermines the acquisition.",
+        "Seller": "Assess whether remediation, revised terms or a different structure can preserve the sale before ending the sale process."
+      }
+    ]
+  ]
+});
+
   const coreActionIcons = Object.freeze({
     "Further diligence": "search",
     "Rectification": "wrench",
@@ -222,9 +373,9 @@
   });
   const validIcons = new Set(Object.values(coreActionIcons));
   topics.forEach(topic => {
-    topic.actions = topic.actions.map(([id, title, description, icon, phase]) => {
+    topic.actions = topic.actions.map(([id, title, description, icon, phase, descriptionsBySide]) => {
       if (!validIcons.has(icon)) throw new Error(`Unknown action icon for ${topic.id}/${id}: ${icon}`);
-      return { id, title, description, icon, phase };
+      return { id, title, description, icon, phase, ...(descriptionsBySide ? { descriptionsBySide } : {}) };
     });
   });
 
@@ -263,5 +414,6 @@
     return byTopic.get(topicId)?.actions.find(action => action.id === id) || null;
   };
 
-  window.DealLogicActionRegistry = { topics, byTopic, coreActionIcons, resolveActionId, actionFor };
+  const forSide = (action, side = "Balanced") => action ? { ...action, description: action.descriptionsBySide?.[side] || action.description } : null;
+  window.DealLogicActionRegistry = { topics, byTopic, coreActionIcons, resolveActionId, actionFor, forSide };
 })();

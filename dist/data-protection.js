@@ -320,6 +320,96 @@
     if (!implications.length) implications.push(implicationCopy.clear);
     return { summary, implications };
   };
+  const priorityRank = { Required: 3, Recommended: 2, Consider: 1 };
+  const chooseActions = (responses, side = "Balanced", consolidate = true) => {
+    if (!complete(responses) || responses["dp-issue"] === "no") return [];
+    side = ["Buyer", "Seller", "Balanced"].includes(side) ? side : "Balanced";
+    const visible = visibleIds(responses);
+    const existence = responses["dp-issue"], type = responses["dp-type"], ongoingAnswer = responses["dp-ongoing"];
+    const notifications = visible.includes("dp-notifications") ? responses["dp-notifications"] : undefined;
+    const proceedings = responses["dp-proceedings"], impact = responses["dp-impact"], remediation = responses["dp-remediation"];
+    const uncertain = existence !== "yes" || visible.some(id => responses[id] === "unknown" || (Array.isArray(responses[id]) && responses[id].includes("unknown")));
+    const material = ["significant", "fundamental"].includes(impact), fundamental = impact === "fundamental";
+    const external = proceedings.some(value => ["complaints", "claims", "regulatory-enquiries"].includes(value));
+    const formal = proceedings.includes("claims") || proceedings.includes("regulatory-enquiries");
+    const ongoing = ["yes", "partly"].includes(ongoingAnswer);
+    const notificationOpen = ["some-outstanding", "none-made"].includes(notifications), notificationUnknown = notifications === "unknown";
+    const workPlanned = ["yes", "partly", "no"].includes(remediation), carryOver = ["partly", "no"].includes(remediation);
+    const conflict = remediation === "completed" && (ongoing || notificationOpen);
+    const readinessOpen = ongoing || notificationOpen || remediation !== "completed";
+    const registry = window.DealLogicActionRegistry;
+    const actions = [];
+    const copy = (buyer, seller, balanced) => ({ Buyer: buyer, Seller: seller, Balanced: balanced }[side]);
+    const add = (id, buyer, seller = buyer, balanced = buyer, description) => {
+      actions.push({ ...registry.forSide(registry.actionFor(issueId, "", "", id), side),
+        priority: copy(buyer, seller, balanced), constituentIds: [id], ...(description ? { description } : {}) });
+    };
+    if (uncertain || material || external || ongoing || notificationOpen || remediation !== "completed") add("DP01", uncertain || material || formal ? "Required" : "Recommended");
+    if (ongoing || remediation !== "completed") add("DP02", ongoing ? "Required" : "Recommended");
+    if (visible.includes("dp-notifications")) {
+      const description = notificationUnknown ? copy(
+        "Obtain an urgent notification assessment and ensure the responsible party makes any required notices without waiting for completion.",
+        "Procure an urgent notification assessment and any required notices without waiting for completion.",
+        "Arrange an urgent notification assessment and ensure any required notices are made without waiting for completion.")
+        : !notificationOpen ? copy(
+          "Verify the notification record or the documented basis for concluding that no notifications were required.",
+          "Retain evidence of notifications or the documented basis for concluding that none were required.",
+          "Verify the notification record or the documented basis for concluding that no notifications were required.") : undefined;
+      add("DP03", notificationOpen || notificationUnknown ? "Required" : "Recommended", undefined, undefined, description);
+    }
+    if (remediation === "completed") add("DP04", "Required", conflict ? "Required" : "Recommended", conflict ? "Required" : "Recommended");
+    if (external) add("DP05", "Required");
+    if (material || impact === "unknown" || external || ["personal-data-breach", "both", "unknown"].includes(type) || remediation !== "completed") {
+      const required = material || impact === "unknown" || formal;
+      const light = impact === "minimal" && remediation === "completed" && !external;
+      add("DP06", required ? "Required" : "Recommended", required ? "Required" : light ? "Consider" : "Recommended", required ? "Required" : light ? "Consider" : "Recommended");
+    }
+    add("DP07", "Recommended", "Required", "Required");
+    add("DP08", "Required", "Consider", "Recommended");
+    if (ongoing || notificationOpen || workPlanned || external) add("DP09", ongoing || notificationOpen || carryOver ? "Required" : "Recommended", carryOver ? "Required" : "Recommended", ongoing || notificationOpen || carryOver ? "Required" : "Recommended");
+    if (material && readinessOpen) add("DP10", "Required", fundamental ? "Recommended" : "Consider", fundamental ? "Required" : "Recommended");
+    if ((existence === "yes" || external) && (material || formal)) {
+      const exploratory = existence !== "yes";
+      const description = exploratory ? copy(
+        "Assess whether the reported matter justifies a specific indemnity and any supporting escrow or retention.",
+        "Assess any proposed indemnity against the evidence and limit its scope and supporting security.",
+        "Assess whether the reported matter justifies a targeted indemnity with suitable limits and any justified security.") : undefined;
+      add("DP11", exploratory ? "Recommended" : material ? "Required" : "Recommended", "Consider", exploratory || impact === "minimal" ? "Consider" : "Recommended", description);
+    }
+    if (material) add("DP12", fundamental ? "Required" : "Recommended", "Recommended", fundamental ? "Required" : "Recommended");
+    if (fundamental) add("DP13", "Required");
+
+    // Combine related recommendations only when necessary; never truncate a duty.
+    const merge = (first, second, title, buyer, seller, balanced) => {
+      if (!consolidate || actions.length <= 9) return;
+      const a = actions.find(action => action.id === first), b = actions.find(action => action.id === second);
+      if (!a || !b) return;
+      a.title = title; a.description = copy(buyer, seller, balanced);
+      a.constituentIds.push(...b.constituentIds);
+      if (priorityRank[b.priority] > priorityRank[a.priority]) a.priority = b.priority;
+      actions.splice(actions.indexOf(b), 1);
+    };
+    merge("DP01", "DP06", "Diligence, exposure and recoveries",
+      "Investigate the issue’s scope and legal position, quantify exposure and verify available insurance or third-party recoveries with specialist input where needed.",
+      "Assemble the issue records, obtain advice on unresolved facts and substantiate costs and available recoveries to support the proposed price.",
+      "Confirm the issue’s scope and legal position, quantify exposure and check available insurance or third-party recoveries with specialist input where needed.");
+    merge("DP02", "DP04", "Verify and complete remediation",
+      "Verify the claimed remediation, resolve conflicting records and require completion of any outstanding containment or remedial work.",
+      "Substantiate completed remediation, correct conflicting records and procure any outstanding containment or remedial work.",
+      "Verify the claimed remediation, resolve conflicting records and complete any outstanding containment or remedial work.");
+    merge("DP07", "DP08", "Warranties and specific disclosure",
+      "Seek tailored data protection warranties and specific disclosure while protecting personal data and privilege, addressing disclosed exposure separately.",
+      "Limit data protection warranties to an accurate, qualified position supported by fair specific disclosure while protecting personal data and privilege.",
+      "Agree proportionate data protection warranties and fair specific disclosure while protecting personal data and privilege, addressing disclosed exposure separately.");
+    merge("DP10", "DP13", "Deal viability and completion conditions",
+      "Reassess whether to proceed and require objective completion milestones, a longstop date and termination rights for material unresolved issues.",
+      "Reassess the sale terms and limit any completion condition to material, measurable steps with a clear longstop and proportionate termination rights.",
+      "Reassess deal viability and agree objective completion milestones, a longstop date and proportionate termination rights for material unresolved issues.");
+    return actions.sort((a, b) => priorityRank[b.priority] - priorityRank[a.priority] || a.id.localeCompare(b.id));
+  };
+  // Component identities preserve duplicate prevention when a combined card is saved.
+  window.DealLogicDataProtectionActions = (responses, side) => chooseActions(responses, side, false);
+  const actionsMarkup = actions => actions.length ? actions.map(action => `<div class="logic-action" data-action-id="${action.id}" data-constituent-ids="${action.constituentIds.join(",")}"><span class="logic-icon" aria-hidden="true"></span><div><span class="logic-priority" data-level="${action.priority.toLowerCase()}">${action.priority}</span><strong>${escape(action.title)}</strong><span>${escape(action.description)}</span></div></div>`).join("") : `<p>No issue-specific actions are indicated by the recorded answer.</p>`;
   const previousRiskScore = riskScore;
   riskScore = function () { return isDataProtection(current()) ? assessRisk(answers) : previousRiskScore(); };
   const previousRenderPanel = renderPanel;
@@ -362,11 +452,13 @@
     document.querySelector("#recommendations-card")?.remove();
     const card = document.querySelector("#logic-card");
     const analysis = buildAnalysis(answers);
+    const side = getTransactionSide();
     card.classList.add("coc-deal-logic");
     card.classList.toggle("logic-standby", !analysis);
     card.innerHTML = analysis
-      ? `<h3>Apply deal logic</h3><section class="logic-section"><h4>Summary</h4><p class="logic-conclusion">${escape(analysis.summary)}</p></section><section class="logic-section"><h4>Key deal implications</h4><ul>${analysis.implications.map(text => `<li>${escape(text)}</li>`).join("")}</ul></section>`
+      ? `<h3>Apply deal logic</h3><section class="logic-section"><h4>Summary</h4><p class="logic-conclusion">${escape(analysis.summary)}</p></section><section class="logic-section"><h4>Key deal implications</h4><ul>${analysis.implications.map(text => `<li>${escape(text)}</li>`).join("")}</ul></section><section class="logic-section"><div class="logic-section-heading"><h4>Recommended actions</h4><div class="logic-side-picker" aria-label="Transaction side selector"><button type="button" class="active" data-logic-side-toggle>${escape(side)}</button></div></div>${actionsMarkup(chooseActions(answers, side))}</section>`
       : `<h3>Apply deal logic</h3><p>Answer all relevant questions to generate your deal analysis.</p>`;
+    document.dispatchEvent(new CustomEvent("data-protection-logic-rendered"));
   };
   const previousExportReport = exportReport;
   exportReport = function () {
@@ -375,7 +467,9 @@
     normalize(answers);
     const lines = issue.key_questions.filter(q => visibleIds(answers).includes(q.id)).map(({id,question}) => `${question}\n  Response: ${labelFor(id, answers[id])}`);
     const analysis = buildAnalysis(answers);
-    const report = ["DEALLOGIC ISSUE REPORT", "", issue.title, `${areas[issue.category]} · ${issue.jurisdiction.primary}`, issue.summary, `Risk score: ${assessRisk(answers)}/5 — ${riskNames[assessRisk(answers) - 1]}`, "", "DILIGENCE ANSWERS", ...lines, "", ...(analysis ? ["SUMMARY", analysis.summary, "", "KEY DEAL IMPLICATIONS", ...analysis.implications.map(text => `- ${text}`)] : ["Answer all relevant questions to generate your deal analysis."]), "", "NOTE", "Recommended actions and legal notes are not yet configured.", "Prototype content only. Obtain transaction-specific legal advice."].join("\n");
+    const selected = analysis ? chooseActions(answers, getTransactionSide()) : [];
+    const actionLines = analysis ? ["", `RECOMMENDED ACTIONS — ${getTransactionSide()}`, ...(selected.length ? selected.map(action => `- ${action.priority}: ${action.title}\n  ${action.description}`) : ["No issue-specific actions are indicated by the recorded answer."])] : [];
+    const report = ["DEALLOGIC ISSUE REPORT", "", issue.title, `${areas[issue.category]} · ${issue.jurisdiction.primary}`, issue.summary, `Risk score: ${assessRisk(answers)}/5 — ${riskNames[assessRisk(answers) - 1]}`, "", "DILIGENCE ANSWERS", ...lines, "", ...(analysis ? ["SUMMARY", analysis.summary, "", "KEY DEAL IMPLICATIONS", ...analysis.implications.map(text => `- ${text}`)] : ["Answer all relevant questions to generate your deal analysis."]), ...actionLines, "", "NOTE", "Legal notes are not yet configured.", "Prototype content only. Obtain transaction-specific legal advice."].join("\n");
     const url = URL.createObjectURL(new Blob([report], {type:"text/plain"}));
     const link = document.createElement("a");link.href=url;link.download=`${issue.id}-report.txt`;link.click();URL.revokeObjectURL(url);
   };

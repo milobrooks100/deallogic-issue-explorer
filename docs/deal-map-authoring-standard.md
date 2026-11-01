@@ -43,7 +43,7 @@ Keep issue risk, action priority and Deal Hub urgency distinct. Apply these prio
 | Recommended | A proportionate protection or practical next step. |
 | Consider | An optional or negotiation-dependent response. |
 
-Specify action triggers and Buyer / Seller / Balanced differences explicitly. Avoid duplicate or overlapping protections without a reason. There is no shared five-action limit; document any issue-specific cap and ensure it cannot silently hide a necessary action.
+Specify action triggers and Buyer / Seller / Balanced differences explicitly, changing the one-sentence instruction as well as its priority to reflect the selected perspective. Reuse canonical perspective copy across the live analysis, action catalogue, exports and Hub capture. For new or revised action sets, show at most nine recommendation cards per completed response; the full issue catalogue may be larger. Consolidate related steps into concise, perspective-specific instructions when needed, preserving every triggered component, its stable identity and the highest constituent priority rather than dropping necessary actions. Document and test the consolidation rules.
 
 ## Registry, Deal Hub and persistence
 

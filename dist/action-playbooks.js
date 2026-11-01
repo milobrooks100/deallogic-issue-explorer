@@ -30,7 +30,9 @@
     playbooksPanel.querySelectorAll("[data-playbook-topic]").forEach(button=>{const selected=button.dataset.playbookTopic===topic.id;button.setAttribute("aria-selected",String(selected));button.tabIndex=selected?0:-1;});
     const panel=playbooksPanel.querySelector(".playbook-panel");
     panel.setAttribute("aria-labelledby",`playbook-tab-${topic.id}`);
-    panel.innerHTML=`<div class="library-section-heading"><div class="playbook-title-row"><h3>${esc(topic.label)}</h3><span class="playbook-count">${topic.actions.length} actions</span></div><p>This is the full action set for this issue. Deal Map will recommend only the actions that fit the answers you have recorded.</p><p class="priority-note">Priority depends on the recorded facts and transaction side.</p></div><div class="playbook-grid">${topic.actions.map(action=>{const added=window.isActionInDealHub?.(topic.id,action.id);return `<article class="playbook-card" data-library-action="${esc(action.id)}" data-core-icon="${esc(action.icon)}"><span class="action-symbol" data-vector="true"><i data-lucide="${esc(action.icon)}" aria-hidden="true"></i></span><div class="playbook-card-copy"><h4>${esc(action.title)}</h4><p>${esc(action.description)}</p><div class="playbook-card-meta"><span class="phase-label">${esc(action.phase)}</span><button type="button" class="library-add" data-add-library-action="${esc(action.id)}" ${added?"disabled":""}>${added?"Added to Deal Hub":"Add to Deal Hub"}</button></div></div></article>`}).join("")}</div>`;
+    const side = getTransactionSide();
+    const sidePicker = topic.actions.some(action => action.descriptionsBySide) ? `<div class="logic-side-picker" aria-label="Transaction side selector"><button type="button" class="active" data-logic-side-toggle>${esc(side)}</button></div>` : "";
+    panel.innerHTML=`<div class="library-section-heading"><div class="playbook-title-row"><h3>${esc(topic.label)}</h3>${sidePicker}<span class="playbook-count">${topic.actions.length} actions</span></div><p>This is the full action set for this issue. Deal Map will recommend only the actions that fit the answers you have recorded.</p><p class="priority-note">Priority depends on the recorded facts and transaction side.</p></div><div class="playbook-grid">${topic.actions.map(baseAction=>{const action=registry.forSide(baseAction,side);const added=window.isActionInDealHub?.(topic.id,action.id);return `<article class="playbook-card" data-library-action="${esc(action.id)}" data-core-icon="${esc(action.icon)}"><span class="action-symbol" data-vector="true"><i data-lucide="${esc(action.icon)}" aria-hidden="true"></i></span><div class="playbook-card-copy"><h4>${esc(action.title)}</h4><p>${esc(action.description)}</p><div class="playbook-card-meta"><span class="phase-label">${esc(action.phase)}</span><button type="button" class="library-add" data-add-library-action="${esc(action.id)}" ${added?"disabled":""}>${added?"Added to Deal Hub":"Add to Deal Hub"}</button></div></div></article>`}).join("")}</div>`;
     window.lucide?.createIcons({attrs:{"stroke-width":1.75}});
   }
   function selectArea(area){
@@ -44,7 +46,7 @@
     const topicButton=event.target.closest("[data-playbook-topic]");if(topicButton){activeTopic=topicButton.dataset.playbookTopic;renderTopic();return;}
     const add=event.target.closest("[data-add-library-action]");if(!add)return;
     const topic=registry.byTopic.get(activeTopic),action=topic?.actions.find(item=>item.id===add.dataset.addLibraryAction);if(!action)return;
-    if(window.addLibraryActionToDealHub?.(topic.id,action))renderTopic();
+    if(window.addLibraryActionToDealHub?.(topic.id,registry.forSide(action,getTransactionSide())))renderTopic();
   });
   window.openActionPlaybook=issueId=>{if(registry.byTopic.has(issueId))activeTopic=issueId;selectArea("playbooks");window.showDealLogicView?.("action-library");requestAnimationFrame(()=>playbooksPanel.querySelector(`[data-playbook-topic="${CSS.escape(activeTopic)}"]`)?.focus());};
 
@@ -57,5 +59,6 @@
   const panel=document.querySelector("#panel");if(panel)new MutationObserver(addDealMapLink).observe(panel,{childList:true,subtree:true});addDealMapLink();
   document.addEventListener("deal-hub-actions-change",()=>{if(activeArea==="playbooks")renderTopic();});
   document.addEventListener("deal-project-change",()=>{if(activeArea==="playbooks")renderTopic();});
+  document.addEventListener("transaction-side-change",()=>{if(activeArea==="playbooks")renderTopic();});
   renderTopic();
 })();

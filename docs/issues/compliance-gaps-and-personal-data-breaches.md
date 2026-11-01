@@ -6,7 +6,7 @@ Area: Data Protection (`data-protection`). Issue: `compliance-gaps-and-personal-
 
 The target may have compliance gaps or personal data breaches affecting how it collects, uses or protects personal data. Review the issues, potential exposure and remedial steps to identify any effect on the transaction and work needed before completion.
 
-This delivery includes the questionnaire, agreed risk assessment, prose summary and key deal implications. Reuse Threatened Litigation’s shared issue header, facts card, question/top/info/select markup, progressive reveal, reset control and standby card. Do not copy its litigation risk, legal notes, actions or analysis. Full compliance audits and transaction-specific data-transfer planning are outside this focused issue.
+This delivery includes the questionnaire, agreed risk assessment, prose summary, key deal implications and perspective-specific actions. Reuse Threatened Litigation’s shared issue header, facts card, question/top/info/select markup, progressive reveal, reset control and standby card. Do not copy its litigation risk, legal notes, actions or analysis. Full compliance audits and transaction-specific data-transfer planning are outside this focused issue.
 
 ## Canonical questionnaire
 
@@ -30,7 +30,7 @@ Completion requires valid answers to all visible questions. Changing an answer c
 
 ## Outputs, risk and actions
 
-The risk indicator updates live using `assessRisk` in `dist/data-protection.js`, and report exports use the same function. The initial display remains 1/5 No risk. The questionnaire-only message beneath the risk bar is removed. Incomplete forms retain the shared standby message. Completed forms show Summary and Key deal implications using the shared `.logic-section` and `.logic-conclusion` presentation. Recommended actions, legal notes and Deal Hub action integration remain a separate authoring stage. Buyer/Seller/Balanced does not affect the score.
+The risk indicator updates live using `assessRisk` in `dist/data-protection.js`, and report exports use the same function. The initial display remains 1/5 No risk. The questionnaire-only message beneath the risk bar is removed. Incomplete forms retain the shared standby message. Completed forms show Summary and Key deal implications using the shared `.logic-section` and `.logic-conclusion` presentation. Recommended actions now use the researched matrix, with at most nine consolidated cards, perspective-specific wording and priorities, full Actions by Issue catalogue, Deal Hub capture and report integration; legal notes remain a separate authoring stage. Buyer/Seller/Balanced does not affect the score.
 
 ## Agreed risk decision table
 
@@ -57,7 +57,7 @@ Worked cases: No issue → 1; all Unknown → 1; Suspected plus all later Unknow
 
 ## Validation
 
-Eighteen focused tests verify questionnaire progression, neutral Unknown answers, starting scores, one-point adjustments, protected floors, notification applicability, grouped external matters, remediation preconditions, hidden-answer exclusion, risk and analysis export parity, all 48,000 risk combinations and all 72,000 analysis combinations. Shared runtime checks pass; full suite: 120 pass and the existing unrelated core action-colour assertion fails. Scenarios involving transaction-side recommendations, Hub action selection and snapshots remain inapplicable until actions are implemented.
+Twenty-four focused tests verify questionnaire progression, neutral Unknown answers, starting scores, one-point adjustments, protected floors, notification applicability, grouped external matters, remediation preconditions, hidden-answer exclusion, risk and analysis export parity, all 48,000 risk combinations and all 72,000 analysis combinations. Shared runtime checks pass; full suite: 126 pass and the existing unrelated core action-colour assertion fails. Additional checks cover perspective-specific actions, consolidation without lost steps, Hub component identity and the nine-card cap across 216,000 evaluations.
 
 Question numbers in this specification identify the agreed flow only. On-screen questions and downloaded reports display the question text without numeric prefixes.
 
@@ -71,10 +71,10 @@ Implications use reusable, transaction-focused statements with at most one state
 2. **Completion readiness:** Reported completed remediation with an ongoing issue or outstanding notifications triggers reconciliation. Otherwise ongoing issues, outstanding notifications or only partial/no pre-completion remediation trigger a common completion-planning implication. Uncertain response/remediation triggers an uncertainty statement; fully planned remediation triggers a delivery dependency. Hidden notifications have no effect.
 3. **Residual exposure:** Any reported complaints, claims or regulatory enquiries trigger one shared exposure statement; Unknown triggers one uncertainty statement. None adds nothing.
 
-If no theme triggers, show one qualified statement that no unresolved issue-specific completion dependency is indicated. These statements are independent of transaction side and risk score: an all-Unknown assessment retains the agreed 1/5 score but explicitly identifies uncertainty in all three themes. No recommendations, notes or Hub actions are inferred from these implications.
+If no theme triggers, show one qualified statement that no unresolved issue-specific completion dependency is indicated. These statements are independent of transaction side and risk score: an all-Unknown assessment retains the agreed 1/5 score but explicitly identifies uncertainty in all three themes. Actions use their own answer-based matrix rather than being inferred from these implication statements; legal notes remain unconfigured.
 
 Validation covers incomplete and absent routes, hidden answers, suspected/unknown prose, every external-matter combination, serious impact, remediation inconsistencies, stable implications, live/report parity and all 72,000 combinations (including every valid Q4 subset, normalized to the reachable branch). Existing risk checks remain unchanged.
 
-## Proposed action matrix
+## Action matrix
 
-The [researched action matrix](data-protection-action-matrix.md) sets out 13 consolidated action types, concise Buyer/Seller/Balanced instructions, exact answer triggers and conditional priorities, worked scenarios and the legal/practice sources checked on 1 November 2026. This is an authoring proposal; recommended actions and their Hub/report integration are not yet implemented in the live interface.
+The [researched action matrix](data-protection-action-matrix.md) sets out 13 consolidated action types, concise Buyer/Seller/Balanced instructions, exact answer triggers and conditional priorities, worked scenarios and the legal/practice sources checked on 1 November 2026. The matrix is implemented in Apply deal logic, the full Actions by Issue catalogue, Deal Hub capture and reports, with a maximum of nine recommendation cards per completed response.

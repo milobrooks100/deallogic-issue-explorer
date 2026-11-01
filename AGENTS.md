@@ -8,6 +8,12 @@ For every DealLogic app change, update the current source in place. Delete super
 
 When questionnaire wording changes, update every dependent summary, risk rule, recommended action, export and saved-answer path. Keep one canonical list of current answer labels and make logic refer to stable positions or identifiers, rather than copies of the labels. Retain compatibility code only when it is needed to migrate existing user data, and keep that code narrowly scoped. Search the working tree for obsolete wording and run the relevant checks before committing.
 
+## Action recommendations and transaction perspectives
+
+For new or revised Deal Map actions, change the concise, one-sentence instruction as well as the Required / Recommended / Consider label to reflect Buyer, Seller and Balanced objectives; changing only the label is insufficient. Reuse canonical perspective copy across Apply deal logic, Actions by Issue, exports and Deal Hub capture.
+
+Show at most nine recommended action cards per completed response. Consolidate related steps into a concise, perspective-specific sentence when needed; retain all triggered steps, the highest constituent priority and the stable component identities instead of silently dropping required actions. The full Actions by Issue catalogue may contain more than nine entries. Document and test the issue-specific consolidation rules.
+
 ## Action icon contract
 
 `dist/action-registry.js` is the source of truth for every registered action's stable ID and icon. Choose its icon from `coreActionIcons`; do not put emoji, Unicode placeholders, or separate icon choices in Deal Map action data. Every Apply deal logic action must carry the matching `data-action-id` so the presentation layer can resolve the registry entry even when its display title differs.
