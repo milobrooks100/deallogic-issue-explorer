@@ -6,18 +6,20 @@ import test from 'node:test';
 const source = await readFile(new URL('../dist/employees.js', import.meta.url), 'utf8');
 const issues = JSON.parse(await readFile(new URL('../dist/issues.json', import.meta.url), 'utf8'));
 const employee = issues.find(issue => issue.category === 'employees');
+const registrySource = await readFile(new URL('../dist/action-registry.js', import.meta.url), 'utf8');
 function setup() {
-  const card = { innerHTML: '', classList: { add() {}, remove() {} } };
+  const card = { innerHTML: '', querySelector() {return null;}, classList: { add() {}, remove() {} } };
   let report;
   const context = vm.createContext({
-    answers: {}, current: () => employee, areas: {employees: 'Employment'},
+    window: {}, getTransactionSide: () => 'Balanced', CustomEvent: class {}, answers: {}, current: () => employee, areas: {employees: 'Employment'},
     riskScore: () => 4, riskNames: ['No risk','Low risk','Medium risk','High risk','Very high risk'], renderPanel() {}, renderLogic() { card.innerHTML = 'Existing issue'; },
     exportReport() { report = 'Existing export'; },
     Blob: class { constructor(parts) { report = parts.join(''); } },
     URL: { createObjectURL: () => 'blob:test', revokeObjectURL() {} },
-    document: { querySelector: selector => selector === '#logic-card' ? card : null, createElement: () => ({click() {}}) }
+    document: { dispatchEvent() {}, getElementById() {return null;}, querySelector: selector => selector === '#logic-card' ? card : null, createElement: () => ({click() {}}) }
   });
-  vm.runInContext(source.replace(/\}\)\(\);\s*$/, 'globalThis.employeeTest = { fields, ids, visibleIds, normalize, buildAnalysis, summaryCopy, implicationCopy, assessRisk }; })();'), context);
+  vm.runInContext(registrySource, context);
+  vm.runInContext(source.replace(/\}\)\(\);\s*$/, 'globalThis.employeeTest = { fields, ids, visibleIds, normalize, buildAnalysis, summaryCopy, implicationCopy, assessRisk, chooseActions, contextFields, contextIds }; })();'), context);
   return { context, card, getReport: () => report, ...context.employeeTest };
 }
 test('progressive reveal stops at unanswered, invalid or confirmed absence', () => {
@@ -44,7 +46,7 @@ test('exports use visible current labels and never borrow litigation analysis', 
   assert.doesNotMatch(getReport(), /Difficult|litigation/i);
   context.renderLogic(employee);
   assert.match(card.innerHTML, /Key deal implications/);
-  assert.doesNotMatch(card.innerHTML, /Recommended actions|Limitation periods/);
+  assert.doesNotMatch(card.innerHTML, /Limitation periods/);
   context.renderLogic({id:'other'});
   assert.equal(card.innerHTML, 'Existing issue');
 });
@@ -192,4 +194,117 @@ test('unknown dependence starts at low risk while later concerns retain their fl
   answers[ids[1]] = 'unknown';
   assert.equal(assessRisk(answers),3);
   assert.equal(assessRisk(Object.fromEntries(ids.map((id,i) => [id,['unknown','easy','all-staying','yes','no','not-needed'][i]]))),2);
+});
+
+test('action triggers respect perspective, facts and the agreed protections', () => {
+  const {ids, chooseActions} = setup();
+  const response = values => Object.fromEntries(ids.map((id,i) => [id,values[i]]));
+  const serious = response(['yes','difficult','all-leaving','no','yes','none-agreed']);
+  const priorities = side => new Map(chooseActions(serious,side).map(action => [action.id,action.priority]));
+  assert.equal(priorities('Buyer').get('ER03'),'Required');
+  assert.equal(priorities('Seller').get('ER03'),'Consider');
+  assert.equal(priorities('Seller').get('ER06'),'Required');
+  assert.equal(priorities('Balanced').get('ER01'),'Required');
+  assert.equal(priorities('Buyer').has('ER11'),false);
+  assert.equal(priorities('Buyer').has('ER08'),false);
+  assert.equal(priorities('Buyer').has('ER10'),false);
+  assert.equal(priorities('Buyer').has('ER04'),false);
+  const agreed = {...serious,[ids[5]]:'all-agreed'};
+  const agreedIds = chooseActions(agreed,'Buyer').map(action => action.id);
+  assert.ok(!agreedIds.includes('ER01') && !agreedIds.includes('ER03') && !agreedIds.includes('ER12'));
+  assert.ok(chooseActions({...serious,'employee-tupe-applies':'yes'},'Balanced').every(action => action.id !== 'ER11'));
+  assert.ok(chooseActions({...serious,'employee-tupe-applies':'yes','employee-tupe-outstanding':'yes'},'Balanced').some(action => action.id === 'ER11' && action.priority === 'Required'));
+  const facts = {...serious,'employee-specific-exposure':'yes','employee-recovery-concern':'yes','employee-signing-gap':'yes','employee-seller-guarantee':'yes'};
+  assert.ok(chooseActions(facts,'Seller').some(action => action.constituentIds.includes('ER09') && action.priority === 'Required'));
+  assert.ok(chooseActions(facts,'Buyer').every(action => !action.constituentIds.includes('ER09')));
+});
+
+test('all answer combinations and perspectives stay within nine and preserve every triggered protection', () => {
+  const {ids, fields, chooseActions, contextFields} = setup();
+  const confirmed = Object.fromEntries(Object.keys(contextFields).map(id => [id,'yes']));
+  let checked = 0;
+  function verify(responses) {
+    for (const facts of [{},confirmed]) for (const side of ['Buyer','Seller','Balanced']) {
+      const combined = {...responses,...facts};
+      const cards = chooseActions(combined,side);
+      const original = chooseActions(combined,side,false);
+      assert.ok(cards.length <= 9);
+      assert.equal(new Set(cards.map(card => card.id)).size,cards.length);
+      const covered = cards.flatMap(card => Array.from(card.constituentIds));
+      assert.deepEqual([...covered].sort(),Array.from(original, action => action.id).sort());
+      for (const action of original) {
+        const card = cards.find(card => card.constituentIds.includes(action.id));
+        const ranks = {Required:3,Recommended:2,Consider:1};
+        assert.ok(ranks[card.priority] >= ranks[action.priority]);
+      }
+      if (responses[ids[0]] === 'no') assert.equal(cards.length,0);
+      checked++;
+    }
+  }
+  function visit(index,responses) {
+    if (index === ids.length) {verify(responses); return;}
+    const id = ids[index];
+    for (const value of ['',...fields[id].options.map(pair => pair[0])]) visit(index+1,{...responses,[id]:value});
+  }
+  visit(0,{});
+  assert.equal(checked,108000);
+});
+
+test('all additional-fact combinations preserve the cap and respect applicability gates', () => {
+  const {ids,chooseActions,contextFields,normalize} = setup();
+  const factIds = Object.keys(contextFields);
+  for (let bits=0;bits<64;bits++) for (const side of ['Buyer','Seller','Balanced']) {
+    const responses = Object.fromEntries(ids.map((id,i)=>[id,['yes','difficult','all-leaving','no','yes','none-agreed'][i]]));
+    factIds.forEach((id,i)=>{responses[id] = bits & (1<<i) ? 'yes':'no';});
+    const cards = chooseActions(responses,side);
+    assert.ok(cards.length<=9);
+    const covered = cards.flatMap(card=>Array.from(card.constituentIds));
+    assert.equal(covered.includes('ER11'),responses['employee-tupe-applies']==='yes' && responses['employee-tupe-outstanding']==='yes');
+    assert.equal(covered.includes('ER10'),responses['employee-specific-exposure']==='yes' && responses['employee-recovery-concern']==='yes');
+    normalize(responses);
+    if (responses['employee-specific-exposure'] !== 'yes') assert.equal(responses['employee-recovery-concern'],undefined);
+    if (responses['employee-tupe-applies'] !== 'yes') assert.equal(responses['employee-tupe-outstanding'],undefined);
+  }
+});
+
+test('registry icons, rendered actions and report priorities use the same canonical actions', () => {
+  const {context,ids,chooseActions,card,getReport} = setup();
+  const registry = context.window.DealLogicActionRegistry;
+  const topic = registry.byTopic.get(employee.id);
+  assert.equal(topic.actions.length,12);
+  topic.actions.forEach(action=>assert.ok(Object.values(registry.coreActionIcons).includes(action.icon)));
+  context.answers = Object.fromEntries(ids.map((id,i)=>[id,['yes','difficult','all-leaving','no','yes','none-agreed'][i]]));
+  context.renderLogic(employee);
+  context.exportReport();
+  for (const action of chooseActions(context.answers,'Balanced')) {
+    assert.ok(card.innerHTML.includes(`data-action-id="${action.id}"`));
+    assert.ok(getReport().includes(`${action.priority}: ${action.title}`));
+    assert.ok(getReport().includes(action.description));
+  }
+  assert.match(card.innerHTML,/data-logic-side-toggle/);
+});
+
+test('saving consolidated cards keeps component identities and preserves edited existing actions', async () => {
+  const hubSource = await readFile(new URL('../dist/deal-hub.js', import.meta.url),'utf8');
+  const commitSource = hubSource.slice(hubSource.indexOf('  function commitPicks()'),hubSource.indexOf('  const libraryPhase'));
+  const original = {id:'saved',issueId:employee.id,stableActionId:'ER08',title:'User edited indemnity',instruction:'User edited terms'};
+  const state = {actions:[original]};
+  const {context:registryContext} = setup();
+  const registry = registryContext.window.DealLogicActionRegistry;
+  const components = ['ER08','ER10'].map(id=>({...registry.actionFor(employee.id,'','',id),priority:'Recommended'}));
+  const picks = new Map([['merged',{issueId:employee.id,side:'Buyer',actionId:'ER08',title:'Combined',instruction:'Combined',priority:'Recommended',components}]]);
+  const context = vm.createContext({
+    picks,state, picking:true, window:registryContext.window, statuses:['To Review'],
+    actionKey:(...values)=>values.join('|'), issueById:()=>({id:employee.id}),
+    hasEquivalentAction:item=>state.actions.some(action=>action.stableActionId===item.actionId),
+    uid:()=> 'new', libraryPhase:phase=>phase, phaseFor:()=> 'SPA Drafting',
+    save(){},decorateRecommendations(){},renderHub(){},toast(){},
+    CustomEvent:class {},document:{dispatchEvent(){}}
+  });
+  vm.runInContext(commitSource+'commitPicks();',context);
+  assert.equal(state.actions.length,2);
+  assert.equal(state.actions[0],original);
+  assert.equal(state.actions[0].title,'User edited indemnity');
+  assert.equal(state.actions[1].stableActionId,'ER10');
+  assert.equal(picks.size,0);
 });

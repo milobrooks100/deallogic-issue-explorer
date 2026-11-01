@@ -112,6 +112,98 @@
     ]
   });
 
+  topics.push({
+  "id": "key-employee-retention-and-employment-terms",
+  "label": "Key Employee Retention and Employment Terms",
+  "shortLabel": "Employment",
+  "actions": [
+    [
+      "ER01",
+      "Binding retention arrangements",
+      "Tie retention payments to service periods or handover milestones, with clear departure and repayment terms.",
+      "handshake",
+      "Signing"
+    ],
+    [
+      "ER02",
+      "Strengthen employment terms",
+      "Agree suitable notice, handover and confidentiality obligations, alongside proportionate restrictive covenants. Obtain employee agreement and check applicable TUPE restrictions.",
+      "wrench",
+      "Signing"
+    ],
+    [
+      "ER03",
+      "Key employee completion condition",
+      "Require named employees to sign agreed arrangements and, where essential, not to have given notice at completion. Define waiver rights and a longstop date.",
+      "circle-check",
+      "Closing condition"
+    ],
+    [
+      "ER04",
+      "Pre-completion employment covenant",
+      "Restrict material changes to terms, bonuses, dismissals and agreed departures without buyer consent, subject to appropriate exceptions.",
+      "file-pen-line",
+      "SPA drafting"
+    ],
+    [
+      "ER05",
+      "Employment warranties",
+      "Cover employment terms, transaction payments and notices received; qualify warranties about departure intentions by seller knowledge.",
+      "shield-check",
+      "SPA drafting"
+    ],
+    [
+      "ER06",
+      "Specific employment disclosure",
+      "Disclose departure plans, contractual gaps, payments and outstanding retention arrangements against the relevant warranties.",
+      "file-search",
+      "SPA drafting"
+    ],
+    [
+      "ER07",
+      "Allocate employee payments",
+      "Allocate bonuses, severance, retention costs and employer taxes through the price mechanism and funds flow, avoiding double counting.",
+      "calendar-check",
+      "Closing condition"
+    ],
+    [
+      "ER08",
+      "Specific employment indemnity",
+      "Allocate identified payment liabilities or pre-completion breaches, with clear limits and claims procedures.",
+      "banknote",
+      "SPA drafting"
+    ],
+    [
+      "ER09",
+      "Limit seller retention obligations",
+      "Require defined retention efforts rather than guaranteed outcomes; exclude departures caused by post-completion buyer decisions.",
+      "file-pen-line",
+      "SPA drafting"
+    ],
+    [
+      "ER10",
+      "Escrow or price retention",
+      "Secure an agreed indemnity with proportionate retained funds and clear release arrangements.",
+      "lock-keyhole",
+      "SPA drafting"
+    ],
+    [
+      "ER11",
+      "TUPE protections",
+      "Where applicable, allocate information, consultation and employee-transfer obligations, with indemnities reflecting each party\u2019s responsibility.",
+      "file-pen-line",
+      "SPA drafting"
+    ],
+    [
+      "ER12",
+      "Renegotiate or exit",
+      "Revisit price, timing or completion obligations where essential departures remain unresolved, using objective contractual triggers.",
+      "arrow-left-right",
+      "Signing"
+    ]
+  ]
+});
+
   const coreActionIcons = Object.freeze({
     "Further diligence": "search",
     "Rectification": "wrench",

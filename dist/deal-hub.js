@@ -52,10 +52,12 @@
     const issue = currentIssue();
     if (!issue) return [];
     const card = document.querySelector("#logic-card");
-    if (["customer-change-of-control", "missing-ip-assignment", "option-holders", "threatened-litigation", "debt-facilities-repayment", "share-ownership-and-transfer-restrictions"].includes(issue.id) && card?.querySelector(".logic-section-heading")) {
+    if (["customer-change-of-control", "missing-ip-assignment", "option-holders", "threatened-litigation", "debt-facilities-repayment", "share-ownership-and-transfer-restrictions", "key-employee-retention-and-employment-terms"].includes(issue.id) && card?.querySelector(".logic-section-heading")) {
       return [...card.querySelectorAll(".logic-action")].map(row => ({
         issueId: issue.id, side: getTransactionSide(),
         actionId: stableActionIdFor(issue.id,row.querySelector("strong")?.textContent.trim(),row.querySelector("span:last-child")?.textContent.trim(),row.dataset.actionId),
+        components: issue.id === "key-employee-retention-and-employment-terms" && row.dataset.constituentIds?.includes(",")
+          ? window.DealLogicEmploymentActions?.(answers, getTransactionSide()).filter(action => row.dataset.constituentIds.split(",").includes(action.id)) : undefined,
         priority: row.querySelector(".logic-priority")?.textContent.trim() || "Recommended",
         title: row.querySelector("strong")?.textContent.trim() || "Action",
         instruction: row.querySelector("span:last-child")?.textContent.trim() || ""
@@ -152,7 +154,11 @@
   }
   function commitPicks() {
     if (!picks.size) return;
-    const selected = [...picks.values()];
+    // Consolidated cards retain individual registered identities in the Hub.
+    // This preserves duplicate prevention without overwriting existing edited actions.
+    const selected = [...picks.values()].flatMap(item => item.components?.length
+      ? item.components.map(component => ({...item, actionId:component.id, title:component.title, instruction:component.description, priority:component.priority, components:undefined}))
+      : [item]);
     const grouped = new Set(selected.map(item=>item.issueId));
     for (const id of grouped) {
       if (!issueById(id)) {
@@ -166,7 +172,7 @@
       if (hasEquivalentAction(item)) continue;
       state.actions.push({id:uid(),sourceKey:key,stableActionId:item.actionId||"",issueId:item.issueId,side:item.side,priority:item.priority,
         title:item.title,instruction:item.instruction,originalTitle:item.title,originalInstruction:item.instruction,
-        status:statuses[0],dealPhase:item.issueId === "share-ownership-and-transfer-restrictions" ? libraryPhase(window.DealLogicActionRegistry.actionFor(item.issueId,"","",item.actionId)?.phase) : phaseFor(item.title,item.instruction),
+        status:statuses[0],dealPhase:["share-ownership-and-transfer-restrictions", "key-employee-retention-and-employment-terms"].includes(item.issueId) ? libraryPhase(window.DealLogicActionRegistry.actionFor(item.issueId,"","",item.actionId)?.phase) : phaseFor(item.title,item.instruction),
         urgency:"Medium",notes:"",createdAt:new Date().toISOString(),manual:false});
       added++;
     }
@@ -329,10 +335,10 @@
   document.addEventListener("option-holders-logic-rendered",decorateRecommendations);
   document.addEventListener("threatened-litigation-logic-rendered",decorateRecommendations);
   document.addEventListener("debt-facilities-logic-rendered",decorateRecommendations);
-  document.addEventListener("share-ownership-logic-rendered", () => {
+  const refreshIssuePicks = () => {
     // Keep deliberate selections, but refresh their side, priority and snapshot.
     const issue = currentIssue();
-    if (issue?.id !== "share-ownership-and-transfer-restrictions") return;
+    if (!["share-ownership-and-transfer-restrictions", "key-employee-retention-and-employment-terms"].includes(issue?.id)) return;
     const latest = new Map(available().map(item => [actionKey(item.issueId,item.side,item.title,item.instruction,item.actionId), item]));
     for (const [key, item] of picks) {
       if (item.issueId !== issue.id) continue;
@@ -340,7 +346,9 @@
       else picks.delete(key);
     }
     decorateRecommendations();
-  });
+  };
+  document.addEventListener("share-ownership-logic-rendered", refreshIssuePicks);
+  document.addEventListener("employees-logic-rendered", refreshIssuePicks);
   renderProjectRail();
   renderHub();
   if(currentIssue())decorateRecommendations();

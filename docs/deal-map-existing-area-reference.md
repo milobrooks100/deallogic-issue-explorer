@@ -45,4 +45,4 @@ Keep a completed risk decision table in the issue's maintained specification whe
 
 ## Employment questionnaire draft
 
-[Key Employee Retention and Employment Terms](issues/key-employee-retention-and-employment-terms.md) adds the Employment area with six agreed questions, answers and tooltips, reusing Threatened Litigation presentation. This stage includes the questionnaire, prose summary and up to three stable key deal implications; employee risk scoring is implemented; actions and legal notes remain pending. See the specification for visibility and export behaviour.
+[Key Employee Retention and Employment Terms](issues/key-employee-retention-and-employment-terms.md) adds the Employment area with six agreed questions, answers and tooltips, reusing Threatened Litigation presentation. This stage includes the questionnaire, prose summary and up to three stable key deal implications; employee risk scoring and up to nine action cards are implemented, with 12 registered actions, conditional deal facts and Deal Hub saving. Employment legal notes remain a separate authoring step. See the specification for visibility and export behaviour.

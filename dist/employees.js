@@ -150,6 +150,10 @@
     ids.forEach(id => {
       if (responses[id] === "not-assessed") responses[id] = id === "employee-payments" ? "unclear" : "unknown";
     });
+    if (responses[ids[0]] === "no") Object.keys(contextFields).forEach(id => delete responses[id]);
+    if (responses["employee-specific-exposure"] !== "yes") delete responses["employee-recovery-concern"];
+    if (responses["employee-tupe-applies"] !== "yes") delete responses["employee-tupe-outstanding"];
+    Object.keys(contextFields).forEach(id => { if (!["yes", "no"].includes(responses[id])) delete responses[id]; });
     const visible = visibleIds(responses);
     ids.forEach(id => { if (!visible.includes(id) || !valid(id, responses[id])) delete responses[id]; });
   };
@@ -274,6 +278,76 @@
     return Math.min(4, Math.max(floor, score));
   };
 
+  const contextFields = {
+    "employee-signing-gap": {question: "Will signing precede completion?", guidance: "Confirm whether the parties will be bound before completion, leaving an interim period."},
+    "employee-specific-exposure": {question: "Is a specific payment liability or pre-completion breach established?", guidance: "Record a confirmed exposure, rather than uncertainty alone. Consider whether contractual allocation is needed."},
+    "employee-seller-guarantee": {question: "Is the buyer seeking broad seller retention obligations?", guidance: "Include guarantees of continued employment, broad departure indemnities or obligations beyond seller control."},
+    "employee-recovery-concern": {question: "Is recovery from the seller a concern?", guidance: "Consider the seller’s financial standing and ability to meet the proposed indemnity. This check applies only to an established exposure."},
+    "employee-tupe-applies": {question: "Does TUPE apply to the proposed transfer?", guidance: "Confirm the transaction structure and transfer analysis. A straightforward share sale normally leaves the employer unchanged; consider any associated business transfer separately."},
+    "employee-tupe-outstanding": {question: "Are TUPE obligations or liability arrangements outstanding?", guidance: "Check information, consultation, employee information delivery and allocation of responsibility for proposed measures."}
+  };
+  const contextIds = responses => Object.keys(contextFields).filter(id =>
+    id !== "employee-recovery-concern" || responses["employee-specific-exposure"] === "yes").filter(id =>
+    id !== "employee-tupe-outstanding" || responses["employee-tupe-applies"] === "yes");
+  const contextMarkup = responses => `<details class="employee-deal-facts"><summary>Additional deal facts</summary><p>Confirm these facts where relevant to the recommended protections.</p>${contextIds(responses).map(id => `<div class="question"><div class="question-top"><label for="${id}">${escape(contextFields[id].question)}</label><button class="info" type="button" aria-label="Guidance: ${escape(contextFields[id].question)}">i<span class="tooltip">${escape(contextFields[id].guidance)}</span></button></div><select id="${id}"><option value="">Unknown</option><option value="yes" ${responses[id] === "yes" ? "selected" : ""}>Yes</option><option value="no" ${responses[id] === "no" ? "selected" : ""}>No</option></select></div>`).join("")}</details>`;
+  const priorityRank = { Required: 3, Recommended: 2, Consider: 1 };
+  const actionOrder = ["ER03", "ER11", "ER01", "ER02", "ER07", "ER04", "ER09", "ER06", "ER05", "ER08", "ER10", "ER12"];
+  const chooseActions = (responses, side = "Balanced", consolidate = true) => {
+    if (!buildAnalysis(responses) || responses[ids[0]] === "no") return [];
+    const [,replacement,intentions,terms,payments,arrangements] = ids.map(id => responses[id]);
+    const unresolved = ["some-outstanding", "none-agreed", "unknown"].includes(arrangements);
+    const departing = ["some-leaving", "all-leaving"].includes(intentions);
+    const undecided = intentions === "some-undecided";
+    const choices = new Map();
+    const add = (id, buyer, seller, balanced, description) => {
+      const priority = {Buyer:buyer, Seller:seller, Balanced:balanced}[["Buyer","Seller","Balanced"].includes(side) ? side : "Balanced"];
+      if (!priority) return;
+      const previous = choices.get(id);
+      if (!previous || priorityRank[priority] > priorityRank[previous.priority]) choices.set(id,{id, priority, description, constituentIds:[id]});
+    };
+    if ((departing || undecided) && unresolved) add("ER01","Required","Recommended","Required");
+    else if (intentions === "all-staying" && replacement === "difficult" && unresolved) add("ER01","Recommended","Consider","Recommended");
+    if (arrangements === "not-needed" && (departing || undecided || terms === "no" || terms === "partly")) add("ER01","Recommended","Recommended","Recommended", "Reassess whether retention or handover arrangements are needed and document any necessary agreements.");
+    if (terms === "no") add("ER02","Required","Recommended","Required");
+    else if (terms === "partly") add("ER02","Recommended","Consider","Recommended");
+    else if (terms === "unknown") add("ER02","Recommended","Recommended","Recommended", "Review notice and handover terms before proposing any necessary changes, taking account of employee agreement and applicable TUPE restrictions.");
+    if (unresolved && replacement === "difficult" && departing) add("ER03","Required","Consider","Recommended");
+    else if (unresolved && replacement === "manageable" && intentions === "all-leaving") add("ER03","Recommended","Consider","Recommended");
+    if (responses["employee-signing-gap"] === "yes") add("ER04", replacement === "difficult" && departing ? "Required" : "Recommended", "Consider", "Recommended");
+    add("ER05","Recommended","Consider","Recommended");
+    if (intentions !== "all-staying" || terms !== "yes" || payments !== "no" || unresolved) add("ER06","Recommended","Required","Recommended");
+    if (payments === "yes") add("ER07","Required","Required","Required");
+    else if (payments === "unclear") add("ER07","Required","Recommended","Required", "Establish potential employee payments and agree their allocation, including employer taxes, in the price mechanism and funds flow.");
+    if (responses["employee-specific-exposure"] === "yes") add("ER08","Recommended","Consider","Recommended");
+    if (responses["employee-seller-guarantee"] === "yes") add("ER09",null,"Required","Recommended");
+    if (responses["employee-specific-exposure"] === "yes" && responses["employee-recovery-concern"] === "yes") add("ER10","Recommended","Consider","Consider");
+    if (responses["employee-tupe-applies"] === "yes" && responses["employee-tupe-outstanding"] === "yes") add("ER11","Required","Required","Required");
+    const score = assessRisk(responses);
+    if (score === 5) add("ER12","Recommended","Consider","Recommended");
+    else if (score === 4 && replacement === "difficult" && departing && unresolved) add("ER12","Consider","Consider","Consider");
+
+    const registry = window.DealLogicActionRegistry;
+    const items = [...choices.values()].map(choice => ({...registry.actionFor(issueId,"","",choice.id), ...choice, description:choice.description || registry.actionFor(issueId,"","",choice.id).description}));
+    const merge = (first, second, title) => {
+      if (items.length <= 9) return;
+      const a = items.find(item => item.id === first), b = items.find(item => item.id === second);
+      if (!a || !b) return;
+      a.title = title;
+      a.description += ` ${b.description}`;
+      a.constituentIds.push(...b.constituentIds);
+      if (priorityRank[b.priority] > priorityRank[a.priority]) a.priority = b.priority;
+      items.splice(items.indexOf(b),1);
+    };
+    if (consolidate) {
+      merge("ER08","ER10","Specific employment indemnity and security");
+      merge("ER04","ER09","Pre-completion covenant and seller limits");
+      merge("ER03","ER12","Key employee completion and exit protections");
+    }
+    return items.sort((a,b) => priorityRank[b.priority]-priorityRank[a.priority] || actionOrder.indexOf(a.id)-actionOrder.indexOf(b.id));
+  };
+  window.DealLogicEmploymentActions = (responses, side) => chooseActions(responses, side, false);
+  const actionsMarkup = actions => actions.length ? actions.map(action => `<div class="logic-action" data-action-id="${action.id}" data-constituent-ids="${action.constituentIds.join(",")}"><span class="logic-icon" aria-hidden="true"></span><div><span class="logic-priority" data-level="${action.priority.toLowerCase()}">${action.priority}</span><strong>${escape(action.title)}</strong><span>${escape(action.description)}</span></div></div>`).join("") : `<p>There are no active transaction actions on the information recorded.</p>`;
+
   // Employee-specific scoring; other issues retain their own rules.
   const previousRiskScore = riskScore;
   riskScore = function () { return isEmployees(current()) ? assessRisk(answers) : previousRiskScore(); };
@@ -317,7 +391,22 @@
       return;
     }
     card.classList.remove("logic-standby");
-    card.innerHTML = `<h3>Apply deal logic</h3><section class="logic-section"><h4>Summary</h4><p class="logic-conclusion">${escape(analysis.summary)}</p></section><section class="logic-section"><h4>Key deal implications</h4><ul>${analysis.implications.map(text => `<li>${escape(text)}</li>`).join("")}</ul></section>`;
+    const side = getTransactionSide();
+    const actions = chooseActions(answers, side);
+    card.innerHTML = `<h3>Apply deal logic</h3><section class="logic-section"><h4>Summary</h4><p class="logic-conclusion">${escape(analysis.summary)}</p></section><section class="logic-section"><h4>Key deal implications</h4><ul>${analysis.implications.map(text => `<li>${escape(text)}</li>`).join("")}</ul></section>${answers[ids[0]] === "no" ? "" : `<section class="logic-section">${contextMarkup(answers)}</section>`}<section class="logic-section"><div class="logic-section-heading"><h4>Recommended actions</h4><div class="logic-side-picker" aria-label="Transaction side selector"><button type="button" class="active" data-logic-side-toggle>${side}</button></div></div>${actionsMarkup(actions)}</section>`;
+    contextIds(answers).forEach(id => {
+      const input = document.getElementById(id);
+      if (!input) return;
+      input.onchange = event => {
+        answers[id] = event.target.value;
+        normalize(answers);
+        DealLogicStorage.setItem(storedKey(),JSON.stringify(answers));
+        renderLogic(current());
+        const panel = document.querySelector(".employee-deal-facts");
+        if (panel) panel.open = true;
+      };
+    });
+    document.dispatchEvent(new CustomEvent("employees-logic-rendered"));
   };
   const previousExportReport = exportReport;
   exportReport = function () {
@@ -328,7 +417,9 @@
     const lines = issue.key_questions.filter(question => visible.includes(question.id)).map(({id, question}) => `- ${question}\n  Response: ${labelFor(id)}`);
     const analysis = buildAnalysis(answers);
     const analysisLines = analysis ? ["", "SUMMARY", analysis.summary, "", "KEY DEAL IMPLICATIONS", ...analysis.implications.map(text => `- ${text}`)] : [];
-    const report = ["DEALLOGIC ISSUE REPORT", "", issue.title, `${areas[issue.category]} · ${issue.jurisdiction.primary}`, issue.summary, `Risk score: ${assessRisk(answers)}/5 — ${riskNames[assessRisk(answers) - 1]}`, "", "DILIGENCE ANSWERS", ...lines, ...analysisLines, "", "Recommended actions are not yet configured for this issue.", "", "NOTE", "Prototype content only. Obtain transaction-specific legal advice."].join("\n");
+    const actionLines = analysis ? ["", `RECOMMENDED ACTIONS — ${getTransactionSide()}`, ...chooseActions(answers,getTransactionSide()).map(action => `- ${action.priority}: ${action.title}\n  ${action.description}`)] : [];
+    const factLines = analysis && answers[ids[0]] !== "no" ? ["", "ADDITIONAL DEAL FACTS", ...contextIds(answers).map(id => `- ${contextFields[id].question}\n  Response: ${answers[id] === "yes" ? "Yes" : answers[id] === "no" ? "No" : "Unknown"}`)] : [];
+    const report = ["DEALLOGIC ISSUE REPORT", "", issue.title, `${areas[issue.category]} · ${issue.jurisdiction.primary}`, issue.summary, `Risk score: ${assessRisk(answers)}/5 — ${riskNames[assessRisk(answers) - 1]}`, "", "DILIGENCE ANSWERS", ...lines, ...factLines, ...analysisLines, ...actionLines, "", "NOTE", "Prototype content only. Obtain transaction-specific legal advice."].join("\n");
     const url = URL.createObjectURL(new Blob([report], { type: "text/plain" }));
     const link = document.createElement("a");
     link.href = url;
