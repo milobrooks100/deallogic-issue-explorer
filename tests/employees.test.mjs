@@ -19,7 +19,7 @@ function setup() {
     document: { dispatchEvent() {}, getElementById() {return null;}, querySelector: selector => selector === '#logic-card' ? card : null, createElement: () => ({click() {}}) }
   });
   vm.runInContext(registrySource, context);
-  vm.runInContext(source.replace(/\}\)\(\);\s*$/, 'globalThis.employeeTest = { fields, ids, visibleIds, normalize, buildAnalysis, summaryCopy, implicationCopy, assessRisk, chooseActions }; })();'), context);
+  vm.runInContext(source.replace(/\}\)\(\);\s*$/, 'globalThis.employeeTest = { fields, ids, visibleIds, normalize, buildAnalysis, summaryCopy, implicationCopy, assessRisk, chooseActions, legalNotes }; })();'), context);
   return { context, card, getReport: () => report, ...context.employeeTest };
 }
 test('progressive reveal stops at unanswered, invalid or confirmed absence', () => {
@@ -346,4 +346,25 @@ test('combined descriptions stay concise and use one sentence instead of joined 
     assert.ok(card.innerHTML.includes(action.description));
     assert.ok(getReport().includes(action.description));
   });
+});
+
+test('approved legal notes follow actions and appear in completed reports only', () => {
+  const {context,card,getReport,legalNotes} = setup();
+  context.answers = {'employee-dependence':'no'};
+  context.renderLogic(employee);
+  context.exportReport();
+  assert.equal(legalNotes.length,3);
+  assert.ok(card.innerHTML.indexOf('<h4>Notes</h4>') > card.innerHTML.indexOf('<h4>Recommended actions</h4>'));
+  for (const note of legalNotes) {
+    assert.ok(card.innerHTML.includes(`<strong>${note.title}:</strong>`));
+    assert.ok(card.innerHTML.includes(`href="${note.url}" target="_blank" rel="noopener noreferrer"`));
+    assert.ok(getReport().includes(note.text));
+    assert.ok(getReport().includes(note.url));
+  }
+  assert.match(legalNotes[1].text,/after employment ends.*duration and scope.*activities, customers.*geographical/);
+  context.answers = {};
+  context.renderLogic(employee);
+  context.exportReport();
+  assert.doesNotMatch(card.innerHTML,/<h4>Notes<\/h4>/);
+  assert.doesNotMatch(getReport(),/LEGAL NOTES/);
 });

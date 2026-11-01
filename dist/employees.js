@@ -334,6 +334,28 @@
   window.DealLogicEmploymentActions = (responses, side) => chooseActions(responses, side, false);
   const actionsMarkup = actions => actions.length ? actions.map(action => `<div class="logic-action" data-action-id="${action.id}" data-constituent-ids="${action.constituentIds.join(",")}"><span class="logic-icon" aria-hidden="true"></span><div><span class="logic-priority" data-level="${action.priority.toLowerCase()}">${action.priority}</span><strong>${escape(action.title)}</strong><span>${escape(action.description)}</span></div></div>`).join("") : `<p>There are no active transaction actions on the information recorded.</p>`;
 
+  const legalNotes = [
+  {
+    "title": "Notice and handover",
+    "text": "An employee’s statutory minimum resignation notice is generally only one week after one month’s service, so check whether the contract provides enough time to replace key staff. Review notice-waiver, payment-in-lieu and garden-leave arrangements before relying on a working handover.",
+    "source": "Employment Rights Act 1996, s.86",
+    "url": "https://www.legislation.gov.uk/ukpga/1996/18/section/86/data.html"
+  },
+  {
+    "title": "Restrictive covenants",
+    "text": "Restrictions on competing or approaching customers after employment ends must protect legitimate business interests and be reasonable in duration and scope, including the activities, customers and any geographical area covered. Tailor restrictions to the employee’s actual role rather than copying wider seller covenants; an employee’s signature alone does not establish enforceability.",
+    "source": "Tillman v Egon Zehnder [2019] UKSC 32, paragraphs 26–27",
+    "url": "https://supremecourt.uk/uploads/uksc_2017_0182_judgment_334bcf3f1b.pdf"
+  },
+  {
+    "title": "Good/bad leaver terms",
+    "text": "Leaver treatment depends on the articles, shareholder agreements and award documents, rather than a universal definition of “good” or “bad”. In Nosworthy, voluntary resignation triggered bad-leaver treatment under the particular documents, illustrating why definitions, notice dates and decision-making powers need careful review.",
+    "source": "Nosworthy v Instinctif Partners, paragraphs 44 and 61",
+    "url": "https://assets.publishing.service.gov.uk/media/5c77cc57e5274a0ec174cded/Miss_E_Nosworthy_v_Instinctif_Partners_Ltd_UKEAT_0100_18_RN.pdf"
+  }
+];
+  const notesMarkup = () => legalNotes.map(note => `<div class="logic-note"><strong>${escape(note.title)}:</strong> ${escape(note.text)} <a href="${escape(note.url)}" target="_blank" rel="noopener noreferrer">${escape(note.source)}</a></div>`).join("");
+
   // Employee-specific scoring; other issues retain their own rules.
   const previousRiskScore = riskScore;
   riskScore = function () { return isEmployees(current()) ? assessRisk(answers) : previousRiskScore(); };
@@ -379,7 +401,7 @@
     card.classList.remove("logic-standby");
     const side = getTransactionSide();
     const actions = chooseActions(answers, side);
-    card.innerHTML = `<h3>Apply deal logic</h3><section class="logic-section"><h4>Summary</h4><p class="logic-conclusion">${escape(analysis.summary)}</p></section><section class="logic-section"><h4>Key deal implications</h4><ul>${analysis.implications.map(text => `<li>${escape(text)}</li>`).join("")}</ul></section><section class="logic-section"><div class="logic-section-heading"><h4>Recommended actions</h4><div class="logic-side-picker" aria-label="Transaction side selector"><button type="button" class="active" data-logic-side-toggle>${side}</button></div></div>${actionsMarkup(actions)}</section>`;
+    card.innerHTML = `<h3>Apply deal logic</h3><section class="logic-section"><h4>Summary</h4><p class="logic-conclusion">${escape(analysis.summary)}</p></section><section class="logic-section"><h4>Key deal implications</h4><ul>${analysis.implications.map(text => `<li>${escape(text)}</li>`).join("")}</ul></section><section class="logic-section"><div class="logic-section-heading"><h4>Recommended actions</h4><div class="logic-side-picker" aria-label="Transaction side selector"><button type="button" class="active" data-logic-side-toggle>${side}</button></div></div>${actionsMarkup(actions)}</section><section class="logic-section"><h4>Notes</h4>${notesMarkup()}</section>`;
     document.dispatchEvent(new CustomEvent("employees-logic-rendered"));
   };
   const previousExportReport = exportReport;
@@ -392,7 +414,8 @@
     const analysis = buildAnalysis(answers);
     const analysisLines = analysis ? ["", "SUMMARY", analysis.summary, "", "KEY DEAL IMPLICATIONS", ...analysis.implications.map(text => `- ${text}`)] : [];
     const actionLines = analysis ? ["", `RECOMMENDED ACTIONS — ${getTransactionSide()}`, ...chooseActions(answers,getTransactionSide()).map(action => `- ${action.priority}: ${action.title}\n  ${action.description}`)] : [];
-    const report = ["DEALLOGIC ISSUE REPORT", "", issue.title, `${areas[issue.category]} · ${issue.jurisdiction.primary}`, issue.summary, `Risk score: ${assessRisk(answers)}/5 — ${riskNames[assessRisk(answers) - 1]}`, "", "DILIGENCE ANSWERS", ...lines, ...analysisLines, ...actionLines, "", "NOTE", "Prototype content only. Obtain transaction-specific legal advice."].join("\n");
+    const noteLines = analysis ? ["", "LEGAL NOTES", ...legalNotes.map(note => `${note.title}: ${note.text}\nSource: ${note.source} — ${note.url}`)] : [];
+    const report = ["DEALLOGIC ISSUE REPORT", "", issue.title, `${areas[issue.category]} · ${issue.jurisdiction.primary}`, issue.summary, `Risk score: ${assessRisk(answers)}/5 — ${riskNames[assessRisk(answers) - 1]}`, "", "DILIGENCE ANSWERS", ...lines, ...analysisLines, ...actionLines, ...noteLines, "", "NOTE", "Prototype content only. Obtain transaction-specific legal advice."].join("\n");
     const url = URL.createObjectURL(new Blob([report], { type: "text/plain" }));
     const link = document.createElement("a");
     link.href = url;
