@@ -46,3 +46,7 @@ Keep a completed risk decision table in the issue's maintained specification whe
 ## Employment questionnaire draft
 
 [Key Employee Retention and Employment Terms](issues/key-employee-retention-and-employment-terms.md) adds the Employment area with six agreed questions, answers and tooltips, reusing Threatened Litigation presentation. This stage includes the questionnaire, prose summary and up to three stable key deal implications; employee risk scoring and up to nine action cards are implemented, with 12 registered actions, conditional protection wording and Deal Hub saving. Three approved Employment legal notes cover notice, post-termination restrictions and leaver terms, with primary-source links. See the specification for visibility and export behaviour.
+
+## Data Protection questionnaire draft
+
+[Compliance Gaps and Personal Data Breaches](issues/compliance-gaps-and-personal-data-breaches.md) adds Data Protection using Threatened Litigation’s shared presentation. Six main questions and conditional Q3b include approved concise labels and tooltips. Q4 supports compatible multiple selections with exclusive None/Unknown. Questionnaire, persistence, reset and visible-answer exports are implemented; substantive risk, analysis, actions, Hub saving and legal notes remain a separate authoring stage.

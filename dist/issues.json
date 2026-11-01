@@ -379,5 +379,45 @@
         "question": "Are any necessary retention or handover arrangements agreed?"
       }
     ]
+  },
+  {
+    "id": "compliance-gaps-and-personal-data-breaches",
+    "title": "Compliance Gaps and Personal Data Breaches",
+    "category": "data-protection",
+    "summary": "The target may have compliance gaps or personal data breaches affecting how it collects, uses or protects personal data. Review the issues, potential exposure and remedial steps to identify any effect on the transaction and work needed before completion.",
+    "jurisdiction": {
+      "primary": "England and Wales",
+      "legal_system": "common-law"
+    },
+    "key_questions": [
+      {
+        "id": "dp-issue",
+        "question": "Has a data protection issue been identified?"
+      },
+      {
+        "id": "dp-type",
+        "question": "What does the issue concern?"
+      },
+      {
+        "id": "dp-ongoing",
+        "question": "Is the issue still ongoing?"
+      },
+      {
+        "id": "dp-notifications",
+        "question": "Have required breach notifications been made?"
+      },
+      {
+        "id": "dp-proceedings",
+        "question": "Are there related complaints, claims or regulatory enquiries?"
+      },
+      {
+        "id": "dp-impact",
+        "question": "What is the likely impact on the target or deal?"
+      },
+      {
+        "id": "dp-remediation",
+        "question": "Can all necessary remedial steps be completed before completion?"
+      }
+    ]
   }
 ]

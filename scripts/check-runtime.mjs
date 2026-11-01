@@ -18,6 +18,7 @@ const activeScripts = [
   "debt-facilities.js",
   "share-ownership.js",
   "employees.js",
+  "data-protection.js",
   "action-playbooks.js",
   "onboarding.js"
 ];
@@ -62,6 +63,7 @@ const storageConsumers = [
   path.join(distRoot, "debt-facilities.js"),
   path.join(distRoot, "share-ownership.js"),
   path.join(distRoot, "employees.js"),
+  path.join(distRoot, "data-protection.js"),
   path.join(distRoot, "action-playbooks.js"),
   path.join(distRoot, "onboarding.js")
 ];
