@@ -176,7 +176,7 @@
       if (hasEquivalentAction(item)) continue;
       state.actions.push({id:uid(),sourceKey:key,stableActionId:item.actionId||"",issueId:item.issueId,side:item.side,priority:item.priority,
         title:item.title,instruction:item.instruction,originalTitle:item.title,originalInstruction:item.instruction,
-        status:statuses[0],dealPhase:["share-ownership-and-transfer-restrictions", "key-employee-retention-and-employment-terms", "compliance-gaps-and-personal-data-breaches", "debt-facilities-repayment", "threatened-litigation"].includes(item.issueId) ? libraryPhase(window.DealLogicActionRegistry.actionFor(item.issueId,"","",item.actionId)?.phase) : phaseFor(item.title,item.instruction),
+        status:statuses[0],dealPhase:["share-ownership-and-transfer-restrictions", "key-employee-retention-and-employment-terms", "compliance-gaps-and-personal-data-breaches", "debt-facilities-repayment", "threatened-litigation", "option-holders"].includes(item.issueId) ? libraryPhase(window.DealLogicActionRegistry.actionFor(item.issueId,"","",item.actionId)?.phase) : phaseFor(item.title,item.instruction),
         urgency:"Medium",notes:"",createdAt:new Date().toISOString(),manual:false});
       added++;
     }
@@ -336,11 +336,10 @@
   const priorRender=renderLogic;
   renderLogic=function(issue){priorRender(issue);decorateRecommendations();};
   document.addEventListener("missing-ip-logic-rendered",decorateRecommendations);
-  document.addEventListener("option-holders-logic-rendered",decorateRecommendations);
   const refreshIssuePicks = () => {
     // Keep deliberate selections, but refresh their side, priority and snapshot.
     const issue = currentIssue();
-    if (!["share-ownership-and-transfer-restrictions", "key-employee-retention-and-employment-terms", "compliance-gaps-and-personal-data-breaches", "debt-facilities-repayment", "threatened-litigation"].includes(issue?.id)) return;
+    if (!["share-ownership-and-transfer-restrictions", "key-employee-retention-and-employment-terms", "compliance-gaps-and-personal-data-breaches", "debt-facilities-repayment", "threatened-litigation", "option-holders"].includes(issue?.id)) return;
     const latest = new Map(available().map(item => [actionKey(item.issueId,item.side,item.title,item.instruction,item.actionId), item]));
     for (const [key, item] of picks) {
       if (item.issueId !== issue.id) continue;
@@ -349,6 +348,10 @@
     }
     decorateRecommendations();
   };
+  document.addEventListener("option-holders-logic-rendered", () => {
+    refreshIssuePicks();
+    if (issueById(currentIssue()?.id)) renderHub();
+  });
   document.addEventListener("threatened-litigation-logic-rendered", () => {
     refreshIssuePicks();
     if (issueById(currentIssue()?.id)) renderHub();

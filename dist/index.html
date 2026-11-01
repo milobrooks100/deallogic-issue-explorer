@@ -834,13 +834,21 @@
         const issue = current();
         if (!isOptionHolders(issue)) return exportReportBeforeOptionHolders();
         const responseIds = ["option-rights-exist", "award-register-reconciliation", "award-transaction-treatment", "award-treatment-implementation", "award-dilution-percentage", "award-tax-payroll-position"];
-        const lines = optionHolderQuestions.map((question, index) => {
+        const lines = optionHolderQuestions.flatMap((question, index) => {
+          if (index > 0 && !["Yes", "Possibly — the records are incomplete or inconsistent"].includes(answers[responseIds[0]])) return [];
           const response = answers[responseIds[index]];
           const display = Array.isArray(response) ? (response.join(", ") || "Unanswered") : (response || "Unanswered");
           return `- ${question}\n  Response: ${display}`;
         });
+        const complete = optionHolderAnswersComplete(), side = getTransactionSide();
+        const actions = complete ? optionHolderActions(side) : new Map();
         const score = riskScore();
-        const report = ["DEALLOGIC ISSUE REPORT", "", issue.title, `${areas[issue.category]} · ${issue.jurisdiction.primary}`, `Risk score: ${score}/5 — ${riskNames[score - 1]}`, "", "DILIGENCE ANSWERS", ...lines, "", "NOTE", "Prototype content only. Obtain transaction-specific legal advice."].join("\n");
+        const report = ["DEALLOGIC ISSUE REPORT", "", issue.title, `${areas[issue.category]} · ${issue.jurisdiction.primary}`, `Risk score: ${score}/5 — ${riskNames[score - 1]}`, "", "DILIGENCE ANSWERS", ...lines,
+          ...(complete ? ["", "SUMMARY", optionHolderSummary(), "", "KEY DEAL IMPLICATIONS", ...optionHolderImplications().map(text => `- ${text}`),
+            "", `RECOMMENDED ACTIONS (${side})`, ...(actions.size ? [...actions].map(([id, priority]) => {
+              const action = window.DealLogicActionRegistry.forSide(window.DealLogicActionRegistry.actionFor(issue.id, "", "", id), side);
+              return `- ${action.title} (${priority})\n  ${action.description}`;
+            }) : ["There are no active transaction actions on the information recorded."])] : ["", "Answer all relevant questions to generate your deal analysis."]), "", "NOTE", "Prototype content only. Obtain transaction-specific legal advice."].join("\n");
         const blob = new Blob([report], { type: "text/plain" });
         const url = URL.createObjectURL(blob);
         const link = document.createElement("a");
@@ -850,23 +858,13 @@
         URL.revokeObjectURL(url);
       };
 
-      const optionHolderActionRegistry = {
-        OH01: ["Further diligence", "Reconcile the option and award registers, historic exercises/cancellations and fully diluted cap table."],
-        OH03: ["Completion mechanic", "Agree an award treatment schedule covering each holder, award, treatment and closing step."],
-        OH04: ["Rectification", "Obtain required board/shareholder approvals and draft the required documents."],
-        OH05: ["Third-party consent", "Obtain each required holder consent, election, release or power of attorney."],
-        OH06: ["Completion mechanic", "Produce the final closing cap table."],
-        OH07: ["Further diligence", "Obtain transaction-specific share-scheme tax and payroll advice."],
-        OH08: ["Condition precedent", "Make completion conditional on effective implementation of the agreed treatment and delivery of the final cap table and supporting documents."],
-        OH10: ["Specific indemnity", "Allocate identified residual award, dilution or tax exposure through an indemnity, potentially supported by escrow, retention or a price adjustment."],
-        OH11: ["Walk away or renegotiate", "Where material awards cannot be implemented by completion, consider delaying/restructuring the deal, renegotiating value or requiring an alternative route to the agreed capital structure."]
-      };
       const optionPriorityRank = { Consider: 1, Recommended: 2, Required: 3 };
       const addOptionHolderAction = (actions, id, priority) => {
         const currentPriority = actions.get(id);
         if (!currentPriority || optionPriorityRank[priority] > optionPriorityRank[currentPriority]) actions.set(id, priority);
       };
       const optionHolderActions = (side) => {
+        side = ["Buyer", "Seller", "Balanced"].includes(side) ? side : "Balanced";
         const actions = new Map();
         const sidePriority = (buyer, seller, balanced) => ({ Buyer: buyer, Seller: seller, Balanced: balanced }[side] || balanced);
         const existence = answers["option-rights-exist"] || "Unanswered";
@@ -906,24 +904,14 @@
         const identifiedExposure = reconciliation === "No — material discrepancies or undocumented awards exist" || implementation === "No — it cannot currently be implemented by completion" || tax === "Reviewed — treatment must change or a material cost arises";
         if (identifiedExposure) addOptionHolderAction(actions, "OH10", side === "Buyer" ? "Required" : side === "Seller" ? "Consider" : "Recommended");
         if (blocked && material) addOptionHolderAction(actions, "OH11", sidePriority("Recommended", "Required", "Recommended"));
-        // Keep every required action; fill remaining places with recommended,
-        // then consider actions. Some critical buyer profiles require eight.
-        const requiredCount = [...actions.values()].filter(priority => priority === "Required").length;
+        // All nine registered steps fit the shared limit without truncation.
         return new Map([...actions.entries()]
-          .sort((left, right) => optionPriorityRank[right[1]] - optionPriorityRank[left[1]])
-          .slice(0, Math.max(7, requiredCount)));
+          .sort((left, right) => optionPriorityRank[right[1]] - optionPriorityRank[left[1]]));
       };
       const optionHolderActionMarkup = (actions, side) => [...actions.entries()]
-        .sort((left, right) => optionPriorityRank[right[1]] - optionPriorityRank[left[1]])
         .map(([id, priority]) => {
-          const [title, description] = optionHolderActionRegistry[id];
-          const sellerDescriptions = {
-            OH08: "Limit any completion condition to material unresolved award steps, with objective satisfaction criteria and an agreed deadline.",
-            OH10: "Limit any indemnity for identified award or tax exposure by scope, cap and duration; resist overlapping escrow, retention or price deductions.",
-            OH11: "Where material awards block completion, propose a workable alternative treatment or timetable and agree its effect on value."
-          };
-          const instruction = side === "Seller" ? (sellerDescriptions[id] || description) : description;
-          return `<div class="logic-action" data-action-id="${id}"><span class="logic-icon" aria-hidden="true"></span><div><span class="logic-priority" data-level="${priority.toLowerCase()}">${priority}</span><strong>${title}</strong><span>${instruction}</span></div></div>`;
+          const action = window.DealLogicActionRegistry.forSide(window.DealLogicActionRegistry.actionFor("option-holders", "", "", id), side);
+          return `<div class="logic-action" data-action-id="${id}"><span class="logic-icon" aria-hidden="true"></span><div><span class="logic-priority" data-level="${priority.toLowerCase()}">${priority}</span><strong>${escapeLogicText(action.title)}</strong><span>${escapeLogicText(action.description)}</span></div></div>`;
         }).join("");
       const optionHolderSummary = () => {
         const existence = answers["option-rights-exist"] || "Unanswered";
@@ -973,7 +961,19 @@
         if (["Reviewed — treatment must change or a material cost arises", "Not reviewed — tax-advantaged awards are present", "Tax status is unknown"].includes(tax)) implications.push("Tax and payroll treatment must be resolved before the award mechanics are implemented.");
         return implications.slice(0, 4);
       };
-      const optionHolderNotes = `<div class="logic-note"><strong>Exit Mechanics:</strong> Whether options accelerate, lapse, cash out, or roll over is governed by scheme rules, grant terms, articles, and resolutions. The board must act within these explicit powers; unsupported changes risk contractual disputes and tax liabilities.</div><div class="logic-note"><strong>Tax and Payroll:</strong> Option exercise or cash cancellation may create Income Tax, PAYE and NIC liabilities; the outcome depends on the scheme, reliefs and transaction facts. Check scheme-specific tax treatment and ERS reporting separately before implementing the exit. <a href="https://www.gov.uk/hmrc-internal-manuals/employment-income-manual/eim11875" target="_blank" rel="noopener noreferrer">HMRC: PAYE on option gains and cancellation payments</a>; <a href="https://www.gov.uk/guidance/how-employment-related-securities-work-if-youre-an-employer" target="_blank" rel="noopener noreferrer">HMRC: ERS reporting</a></div>`;
+      const optionHolderNotes = `<div class="logic-note"><strong>Exit Mechanics:</strong> Whether options accelerate, lapse, cash out, or roll over is governed by scheme rules, grant terms, articles, and resolutions. The board must act within these explicit powers; unsupported changes risk contractual disputes and tax liabilities.</div><div class="logic-note"><strong>Tax and Payroll:</strong> Option exercise or cash cancellation may create Income Tax, PAYE and NIC liabilities; the outcome depends on the scheme, reliefs and transaction facts. Check scheme-specific tax treatment and ERS reporting separately before implementing the exit. <a href="https://www.gov.uk/hmrc-internal-manuals/employment-income-manual/eim12300" target="_blank" rel="noopener noreferrer">HMRC: PAYE on securities option gains</a>; <a href="https://www.gov.uk/guidance/how-employment-related-securities-work-if-youre-an-employer" target="_blank" rel="noopener noreferrer">HMRC: ERS reporting</a></div>`;
+
+      const optionHolderAnswersComplete = () => {
+        const existence = answers["option-rights-exist"] || "Unanswered";
+        return existence === "No — confirmed against the relevant records" || (
+          ["Yes", "Possibly — the records are incomplete or inconsistent"].includes(existence) &&
+          answers["award-register-reconciliation"] && answers["award-register-reconciliation"] !== "Unanswered" &&
+          (answers["award-transaction-treatment"] || []).length > 0 &&
+          answers["award-treatment-implementation"] && answers["award-treatment-implementation"] !== "Unanswered" &&
+          answers["award-dilution-percentage"] && answers["award-dilution-percentage"] !== "Unanswered" &&
+          answers["award-tax-payroll-position"] && answers["award-tax-payroll-position"] !== "Unanswered"
+        );
+      };
 
       const renderLogicBeforeOptionHolders = renderLogic;
       renderLogic = function (issue) {
@@ -983,17 +983,11 @@
         protectionsCard?.remove();
         logicCard.classList.add("coc-deal-logic");
         const existence = answers["option-rights-exist"] || "Unanswered";
-        const questionnaireComplete = existence === "No — confirmed against the relevant records" || (
-          ["Yes", "Possibly — the records are incomplete or inconsistent"].includes(existence) &&
-          answers["award-register-reconciliation"] && answers["award-register-reconciliation"] !== "Unanswered" &&
-          (answers["award-transaction-treatment"] || []).length > 0 &&
-          answers["award-treatment-implementation"] && answers["award-treatment-implementation"] !== "Unanswered" &&
-          answers["award-dilution-percentage"] && answers["award-dilution-percentage"] !== "Unanswered" &&
-          answers["award-tax-payroll-position"] && answers["award-tax-payroll-position"] !== "Unanswered"
-        );
+        const questionnaireComplete = optionHolderAnswersComplete();
         if (!questionnaireComplete) {
           logicCard.classList.add("logic-standby");
           logicCard.innerHTML = `<h3>Apply deal logic</h3><p>Answer all relevant questions to generate your deal analysis.</p>`;
+          document.dispatchEvent(new CustomEvent("option-holders-logic-rendered"));
           return;
         }
         logicCard.classList.remove("logic-standby");
