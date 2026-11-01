@@ -201,7 +201,7 @@ test('conditional protections do not assume unrecorded facts', () => {
   const responses = Object.fromEntries(ids.map((id,i) => [id,['yes','difficult','all-leaving','no','yes','none-agreed'][i]]));
   for (const side of ['Buyer','Seller','Balanced']) {
     const raw = chooseActions(responses,side,false);
-    for (const id of ['ER04','ER08','ER10','ER11',...(side === 'Buyer' ? [] : ['ER09'])]) {
+    for (const id of ['ER04','ER08','ER11',...(side === 'Buyer' ? [] : ['ER09'])]) {
       const action = raw.find(item => item.id === id);
       assert.equal(action.priority,'Consider');
       assert.match(action.description,/^If /);
@@ -209,7 +209,7 @@ test('conditional protections do not assume unrecorded facts', () => {
     assert.equal(raw.some(item => item.id === 'ER09'),side !== 'Buyer');
   }
   assert.equal(chooseActions(responses,'Buyer',false).find(item => item.id === 'ER03').priority,'Required');
-  assert.equal(chooseActions(responses,'Seller',false).find(item => item.id === 'ER06').priority,'Required');
+  assert.equal(chooseActions(responses,'Seller',false).find(item => item.id === 'ER05').priority,'Required');
   const retired = ['employee-signing-gap','employee-specific-exposure','employee-seller-guarantee','employee-recovery-concern','employee-tupe-applies','employee-tupe-outstanding'];
   const old = {...responses,...Object.fromEntries(retired.map(id => [id,'yes']))};
   assert.equal(JSON.stringify(chooseActions(old,'Balanced')),JSON.stringify(chooseActions(responses,'Balanced')));
@@ -268,12 +268,12 @@ test('registry icons, rendered actions and report priorities use the same canoni
 test('saving consolidated cards keeps component identities and preserves edited existing actions', async () => {
   const hubSource = await readFile(new URL('../dist/deal-hub.js', import.meta.url),'utf8');
   const commitSource = hubSource.slice(hubSource.indexOf('  function commitPicks()'),hubSource.indexOf('  const libraryPhase'));
-  const original = {id:'saved',issueId:employee.id,stableActionId:'ER08',title:'User edited indemnity',instruction:'User edited terms'};
+  const original = {id:'saved',issueId:employee.id,stableActionId:'ER13',title:'User edited indemnity',instruction:'User edited terms'};
   const state = {actions:[original]};
   const {context:registryContext} = setup();
   const registry = registryContext.window.DealLogicActionRegistry;
-  const components = ['ER08','ER10'].map(id=>({...registry.actionFor(employee.id,'','',id),priority:'Recommended'}));
-  const picks = new Map([['merged',{issueId:employee.id,side:'Buyer',actionId:'ER08',title:'Combined',instruction:'Combined',priority:'Recommended',components}]]);
+  const components = ['ER13','ER02'].map(id=>({...registry.actionFor(employee.id,'','',id),priority:'Recommended'}));
+  const picks = new Map([['merged',{issueId:employee.id,side:'Buyer',actionId:'ER13',title:'Combined',instruction:'Combined',priority:'Recommended',components}]]);
   const context = vm.createContext({
     picks,state, picking:true, window:registryContext.window, statuses:['To Review'],
     actionKey:(...values)=>values.join('|'), issueById:()=>({id:employee.id}),
@@ -286,6 +286,40 @@ test('saving consolidated cards keeps component identities and preserves edited 
   assert.equal(state.actions.length,2);
   assert.equal(state.actions[0],original);
   assert.equal(state.actions[0].title,'User edited indemnity');
-  assert.equal(state.actions[1].stableActionId,'ER10');
+  assert.equal(state.actions[1].stableActionId,'ER02');
   assert.equal(picks.size,0);
+});
+
+test('revised matrix separates diligence, pay, leaver review and amendments', () => {
+  const {ids,chooseActions} = setup();
+  const answers = values => Object.fromEntries(ids.map((id,i)=>[id,values[i]]));
+  const map = (values,side='Balanced') => new Map(chooseActions(answers(values),side,false).map(action=>[action.id,action]));
+  const unknown = map(['unknown','unknown','unknown','unknown','unclear','unknown']);
+  assert.equal(unknown.get('ER13').priority,'Required');
+  assert.equal(unknown.has('ER02'),false);
+  assert.equal(unknown.has('ER15'),false);
+  const severe = ['yes','difficult','all-leaving','no','yes','none-agreed'];
+  const buyer = map(severe,'Buyer'), seller = map(severe,'Seller');
+  assert.equal(buyer.get('ER13').priority,'Required');
+  assert.equal(buyer.get('ER01').priority,'Required');
+  assert.equal(buyer.get('ER03').priority,'Required');
+  assert.equal(buyer.get('ER14').priority,'Consider');
+  assert.equal(buyer.get('ER15').priority,'Consider');
+  assert.equal(seller.get('ER05').priority,'Required');
+  assert.equal(buyer.has('ER09'),false);
+  const clear = map(['yes','easy','all-staying','yes','no','all-agreed']);
+  ['ER01','ER02','ER03','ER14','ER15','ER08'].forEach(id=>assert.equal(clear.has(id),false));
+  assert.equal(clear.get('ER05').priority,'Recommended');
+});
+
+test('new registry replaces superseded actions and resolves saved legacy identities', () => {
+  const {context} = setup();
+  const registry = context.window.DealLogicActionRegistry;
+  const expected = ['ER13','ER14','ER01','ER15','ER02','ER03','ER04','ER05','ER07','ER08','ER09','ER11'];
+  assert.deepEqual(Array.from(registry.byTopic.get(employee.id).actions,action=>action.id),expected);
+  const icons = ['search','wrench','handshake','search','wrench','circle-check','file-pen-line','shield-check','calendar-check','banknote','file-pen-line','file-pen-line'];
+  assert.deepEqual(Array.from(registry.byTopic.get(employee.id).actions,action=>action.icon),icons);
+  assert.equal(registry.resolveActionId(employee.id,'','','ER06'),'ER05');
+  assert.equal(registry.resolveActionId(employee.id,'','','ER10'),'ER08');
+  assert.equal(registry.resolveActionId(employee.id,'','','ER12'),'ER03');
 });

@@ -78,38 +78,39 @@ Risk checks cover all 18,000 combinations of current choices and unanswered stat
 
 Question 1 Unknown starts at 2/5 Low risk, as requested. Later answered questions can independently impose higher floors; unknown dependence alone does not impose a minimum of 3.
 
-## Approved action matrix and conditional protections
+## Current 12-action matrix
 
-`chooseActions` implements perspective rules using only the six main answers. ER01–ER12 remain canonical registry entries, with shared icons and phases. No additional-facts questionnaire is shown. Existing supplementary answers are removed on normalization and never influence scoring, summaries, actions or reports. Buyer / Seller / Balanced priorities follow below; highest applicable priority wins.
+The revised set replaces the earlier Employment catalog in place. `chooseActions` uses only the six main answers; no supplementary questionnaire is rendered. Conditional actions explain their applicability in one sentence and remain Consider rather than assuming unrecorded facts. Priorities below are Buyer / Seller / Balanced. No dependence gives no actions; incomplete questionnaires stay in standby.
 
-| ID | Trigger | Priority: Buyer / Seller / Balanced |
+| ID / action | Trigger | Priorities |
 | --- | --- | --- |
-| ER01 Retention agreements | Undecided/departing staff + unresolved arrangements | Required / Recommended / Required |
+| ER13 Review employment contracts | Dependence, intentions or terms Unknown | Required / Recommended / Required |
+| ER13 | Terms Partly/No | Required / Recommended / Recommended |
+| ER13 | Other completed assessments | Recommended / Consider / Recommended |
+| ER14 Review pay and incentives | Undecided/departing employees + unresolved arrangements | Consider for all; conditional on remuneration contributing to departure risk |
+| ER01 Binding retention arrangements | Undecided/departing + unresolved arrangements | Required / Recommended / Required |
 | ER01 | All staying + difficult replacement + unresolved arrangements | Recommended / Consider / Recommended |
-| ER01 | Not needed despite departure/undecided staff or Partly/No handover time | Recommended for all; reassess need |
-| ER02 Employment terms | No time for replacement/handover | Required / Recommended / Required |
-| ER02 | Partly adequate time | Recommended / Consider / Recommended |
-| ER02 | Unknown terms | Recommended for all; review before changing terms |
-| ER03 Completion condition | Difficult replacement + departures + unresolved arrangements | Required / Consider / Recommended |
+| ER01 | Not needed despite undecided/departing staff or inadequate handover time | Recommended for all; reassess need |
+| ER15 Review good/bad leaver terms | Undecided/departing employees | Consider for all; only if shares, options or continuing equity incentives exist, linked to Option Holders |
+| ER02 Strengthen employment terms | Terms No | Required / Recommended / Required |
+| ER02 | Terms Partly | Recommended / Consider / Recommended |
+| ER03 Key employee completion protections | Difficult replacement + departures + unresolved arrangements | Required / Consider / Recommended |
 | ER03 | Manageable replacement + all leaving + unresolved arrangements | Recommended / Consider / Recommended |
-| ER04 Interim covenant | Completed assessment other than No dependence | Consider for all; if signing precedes completion, preserve the employment position |
-| ER05 Warranties | Completed assessment other than No dependence | Recommended / Consider / Recommended |
-| ER06 Disclosure | Intentions not All staying, terms not Yes, payments not No, or unresolved arrangements | Recommended / Required / Recommended |
-| ER07 Payment allocation | Payments Yes | Required for all |
+| ER04 Pre-completion employment covenant | Any completed dependent assessment | Consider for all; if signing precedes completion |
+| ER05 Employment warranties and disclosure | Any completed dependent assessment | Recommended for all |
+| ER05 | Intentions not All staying, terms not Yes, payments not No, or unresolved arrangements | Recommended / Required / Recommended |
+| ER07 Allocate employee payments | Payments Yes | Required for all |
 | ER07 | Payments Unclear | Required / Recommended / Required; establish and allocate exposure |
-| ER08 Indemnity | Payments Yes/Unclear, terms Partly/No/Unknown, or departures | Consider for all; if a specific liability or breach is identified, allocate the loss |
-| ER09 Seller limits | Departing/undecided staff, difficult replacement or unresolved arrangements | Absent / Consider / Consider; if broad buyer guarantees are sought, limit seller obligations |
-| ER10 Security | ER08 relevant and risk at least 4 or payments Yes | Consider for all; if an indemnity is agreed and recovery is a concern, secure payment |
-| ER11 TUPE | Completed assessment other than No dependence | Consider for all; if TUPE applies to a business transfer and obligations remain outstanding, allocate compliance and related losses |
-| ER12 Renegotiate/exit | Risk 5 | Recommended / Consider / Recommended |
-| ER12 | Risk 4 + difficult replacement + departures + unresolved arrangements | Consider for all |
+| ER08 Specific indemnity and security | Payments Yes/Unclear, terms Partly/No, or departures | Consider for all; protection requires identified liability, with security if recovery is a concern |
+| ER09 Limit seller retention obligations | Undecided/departing employees, difficult replacement or unresolved arrangements | Absent / Consider / Consider; if broad buyer guarantees are sought |
+| ER11 TUPE protections | Any completed dependent assessment | Consider for all; if TUPE applies to a business transfer |
 
-Conditional actions begin with If and explain the purpose of the protection. They never imply that TUPE, signing gaps, specific breaches, buyer demands or recovery concerns are established by the questionnaire. Their Consider priority reflects that applicability needs assessment. The same wording appears in the Action Library and reports.
+Unresolved means Some outstanding, None agreed or Unknown. All agreed suppresses renewed requests for the same agreements and unresolved-arrangement completion conditions. Unknown terms trigger diligence, not assumed amendments. Indemnity wording does not treat departure itself as a seller liability. Pay review assesses the package; retention arrangements document commitments. Leaver review does not assume equity exists or that resignation automatically means bad-leaver status, and points to Option Holders rather than duplicating award implementation.
 
-All agreed suppresses requests to obtain the same agreements and unresolved-arrangement completion/exit triggers. The six-question completion gate and risk rules are unchanged. No dependence ends this focused issue and shows no active actions.
+Canonical registry order/icons follow the reviewed list: contracts/search; pay/wrench; retention/handshake; leaver/search; terms/wrench; completion/circle-check; covenant/file-pen-line; warranties/shield-check; payments/calendar-check; indemnity/banknote; seller limits/file-pen-line; TUPE/file-pen-line.
 
-Sort Required, Recommended, Consider; within a priority: completion condition, TUPE, retention, terms, payments, interim covenant, seller limits, disclosure, warranties, indemnity, security, exit. If over nine, consolidate ER08+ER10, ER04+ER09, then ER03+ER12, preserving instructions and the highest priority. No slice truncation hides a triggered protection. A consolidated card uses its lead registered icon; Hub saving expands constituent actions to stable IDs and preserves existing edited actions and duplicate prevention.
+Sort Required, Recommended, Consider, then completion, payments, contracts, retention, terms, warranties, covenant, seller limits, indemnity, leaver, pay, TUPE. When over nine cards, merge ER13+ER02 (Review contracts and agree necessary amendments), then ER01+ER14 (Review incentives and document retention arrangements), then ER04+ER09 (Interim employment covenant and seller limits). Retain both instructions and the higher priority. The primary action supplies the approved icon. No truncation discards protections.
 
-Hub selection keeps select-all, deselection, count, cancel, disabled empty confirmation and save feedback. On rerender, retained picks get current side, instruction and snapshot; irrelevant picks are removed. Existing saved Hub actions are preserved, with the normal stale snapshot indication after answer cleanup. All 12 actions remain individually available in the Action Library.
+Existing semantic IDs remain stable. New diligence/pay/leaver actions use ER13–ER15; retired disclosure ER06, standalone security ER10 and exit ER12 resolve to merged successors ER05, ER08 and ER03 only for this issue. Legacy saved titles receive the same narrow mapping. Saved user content is not rewritten. Duplicate checks resolve both new and legacy identities; existing saved items retain their user edits. Consolidated cards save component actions separately with registered IDs and phases. Shared Hub selection, stale snapshots, role changes and registry icons continue to apply.
 
-Checks cover 54,000 answer/perspective combinations, the nine-card cap, exact protection coverage and priority preservation after consolidation, conditional wording and Consider priorities, absence of supplementary UI/report content, removal of retired saved answers, registry icons, export parity and constituent-saving duplicate prevention. The repository retains one pre-existing unrelated core action colour test failure.
+Tests cover all 54,000 answer/perspective combinations, nine-card enforcement, full protection coverage and priority retention after consolidation, every approved icon, current catalog order, representative matrix branches, retired-identity resolution, existing edited-action preservation and export/render parity. Risk scoring and prose logic are unchanged. The repository retains one unrelated pre-existing core action colour test failure.

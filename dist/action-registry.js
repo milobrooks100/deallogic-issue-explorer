@@ -118,88 +118,88 @@
   "shortLabel": "Employment",
   "actions": [
     [
+      "ER13",
+      "Review employment contracts",
+      "Review key employees’ contracts, amendments and incentive arrangements to identify notice periods, departure rights, payments and gaps in protection.",
+      "search",
+      "Due diligence"
+    ],
+    [
+      "ER14",
+      "Review pay and incentives",
+      "If remuneration is contributing to departure risk, consider salary increases, bonuses or improved benefits, taking account of recurring costs and who funds them.",
+      "wrench",
+      "Due diligence"
+    ],
+    [
       "ER01",
       "Binding retention arrangements",
-      "Tie retention payments to service periods or handover milestones, with clear departure and repayment terms.",
+      "Tie retention payments to an agreed period of service or handover, with clear rules for employees who leave early.",
       "handshake",
       "Signing"
     ],
     [
+      "ER15",
+      "Review good/bad leaver terms",
+      "If key employees hold shares, options or continuing equity incentives, review how departure affects vesting, exercise rights and compulsory transfers alongside the Option Holders analysis.",
+      "search",
+      "Due diligence"
+    ],
+    [
       "ER02",
       "Strengthen employment terms",
-      "Agree suitable notice, handover and confidentiality obligations, alongside proportionate restrictive covenants. Obtain employee agreement and check applicable TUPE restrictions.",
+      "Agree suitable notice, handover, confidentiality and reasonable competition restrictions, with employee consent and regard to TUPE.",
       "wrench",
       "Signing"
     ],
     [
       "ER03",
-      "Key employee completion condition",
-      "Require named employees to sign agreed arrangements and, where essential, not to have given notice at completion. Define waiver rights and a longstop date.",
+      "Key employee completion protections",
+      "Where retention is essential, make completion conditional on agreed employee arrangements, with a deadline and clear rights to waive the condition or terminate.",
       "circle-check",
       "Closing condition"
     ],
     [
       "ER04",
       "Pre-completion employment covenant",
-      "If signing precedes completion, restrict material employment changes without buyer consent to preserve the agreed position, subject to appropriate exceptions.",
+      "If signing precedes completion, require buyer consent for material changes to key employees’ terms, bonuses or departure arrangements, subject to appropriate exceptions.",
       "file-pen-line",
       "SPA drafting"
     ],
     [
       "ER05",
-      "Employment warranties",
-      "Cover employment terms, transaction payments and notices received; qualify warranties about departure intentions by seller knowledge.",
+      "Employment warranties and disclosure",
+      "Obtain assurances about employment terms, payments and resignation notices, supported by clear disclosure of known issues and knowledge-qualified statements about departure intentions.",
       "shield-check",
-      "SPA drafting"
-    ],
-    [
-      "ER06",
-      "Specific employment disclosure",
-      "Disclose departure plans, contractual gaps, payments and outstanding retention arrangements against the relevant warranties.",
-      "file-search",
       "SPA drafting"
     ],
     [
       "ER07",
       "Allocate employee payments",
-      "Allocate bonuses, severance, retention costs and employer taxes through the price mechanism and funds flow, avoiding double counting.",
+      "Agree who bears bonuses, severance, retention payments and employer taxes, reflecting these in the price and completion payments without double counting.",
       "calendar-check",
       "Closing condition"
     ],
     [
       "ER08",
-      "Specific employment indemnity",
-      "If a specific payment liability or pre-completion breach is identified, agree a defined indemnity to allocate the resulting loss.",
+      "Specific indemnity and security",
+      "If an identified employee liability requires protection, agree which losses the seller will reimburse and consider escrow or a price holdback where recovery is a concern.",
       "banknote",
       "SPA drafting"
     ],
     [
       "ER09",
       "Limit seller retention obligations",
-      "If the buyer seeks broad retention guarantees, limit the seller’s obligations to defined efforts and exclude departures caused by buyer decisions after completion.",
+      "If the buyer seeks retention guarantees, require defined seller efforts instead and exclude departures caused by buyer decisions after completion.",
       "file-pen-line",
-      "SPA drafting"
-    ],
-    [
-      "ER10",
-      "Escrow or price retention",
-      "If an indemnity is agreed and seller recovery is a concern, use proportionate escrow or price retention to secure payment, with clear release terms.",
-      "lock-keyhole",
       "SPA drafting"
     ],
     [
       "ER11",
       "TUPE protections",
-      "If TUPE applies to a business transfer and obligations remain outstanding, allocate compliance duties and related losses to address transfer risk.",
+      "If TUPE applies to a business transfer, allocate employee information, consultation and transfer obligations, together with responsibility for losses caused by each party’s failures.",
       "file-pen-line",
       "SPA drafting"
-    ],
-    [
-      "ER12",
-      "Renegotiate or exit",
-      "Revisit price, timing or completion obligations where essential departures remain unresolved, using objective contractual triggers.",
-      "arrow-left-right",
-      "Signing"
     ]
   ]
 });
@@ -238,6 +238,14 @@
     ]
   };
   const resolveActionId = (topicId, title = "", description = "", explicitId = "") => {
+    if (topicId === "key-employee-retention-and-employment-terms") {
+      // Resolve retired protections to their merged successor without rewriting saved user content.
+      explicitId = ({ER06:"ER05", ER10:"ER08", ER12:"ER03"})[explicitId] || explicitId;
+      if (!explicitId) {
+        const legacyTitles = {"Employment warranties":"ER05", "Specific employment disclosure":"ER05", "Specific employment indemnity":"ER08", "Escrow or price retention":"ER08", "Key employee completion condition":"ER03", "Renegotiate or exit":"ER03"};
+        explicitId = legacyTitles[title] || "";
+      }
+    }
     const topic = byTopic.get(topicId);
     if (!topic) return explicitId || "";
     if (explicitId && topic.actions.some(action => action.id === explicitId)) return explicitId;

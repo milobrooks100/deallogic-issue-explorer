@@ -277,10 +277,10 @@
   };
 
   const priorityRank = { Required: 3, Recommended: 2, Consider: 1 };
-  const actionOrder = ["ER03", "ER11", "ER01", "ER02", "ER07", "ER04", "ER09", "ER06", "ER05", "ER08", "ER10", "ER12"];
+  const actionOrder = ["ER03", "ER07", "ER13", "ER01", "ER02", "ER05", "ER04", "ER09", "ER08", "ER15", "ER14", "ER11"];
   const chooseActions = (responses, side = "Balanced", consolidate = true) => {
     if (!buildAnalysis(responses) || responses[ids[0]] === "no") return [];
-    const [,replacement,intentions,terms,payments,arrangements] = ids.map(id => responses[id]);
+    const [dependence,replacement,intentions,terms,payments,arrangements] = ids.map(id => responses[id]);
     const unresolved = ["some-outstanding", "none-agreed", "unknown"].includes(arrangements);
     const departing = ["some-leaving", "all-leaving"].includes(intentions);
     const undecided = intentions === "some-undecided";
@@ -291,28 +291,26 @@
       const previous = choices.get(id);
       if (!previous || priorityRank[priority] > priorityRank[previous.priority]) choices.set(id,{id, priority, description, constituentIds:[id]});
     };
+    if (dependence === "unknown" || intentions === "unknown" || terms === "unknown") add("ER13","Required","Recommended","Required");
+    else if (["no","partly"].includes(terms)) add("ER13","Required","Recommended","Recommended");
+    else add("ER13","Recommended","Consider","Recommended");
+    if ((departing || undecided) && unresolved) add("ER14","Consider","Consider","Consider");
     if ((departing || undecided) && unresolved) add("ER01","Required","Recommended","Required");
     else if (intentions === "all-staying" && replacement === "difficult" && unresolved) add("ER01","Recommended","Consider","Recommended");
-    if (arrangements === "not-needed" && (departing || undecided || terms === "no" || terms === "partly")) add("ER01","Recommended","Recommended","Recommended", "Reassess whether retention or handover arrangements are needed and document any necessary agreements.");
+    if (arrangements === "not-needed" && (departing || undecided || ["no","partly"].includes(terms))) add("ER01","Recommended","Recommended","Recommended", "Reassess whether retention or handover arrangements are needed and document any necessary agreements.");
+    if (departing || undecided) add("ER15","Consider","Consider","Consider");
     if (terms === "no") add("ER02","Required","Recommended","Required");
     else if (terms === "partly") add("ER02","Recommended","Consider","Recommended");
-    else if (terms === "unknown") add("ER02","Recommended","Recommended","Recommended", "Review notice and handover terms before proposing any necessary changes, taking account of employee agreement and applicable TUPE restrictions.");
     if (unresolved && replacement === "difficult" && departing) add("ER03","Required","Consider","Recommended");
     else if (unresolved && replacement === "manageable" && intentions === "all-leaving") add("ER03","Recommended","Consider","Recommended");
     add("ER04","Consider","Consider","Consider");
-    add("ER05","Recommended","Consider","Recommended");
-    if (intentions !== "all-staying" || terms !== "yes" || payments !== "no" || unresolved) add("ER06","Recommended","Required","Recommended");
+    const adverse = intentions !== "all-staying" || terms !== "yes" || payments !== "no" || unresolved;
+    add("ER05","Recommended",adverse ? "Required" : "Recommended","Recommended");
     if (payments === "yes") add("ER07","Required","Required","Required");
-    else if (payments === "unclear") add("ER07","Required","Recommended","Required", "Establish potential employee payments and agree their allocation, including employer taxes, in the price mechanism and funds flow.");
-    const possibleExposure = payments !== "no" || terms !== "yes" || departing;
-    const retentionConcern = departing || undecided || replacement === "difficult" || unresolved;
-    if (possibleExposure) add("ER08","Consider","Consider","Consider");
-    if (retentionConcern) add("ER09",null,"Consider","Consider");
-    if (possibleExposure && (assessRisk(responses) >= 4 || payments === "yes")) add("ER10","Consider","Consider","Consider");
+    else if (payments === "unclear") add("ER07","Required","Recommended","Required", "Establish potential employee payments and agree their allocation, including employer taxes, in the price mechanism and completion payments.");
+    if (payments !== "no" || ["no","partly"].includes(terms) || departing) add("ER08","Consider","Consider","Consider");
+    if (departing || undecided || replacement === "difficult" || unresolved) add("ER09",null,"Consider","Consider");
     add("ER11","Consider","Consider","Consider");
-    const score = assessRisk(responses);
-    if (score === 5) add("ER12","Recommended","Consider","Recommended");
-    else if (score === 4 && replacement === "difficult" && departing && unresolved) add("ER12","Consider","Consider","Consider");
 
     const registry = window.DealLogicActionRegistry;
     const items = [...choices.values()].map(choice => ({...registry.actionFor(issueId,"","",choice.id), ...choice, description:choice.description || registry.actionFor(issueId,"","",choice.id).description}));
@@ -327,9 +325,9 @@
       items.splice(items.indexOf(b),1);
     };
     if (consolidate) {
-      merge("ER08","ER10","Specific employment indemnity and security");
-      merge("ER04","ER09","Pre-completion covenant and seller limits");
-      merge("ER03","ER12","Key employee completion and exit protections");
+      merge("ER13","ER02","Review contracts and agree necessary amendments");
+      merge("ER01","ER14","Review incentives and document retention arrangements");
+      merge("ER04","ER09","Interim employment covenant and seller limits");
     }
     return items.sort((a,b) => priorityRank[b.priority]-priorityRank[a.priority] || actionOrder.indexOf(a.id)-actionOrder.indexOf(b.id));
   };

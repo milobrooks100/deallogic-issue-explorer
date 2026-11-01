@@ -44,7 +44,7 @@
   const stableActionIdFor = (issueId, title, instruction, explicitId="") => window.DealLogicActionRegistry?.resolveActionId(issueId,title,instruction,explicitId) || explicitId;
   const hasEquivalentAction = item => state.actions.some(action => {
     if (action.issueId !== item.issueId) return false;
-    const existingId = action.stableActionId || stableActionIdFor(action.issueId,action.originalTitle||action.title,action.originalInstruction||action.instruction);
+    const existingId = stableActionIdFor(action.issueId,action.originalTitle||action.title,action.originalInstruction||action.instruction,action.stableActionId||"");
     if (item.actionId && existingId) return item.actionId === existingId;
     return action.sourceKey === actionKey(item.issueId,item.side,item.title,item.instruction,item.actionId);
   });
