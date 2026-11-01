@@ -23,3 +23,5 @@ Reviewed all six Deal Map issues on 31 October 2026. Source links follow the Sha
 Official judgment pages, HMRC guidance, Companies House guidance, SRA guidance and provision-specific legislation were checked against their titles and relevant content. Some legislation pages require an HTML data view for automated access; the section 11 standard URL remains the exact statutory provision. No secondary commentary or search-result URLs were added to the notes.
 
 Validation: build and runtime checks pass; 82 of 83 repository tests pass. The sole failure, `core-action-colours.test.mjs`, also fails against the unchanged HEAD version of its test and stylesheet. It expects positional colour selectors, while the branch stylesheet uses icon-based selectors. Citation changes do not alter that stylesheet.
+
+Data Protection notes added on 1 November 2026: Breach notifications cites UK GDPR Articles 33 and 34; Evidence of remediation cites Articles 24 and 32; Continuing claims exposure cites Article 82 and DPA 2018 section 168. Primary legislation was checked during drafting. All three use the shared source-link presentation and completed-assessment/report gate.

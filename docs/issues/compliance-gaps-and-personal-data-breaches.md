@@ -30,7 +30,7 @@ Completion requires valid answers to all visible questions. Changing an answer c
 
 ## Outputs, risk and actions
 
-The risk indicator updates live using `assessRisk` in `dist/data-protection.js`, and report exports use the same function. The initial display remains 1/5 No risk. The questionnaire-only message beneath the risk bar is removed. Incomplete forms retain the shared standby message. Completed forms show Summary and Key deal implications using the shared `.logic-section` and `.logic-conclusion` presentation. Recommended actions now use the researched matrix, with at most nine consolidated cards, perspective-specific wording and priorities, full Actions by Issue catalogue, Deal Hub capture and report integration; legal notes remain a separate authoring stage. Buyer/Seller/Balanced does not affect the score.
+The risk indicator updates live using `assessRisk` in `dist/data-protection.js`, and report exports use the same function. The initial display remains 1/5 No risk. The questionnaire-only message beneath the risk bar is removed. Incomplete forms retain the shared standby message. Completed forms show Summary and Key deal implications using the shared `.logic-section` and `.logic-conclusion` presentation. Recommended actions now use the researched matrix, with at most nine consolidated cards, perspective-specific wording and priorities, full Actions by Issue catalogue, Deal Hub capture and report integration; three approved legal notes are included below. Buyer/Seller/Balanced does not affect the score.
 
 ## Agreed risk decision table
 
@@ -71,10 +71,14 @@ Implications use reusable, transaction-focused statements with at most one state
 2. **Completion readiness:** Reported completed remediation with an ongoing issue or outstanding notifications triggers reconciliation. Otherwise ongoing issues, outstanding notifications or only partial/no pre-completion remediation trigger a common completion-planning implication. Uncertain response/remediation triggers an uncertainty statement; fully planned remediation triggers a delivery dependency. Hidden notifications have no effect.
 3. **Residual exposure:** Any reported complaints, claims or regulatory enquiries trigger one shared exposure statement; Unknown triggers one uncertainty statement. None adds nothing.
 
-If no theme triggers, show one qualified statement that no unresolved issue-specific completion dependency is indicated. These statements are independent of transaction side and risk score: an all-Unknown assessment retains the agreed 1/5 score but explicitly identifies uncertainty in all three themes. Actions use their own answer-based matrix rather than being inferred from these implication statements; legal notes remain unconfigured.
+If no theme triggers, show one qualified statement that no unresolved issue-specific completion dependency is indicated. These statements are independent of transaction side and risk score: an all-Unknown assessment retains the agreed 1/5 score but explicitly identifies uncertainty in all three themes. Actions use their own answer-based matrix rather than being inferred from these implication statements; three approved legal notes follow the recommended actions.
 
 Validation covers incomplete and absent routes, hidden answers, suspected/unknown prose, every external-matter combination, serious impact, remediation inconsistencies, stable implications, live/report parity and all 72,000 combinations (including every valid Q4 subset, normalized to the reachable branch). Existing risk checks remain unchanged.
 
 ## Action matrix
 
 The [researched action matrix](data-protection-action-matrix.md) sets out 13 consolidated action types, concise Buyer/Seller/Balanced instructions, exact answer triggers and conditional priorities, worked scenarios and the legal/practice sources checked on 1 November 2026. The matrix is implemented in Apply deal logic, the full Actions by Issue catalogue, Deal Hub capture and reports, with a maximum of nine recommendation cards per completed response.
+
+## Approved legal notes
+
+The three approved notes cover Breach notifications, Evidence of remediation and Continuing claims exposure. Canonical text and both primary-source links per note live in `legalNotes` in `dist/data-protection.js`. Completed assessments, including the No-issue early exit, show all three in the shared Notes section after Recommended actions; completed reports reproduce the same text and source URLs. Incomplete assessments and reports omit the notes. No questionnaire, scoring or action rules change.
