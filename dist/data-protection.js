@@ -256,17 +256,17 @@
   };
   // Reuse consequence statements by theme; answer-level detail belongs in the summary.
   const implicationCopy = {
-    absent: "No issue-specific completion protection is currently indicated by the recorded answer; this does not establish wider data protection compliance.",
-    fundamental: "The issue may undermine the basis of the acquisition; transaction viability and the terms on which the deal could proceed need to be reassessed.",
-    significant: "The exposure may materially affect value, operations or completion certainty and should inform the deal economics and risk allocation.",
-    uncertain: "Uncertainty about the issue or its impact prevents the transaction exposure from being settled.",
-    inconsistent: "Reported completion of remediation needs to be reconciled with the ongoing issue or outstanding notifications before completion readiness can be relied on.",
-    readiness: "Containment, outstanding notification requirements and remediation should be addressed in the completion plan, with responsibility and funding agreed for any work continuing afterwards.",
-    readinessUnknown: "Completion readiness remains uncertain until the response position and the timing of necessary remedial work are established.",
-    planned: "The completion timetable depends on delivery of the planned remediation; the ability to complete the work does not establish that it has been done.",
-    external: "Complaints, claims or regulatory enquiries may leave residual exposure after remediation; that exposure should inform disclosure and the allocation of risk and costs.",
-    externalUnknown: "Uncertainty about complaints, claims or regulatory enquiries leaves potential residual exposure unresolved for the deal.",
-    clear: "No unresolved issue-specific completion dependency is indicated by the recorded answers; completed remediation does not itself establish that historical exposure has ended."
+    absent: "No specific completion protection is indicated, but wider data protection compliance has not been confirmed.",
+    fundamental: "The issue may undermine the deal. Reassess whether it can proceed and on what terms.",
+    significant: "The issue may materially affect value, operations or completion. Reflect this in the price and allocation of risk.",
+    uncertain: "The issue or its impact needs to be clarified before the deal risk can be assessed.",
+    inconsistent: "Confirm why remediation is marked complete when the issue is ongoing or notifications remain outstanding.",
+    readiness: "Plan how to contain the issue, make outstanding notifications and complete remedial work. Agree who handles and pays for any work after completion.",
+    readinessUnknown: "Confirm the response status and remediation timetable before deciding whether the target is ready for completion.",
+    planned: "The completion timetable depends on the planned remedial work being done.",
+    external: "Complaints, claims or regulatory enquiries may leave liabilities after remediation. Address these in disclosure and agree who bears the risk and costs.",
+    externalUnknown: "Check for complaints, claims or regulatory enquiries before agreeing how to allocate the remaining risk.",
+    clear: "No outstanding issue is shown to affect completion, but past liabilities may remain despite remediation."
   };
   const buildAnalysis = responses => {
     if (!complete(responses)) return null;
