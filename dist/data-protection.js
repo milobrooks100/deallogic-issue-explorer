@@ -185,7 +185,7 @@
     for (const id of ids) {
       if (id === "dp-notifications" && !["yes", "partly"].includes(responses["dp-ongoing"]) && !["personal-data-breach", "both", "unknown"].includes(responses["dp-type"])) continue;
       visible.push(id);
-      if (!valid(id, responses[id]) || (id === "dp-issue" && ["no", "unknown"].includes(responses[id]))) break;
+      if (!valid(id, responses[id]) || (id === "dp-issue" && responses[id] === "no")) break;
     }
     return visible;
   };

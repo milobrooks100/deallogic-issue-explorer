@@ -13,10 +13,10 @@ function setup() {
   return {...context.testApi,context,card,report:()=>report};
 }
 const full={'dp-issue':'yes','dp-type':'both','dp-ongoing':'no','dp-notifications':'all-made','dp-proceedings':['complaints','claims'],'dp-impact':'manageable','dp-remediation':'yes'};
-test('untouched, absent and unknown routes stop correctly without inherited analysis',()=>{
+test('untouched and confirmed absence stop correctly without inherited analysis',()=>{
  const {visibleIds,complete,normalize,context,card}=setup();
  assert.deepEqual(Array.from(visibleIds({})),['dp-issue']);assert.equal(complete({}),false);
- for(const answer of ['no','unknown']){const r={...full,'dp-issue':answer};normalize(r);assert.deepEqual(r,{'dp-issue':answer});assert.equal(complete(r),true);context.answers=r;context.renderLogic(issue);assert.match(card.innerHTML,/not yet configured/);}
+ for(const answer of ['no']){const r={...full,'dp-issue':answer};normalize(r);assert.deepEqual(r,{'dp-issue':answer});assert.equal(complete(r),true);context.answers=r;context.renderLogic(issue);assert.match(card.innerHTML,/not yet configured/);}
  context.renderLogic({id:'other'});assert.equal(card.innerHTML,'Other issue');assert.equal(context.riskScore(),1);
 });
 test('notification follow-up appears only on the three applicable routes',()=>{
@@ -57,4 +57,19 @@ test('export matches visible current labels and excludes litigation/risk conclus
  context.answers={...full,'dp-type':'compliance-gap'};context.exportReport();assert.doesNotMatch(report(),/3b\.|All made/);
  context.answers={...full,'dp-issue':'no'};context.exportReport();assert.doesNotMatch(report(),/Complaints, Claims|Manageable/);
  context.current=()=>({id:'other'});context.exportReport();assert.equal(report(),'Other report');
+});
+
+test('Unknown advances every question and supports a complete uncertain assessment',()=>{
+ const {ids,visibleIds,normalize,complete}=setup();
+ const responses={};
+ ids.forEach((id,index)=>{
+  assert.equal(visibleIds(responses).at(-1),id);
+  assert.equal(complete(responses),false);
+  responses[id]=id==='dp-proceedings'?['unknown']:'unknown';
+  normalize(responses);
+  assert.ok(id in responses);
+  if(index<ids.length-1) assert.equal(visibleIds(responses).at(-1),ids[index+1]);
+ });
+ assert.equal(complete(responses),true);
+ assert.equal(visibleIds(responses).length,7);
 });
