@@ -588,19 +588,6 @@
       };
 
       const renderLogicWithMissingIpAssignment = renderLogic;
-      const ipActionRegistry = {
-        R01: ["Rectification", "Execute a retroactive Confirmatory Deed of Assignment from the IP owner as a standard closing deliverable or completion condition."],
-        R02: ["Further diligence", "Prepare an asset-by-asset chain-of-title review covering owner status, engagement terms, assignments, licences, waivers, registry records and restrictions to establish secondary evidence of equitable title transferred by the IP owner."],
-        R03: ["Rectification", "Contact the IP owner early to clear assignment terms, offering nominal consideration or an execution fee if required to secure agreement."],
-        R04: ["Specific indemnity", "Include a specific indemnity for IP ownership or infringement claims by the IP owner or third parties, supported by a price escrow or retention holdback where appropriate."],
-        R05: ["Specific disclosure", "Formally disclose missing title documentation, incomplete historical records or IP owner title gaps against IP warranties to manage post-closing liability."],
-        R06: ["Warranty", "Set out fundamental IP title warranties paired with a capped indemnity to cover potential unknown title defects."],
-        R07: ["Rectification", "Assess the cost, timeframe and legal feasibility of an independent \"clean-room\" rewrite to replace the affected IP without creating derivative-work infringement risks."],
-        R08: ["Condition precedent", "Require a formal settlement, release and full IP transfer from the asserting IP owner as a condition precedent before completing the transaction."],
-        R09: ["Price adjustment", "Review claim validity and financial exposure to consider a purchase price adjustment or account for potential litigation costs."],
-        R10: ["Other", "Consider structuring the transaction as an asset purchase rather than a share purchase to isolate liabilities, while taking into account any ongoing IP risk."],
-        R11: ["Walk away or renegotiate", "Evaluate whether the IP owner's assertion significantly affects target value, considering potential termination rights or deal-term renegotiation."]
-      };
       const ipProfileActions = {
         profile1: {
           Buyer: [["Required", "R01"], ["Recommended", "R02"]],
@@ -646,7 +633,23 @@
         if (importance === "High importance" && difficulty === "Hard") return "profile2";
         return "profile1";
       };
-      const ipActionMarkup = (profile, side) => {
+      const missingIpVisibleIds = () => {
+        const ids = ["ip-assignment-gap"], gap = answers[ids[0]];
+        if (!["Yes", "Partly / unclear"].includes(gap)) return ids;
+        ids.push("ip-ownership-evidence");
+        if (!["No", "Partly / unclear"].includes(answers["ip-ownership-evidence"])) return ids;
+        for (const id of ["ip-importance", "ip-redesign-difficulty", "ip-owner-relationship", "ip-owner-claim"]) {
+          ids.push(id);
+          if (!answers[id] || answers[id] === "Unanswered") break;
+        }
+        return ids;
+      };
+      const missingIpAnswersComplete = () => answers["ip-assignment-gap"] === "No"
+        || (["Yes", "Partly / unclear"].includes(answers["ip-assignment-gap"]) && (answers["ip-ownership-evidence"] === "Yes"
+          || (missingIpVisibleIds().length === 6 && missingIpVisibleIds().every(id => answers[id] && answers[id] !== "Unanswered"))));
+      const missingIpActions = (profile, side) => {
+        side = ["Buyer", "Seller", "Balanced"].includes(side) ? side : "Balanced";
+        if (!missingIpAnswersComplete() || answers["ip-assignment-gap"] === "No" || answers["ip-ownership-evidence"] === "Yes") return [];
         const configuredActions = ipProfileActions[profile][side] || [];
         let selectedActions = configuredActions;
         if (side === "Buyer") {
@@ -657,42 +660,15 @@
             ? [...withoutRewritePlan, configuredRewritePlan || ["Consider", "R07"]]
             : withoutRewritePlan;
         }
-        return selectedActions.map(([priority, id]) => {
-        const [title, description] = ipActionRegistry[id];
-        const strictAssignment = profile === "profile2" && id === "R01" ? `${description} Treat execution as a strict condition precedent.` : description;
-        return `<div class="logic-action" data-action-id="${id}"><span class="logic-icon" aria-hidden="true"></span><div><span class="logic-priority">${priority}</span><strong>${title}</strong><span>${strictAssignment}</span></div></div>`;
-        }).join("");
+        const registry = window.DealLogicActionRegistry;
+        return selectedActions.map(([priority, id]) => ({ ...registry.forSide(registry.actionFor("missing-ip-assignment", "", "", id), side), priority }));
       };
-      renderLogic = function (issue) {
-        if (!isMissingIpAssignment(issue)) return renderLogicWithMissingIpAssignment(issue);
-        const logicCard = document.querySelector("#logic-card");
-        const protectionsCard = document.querySelector("#recommendations-card");
-        protectionsCard?.remove();
-        logicCard.classList.add("coc-deal-logic");
-        const gap = answers["ip-assignment-gap"] || "Unanswered";
-        const evidence = answers["ip-ownership-evidence"] || "Unanswered";
-        const noGap = gap === "No";
-        const ownershipConfirmed = evidence === "Yes";
-        const missingIpNotes = `<div class="logic-note"><strong>Contractor vs Employee Ownership:</strong> For copyright, the author is generally the first owner; copyright in works made by an employee in the course of employment generally belongs to the employer. This rule does not apply to IP created by an independent contractor. Copyright of works created by a founder prior to incorporation does not automatically transfer to the target. Without an express written assignment the target may not legally own its core assets, such as its logo, website or software. <a href="https://www.legislation.gov.uk/ukpga/1988/48/section/11" target="_blank" rel="noopener noreferrer">CDPA 1988, s.11</a></div><div class="logic-note"><strong>Assignment formalities:</strong> An assignment of existing copyright must be written and signed by or on behalf of the assignor. Check execution, consideration and the rights covered, and consider a deed where appropriate. <a href="https://www.legislation.gov.uk/ukpga/1988/48/section/90/data.html" target="_blank" rel="noopener noreferrer">CDPA 1988, s.90(3)</a>; <a href="https://www.legislation.gov.uk/ukpga/1988/48/section/91/data.html" target="_blank" rel="noopener noreferrer">s.91</a></div>`;
-        const finalAnswer = answers["ip-owner-claim"] || "Unanswered";
-        if (!noGap && !ownershipConfirmed && finalAnswer === "Unanswered") {
-          logicCard.classList.add("logic-standby");
-          logicCard.innerHTML = `<h3>Apply deal logic</h3><p>Answer all relevant questions to generate your deal analysis.</p>`;
-          return;
-        }
-        logicCard.classList.remove("logic-standby");
-        const transactionSide = getTransactionSide();
-        if (noGap || ownershipConfirmed) {
-          const conclusion = noGap
-            ? "No potentially missing IP assignment has been identified on the information recorded."
-            : "The target has complete, executed and enforceable documents evidencing ownership or a sufficient right to use the affected IP.";
-          const implication = noGap
-            ? "No title-gap remediation is currently indicated."
-            : "No corrective assignment or additional title protection is currently indicated.";
-          logicCard.innerHTML = `<h3>Apply deal logic</h3><section class="logic-section"><h4>Summary</h4><p class="logic-conclusion">${conclusion}</p></section><section class="logic-section"><h4>Key deal implications</h4><ul><li>${implication}</li></ul></section><section class="logic-section"><div class="logic-section-heading"><h4>Recommended actions</h4></div><p>There are no active transaction actions on the information recorded.</p></section><section class="logic-section"><h4>Notes</h4>${missingIpNotes}</section>`;
-          document.dispatchEvent(new CustomEvent("missing-ip-logic-rendered"));
-          return;
-        }
+      const ipActionMarkup = (profile, side) => missingIpActions(profile, side).map(action =>
+        `<div class="logic-action" data-action-id="${action.id}"><span class="logic-icon" aria-hidden="true"></span><div><span class="logic-priority" data-level="${action.priority.toLowerCase()}">${action.priority}</span><strong>${escapeLogicText(action.title)}</strong><span>${escapeLogicText(action.description)}</span></div></div>`
+      ).join("");
+      const missingIpAnalysis = () => {
+        if (answers["ip-assignment-gap"] === "No") return { summary: "No potentially missing IP assignment has been identified on the information recorded.", implications: ["No title-gap remediation is currently indicated."] };
+        if (answers["ip-ownership-evidence"] === "Yes") return { summary: "The target has complete, executed and enforceable documents evidencing ownership or a sufficient right to use the affected IP.", implications: ["No corrective assignment or additional title protection is currently indicated."] };
         const importance = answers["ip-importance"];
         const difficulty = answers["ip-redesign-difficulty"];
         const owner = answers["ip-owner-relationship"];
@@ -707,10 +683,53 @@
           activeClaimFallback: ["An ownership claim, royalty demand or litigation threat has been asserted in relation to the affected IP.", "The claim requires pre-completion settlement and financial protection; the practical replacement route should also be assessed proportionately.", "Residual risk remains material until the claim is settled, the IP position is secured and the financial exposure is quantified."]
         }[profile];
         const recordedFacts = `The IP is recorded as ${importance.toLowerCase()}, replacement is ${difficulty.toLowerCase()}, and the IP owner is ${owner.toLowerCase()}.`;
+        return { summary: `${profileCopy[0]} ${recordedFacts}`, implications: [profileCopy[1], `The recorded claim status is ${claim.toLowerCase()}.`] };
+      };
+      renderLogic = function (issue) {
+        if (!isMissingIpAssignment(issue)) return renderLogicWithMissingIpAssignment(issue);
+        const logicCard = document.querySelector("#logic-card");
+        const protectionsCard = document.querySelector("#recommendations-card");
+        protectionsCard?.remove();
+        logicCard.classList.add("coc-deal-logic");
+        const gap = answers["ip-assignment-gap"] || "Unanswered";
+        const evidence = answers["ip-ownership-evidence"] || "Unanswered";
+        const noGap = gap === "No";
+        const ownershipConfirmed = evidence === "Yes";
+        const missingIpNotes = `<div class="logic-note"><strong>Contractor vs Employee Ownership:</strong> For copyright, the author is generally the first owner; copyright in works made by an employee in the course of employment generally belongs to the employer. This rule does not apply to IP created by an independent contractor. Copyright of works created by a founder prior to incorporation does not automatically transfer to the target. Without an express written assignment the target may not legally own its core assets, such as its logo, website or software. <a href="https://www.legislation.gov.uk/ukpga/1988/48/section/11" target="_blank" rel="noopener noreferrer">CDPA 1988, s.11</a></div><div class="logic-note"><strong>Assignment formalities:</strong> An assignment of existing copyright must be written and signed by or on behalf of the assignor. Check execution, consideration and the rights covered, and consider a deed where appropriate. <a href="https://www.legislation.gov.uk/ukpga/1988/48/section/90/data.html" target="_blank" rel="noopener noreferrer">CDPA 1988, s.90(3)</a>; <a href="https://www.legislation.gov.uk/ukpga/1988/48/section/91/data.html" target="_blank" rel="noopener noreferrer">s.91</a></div>`;
+        if (!missingIpAnswersComplete()) {
+          logicCard.classList.add("logic-standby");
+          logicCard.innerHTML = `<h3>Apply deal logic</h3><p>Answer all relevant questions to generate your deal analysis.</p>`;
+          document.dispatchEvent(new CustomEvent("missing-ip-logic-rendered"));
+          return;
+        }
+        logicCard.classList.remove("logic-standby");
+        const transactionSide = getTransactionSide();
+        if (noGap || ownershipConfirmed) {
+          const analysis = missingIpAnalysis();
+          logicCard.innerHTML = `<h3>Apply deal logic</h3><section class="logic-section"><h4>Summary</h4><p class="logic-conclusion">${escapeLogicText(analysis.summary)}</p></section><section class="logic-section"><h4>Key deal implications</h4><ul><li>${escapeLogicText(analysis.implications[0])}</li></ul></section><section class="logic-section"><div class="logic-section-heading"><h4>Recommended actions</h4></div><p>There are no active transaction actions on the information recorded.</p></section><section class="logic-section"><h4>Notes</h4>${missingIpNotes}</section>`;
+          document.dispatchEvent(new CustomEvent("missing-ip-logic-rendered"));
+          return;
+        }
+        const profile = missingIpProfile();
+        const analysis = missingIpAnalysis();
         const actions = ipActionMarkup(profile, transactionSide);
         const sidePicker = `<div class="logic-side-picker" aria-label="Transaction side selector"><button type="button" class="active" data-logic-side-toggle>${transactionSide}</button></div>`;
-        logicCard.innerHTML = `<h3>Apply deal logic</h3><section class="logic-section"><h4>Summary</h4><p class="logic-conclusion">${profileCopy[0]} ${recordedFacts}</p></section><section class="logic-section"><h4>Key deal implications</h4><ul><li>${profileCopy[1]}</li><li>The recorded claim status is ${claim.toLowerCase()}.</li></ul></section><section class="logic-section"><div class="logic-section-heading"><h4>Recommended actions</h4>${sidePicker}</div>${actions}</section><section class="logic-section"><h4>Notes</h4>${missingIpNotes}</section>`;
+        logicCard.innerHTML = `<h3>Apply deal logic</h3><section class="logic-section"><h4>Summary</h4><p class="logic-conclusion">${escapeLogicText(analysis.summary)}</p></section><section class="logic-section"><h4>Key deal implications</h4><ul>${analysis.implications.map(text => `<li>${escapeLogicText(text)}</li>`).join("")}</ul></section><section class="logic-section"><div class="logic-section-heading"><h4>Recommended actions</h4>${sidePicker}</div>${actions}</section><section class="logic-section"><h4>Notes</h4>${missingIpNotes}</section>`;
         document.dispatchEvent(new CustomEvent("missing-ip-logic-rendered"));
+      };
+      const exportReportBeforeMissingIp = exportReport;
+      exportReport = function () {
+        const issue = current();
+        if (!isMissingIpAssignment(issue)) return exportReportBeforeMissingIp();
+        const complete = missingIpAnswersComplete(), side = getTransactionSide(), score = riskScore();
+        const analysis = complete ? missingIpAnalysis() : null, actions = complete ? missingIpActions(missingIpProfile(), side) : [];
+        const report = ["DEALLOGIC ISSUE REPORT", "", issue.title, `${areas[issue.category]} · ${issue.jurisdiction.primary}`, `Risk score: ${score}/5 — ${riskNames[score - 1]}`,
+          "", "DILIGENCE ANSWERS", ...missingIpVisibleIds().map(id => `- ${issue.key_questions.find(q => q.id === id).question}\n  Response: ${answers[id] || "Unanswered"}`),
+          ...(complete ? ["", "SUMMARY", analysis.summary, "", "KEY DEAL IMPLICATIONS", ...analysis.implications.map(text => `- ${text}`),
+            "", `RECOMMENDED ACTIONS (${side})`, ...(actions.length ? actions.map(action => `- ${action.title} (${action.priority})\n  ${action.description}`) : ["There are no active transaction actions on the information recorded."])] : ["", "Answer all relevant questions to generate your deal analysis."]),
+          "", "NOTE", "Prototype content only. Obtain transaction-specific legal advice."].join("\n");
+        const url = URL.createObjectURL(new Blob([report], { type: "text/plain" }));
+        const link = document.createElement("a"); link.href = url; link.download = `${issue.id}-report.txt`; link.click(); URL.revokeObjectURL(url);
       };
     </script>
     <script>
