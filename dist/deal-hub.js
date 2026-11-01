@@ -58,7 +58,8 @@
         actionId: stableActionIdFor(issue.id,row.querySelector("strong")?.textContent.trim(),row.querySelector("span:last-child")?.textContent.trim(),row.dataset.actionId),
         components: row.dataset.constituentIds?.includes(",")
           ? (issue.id === "key-employee-retention-and-employment-terms" ? window.DealLogicEmploymentActions?.(answers, getTransactionSide())
-            : issue.id === "compliance-gaps-and-personal-data-breaches" ? window.DealLogicDataProtectionActions?.(answers, getTransactionSide()) : undefined)
+            : issue.id === "compliance-gaps-and-personal-data-breaches" ? window.DealLogicDataProtectionActions?.(answers, getTransactionSide())
+            : issue.id === "debt-facilities-repayment" ? window.DealLogicDebtActions?.(answers, getTransactionSide()) : undefined)
             ?.filter(action => row.dataset.constituentIds.split(",").includes(action.id)) : undefined,
         priority: row.querySelector(".logic-priority")?.textContent.trim() || "Recommended",
         title: row.querySelector("strong")?.textContent.trim() || "Action",
@@ -174,7 +175,7 @@
       if (hasEquivalentAction(item)) continue;
       state.actions.push({id:uid(),sourceKey:key,stableActionId:item.actionId||"",issueId:item.issueId,side:item.side,priority:item.priority,
         title:item.title,instruction:item.instruction,originalTitle:item.title,originalInstruction:item.instruction,
-        status:statuses[0],dealPhase:["share-ownership-and-transfer-restrictions", "key-employee-retention-and-employment-terms", "compliance-gaps-and-personal-data-breaches"].includes(item.issueId) ? libraryPhase(window.DealLogicActionRegistry.actionFor(item.issueId,"","",item.actionId)?.phase) : phaseFor(item.title,item.instruction),
+        status:statuses[0],dealPhase:["share-ownership-and-transfer-restrictions", "key-employee-retention-and-employment-terms", "compliance-gaps-and-personal-data-breaches", "debt-facilities-repayment"].includes(item.issueId) ? libraryPhase(window.DealLogicActionRegistry.actionFor(item.issueId,"","",item.actionId)?.phase) : phaseFor(item.title,item.instruction),
         urgency:"Medium",notes:"",createdAt:new Date().toISOString(),manual:false});
       added++;
     }
@@ -336,11 +337,10 @@
   document.addEventListener("missing-ip-logic-rendered",decorateRecommendations);
   document.addEventListener("option-holders-logic-rendered",decorateRecommendations);
   document.addEventListener("threatened-litigation-logic-rendered",decorateRecommendations);
-  document.addEventListener("debt-facilities-logic-rendered",decorateRecommendations);
   const refreshIssuePicks = () => {
     // Keep deliberate selections, but refresh their side, priority and snapshot.
     const issue = currentIssue();
-    if (!["share-ownership-and-transfer-restrictions", "key-employee-retention-and-employment-terms", "compliance-gaps-and-personal-data-breaches"].includes(issue?.id)) return;
+    if (!["share-ownership-and-transfer-restrictions", "key-employee-retention-and-employment-terms", "compliance-gaps-and-personal-data-breaches", "debt-facilities-repayment"].includes(issue?.id)) return;
     const latest = new Map(available().map(item => [actionKey(item.issueId,item.side,item.title,item.instruction,item.actionId), item]));
     for (const [key, item] of picks) {
       if (item.issueId !== issue.id) continue;
@@ -351,6 +351,10 @@
   };
   document.addEventListener("share-ownership-logic-rendered", refreshIssuePicks);
   document.addEventListener("employees-logic-rendered", refreshIssuePicks);
+  document.addEventListener("debt-facilities-logic-rendered", () => {
+    refreshIssuePicks();
+    if (issueById(currentIssue()?.id)) renderHub();
+  });
   document.addEventListener("data-protection-logic-rendered", () => {
     refreshIssuePicks();
     if (issueById(currentIssue()?.id)) renderHub();
