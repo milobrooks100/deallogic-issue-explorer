@@ -323,3 +323,27 @@ test('new registry replaces superseded actions and resolves saved legacy identit
   assert.equal(registry.resolveActionId(employee.id,'','','ER10'),'ER08');
   assert.equal(registry.resolveActionId(employee.id,'','','ER12'),'ER03');
 });
+
+test('combined descriptions stay concise and use one sentence instead of joined catalog text', () => {
+  const {ids,chooseActions,context,card,getReport} = setup();
+  const responses = Object.fromEntries(ids.map((id,i) => [id,['yes','difficult','all-leaving','no','yes','none-agreed'][i]]));
+  const actions = chooseActions(responses,'Balanced');
+  const combined = actions.filter(action => action.constituentIds.length > 1);
+  assert.equal(combined.length,3);
+  combined.forEach(action => {
+    assert.ok(action.description.split(/\s+/).length <= 32,action.description);
+    assert.equal((action.description.match(/[.!?]/g)||[]).length,1);
+    assert.ok(action.title.split(/\s+/).length <= 7);
+  });
+  const terms = combined.find(action=>action.id === 'ER13');
+  assert.match(terms.description,/Review contracts.*notice.*handover.*confidentiality.*competition.*consent.*TUPE/);
+  const retention = combined.find(action=>action.id === 'ER01');
+  assert.match(retention.description,/retention payments.*service or handover.*early-leaver.*consider pay.*if remuneration.*costs/);
+  context.answers = responses;
+  context.renderLogic(employee);
+  context.exportReport();
+  combined.forEach(action => {
+    assert.ok(card.innerHTML.includes(action.description));
+    assert.ok(getReport().includes(action.description));
+  });
+});

@@ -314,20 +314,20 @@
 
     const registry = window.DealLogicActionRegistry;
     const items = [...choices.values()].map(choice => ({...registry.actionFor(issueId,"","",choice.id), ...choice, description:choice.description || registry.actionFor(issueId,"","",choice.id).description}));
-    const merge = (first, second, title) => {
+    const merge = (first, second, title, description) => {
       if (items.length <= 9) return;
       const a = items.find(item => item.id === first), b = items.find(item => item.id === second);
       if (!a || !b) return;
       a.title = title;
-      a.description += ` ${b.description}`;
+      a.description = description;
       a.constituentIds.push(...b.constituentIds);
       if (priorityRank[b.priority] > priorityRank[a.priority]) a.priority = b.priority;
       items.splice(items.indexOf(b),1);
     };
     if (consolidate) {
-      merge("ER13","ER02","Review contracts and agree necessary amendments");
-      merge("ER01","ER14","Review incentives and document retention arrangements");
-      merge("ER04","ER09","Interim employment covenant and seller limits");
+      merge("ER13","ER02","Review and strengthen employment terms", "Review contracts and agree necessary changes to notice, handover, confidentiality and reasonable competition restrictions, with employee consent and regard to TUPE.");
+      merge("ER01","ER14","Review pay and agree retention", "Agree retention payments linked to service or handover, with clear early-leaver terms, and consider pay improvements if remuneration contributes to departure risk, allocating the costs.");
+      merge("ER04","ER09","Agree interim controls and seller limits", "If signing precedes completion, agree buyer consent controls over material employment changes, while limiting seller retention commitments to defined efforts and excluding buyer-caused departures after completion.");
     }
     return items.sort((a,b) => priorityRank[b.priority]-priorityRank[a.priority] || actionOrder.indexOf(a.id)-actionOrder.indexOf(b.id));
   };
