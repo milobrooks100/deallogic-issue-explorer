@@ -480,10 +480,11 @@
       });
     </script>
     <script>
-      const introSection = document.querySelector(".intro");
-      if (introSection && !document.querySelector(".transaction-side")) {
+      window.createTransactionSideControl = () => {
         const sideControl = document.createElement("div");
         sideControl.className = "transaction-side";
+        sideControl.setAttribute("role", "group");
+        sideControl.setAttribute("aria-label", "Transaction side selector");
         let expanded = false;
         const draw = () => {
           const storedSide = activeDealProject()?.side;
@@ -492,7 +493,7 @@
           if (!storedSide && !expanded) {
             const selectButton = document.createElement("button");
             selectButton.type = "button"; selectButton.className = "transaction-side-toggle"; selectButton.textContent = "Select Transaction Side";
-            selectButton.onclick = () => { expanded = true; draw(); };
+            selectButton.onclick = () => { expanded = true; draw(); sideControl.querySelector("button")?.focus(); };
             sideControl.append(selectButton);
             return;
           }
@@ -500,19 +501,29 @@
           options.className = "transaction-side-options";
           (expanded ? ["Buyer", "Seller", "Balanced"] : [selected]).forEach((side) => {
             const option = document.createElement("button");
-            option.type = "button"; option.textContent = side; option.classList.toggle("active", side === selected);
+            option.type = "button"; option.textContent = side;
+            option.setAttribute("aria-expanded", String(expanded));
+            option.setAttribute("aria-pressed", String(side === selected)); option.classList.toggle("active", side === selected);
             option.onclick = () => {
-              if (!expanded) { expanded = true; draw(); return; }
-              setTransactionSide(side); expanded = false; draw(); document.dispatchEvent(new CustomEvent("transaction-side-change")); if (current()) renderLogic(current());
+              if (!expanded) { expanded = true; draw(); sideControl.querySelector("button.active")?.focus(); return; }
+              setTransactionSide(side); expanded = false; draw(); document.dispatchEvent(new CustomEvent("transaction-side-change")); if (current()) renderLogic(current()); sideControl.querySelector("button")?.focus();
             };
             options.append(option);
           });
           sideControl.append(options);
         };
+        sideControl.collapse = () => { expanded = false; draw(); };
+        sideControl.addEventListener("keydown", event => {
+          if (event.key === "Escape" && expanded) {
+            expanded = false; draw(); sideControl.querySelector("button")?.focus();
+          }
+        });
         draw();
         document.addEventListener("transaction-side-change", draw);
-        introSection.append(sideControl);
-      }
+        return sideControl;
+      };
+      const introSection = document.querySelector(".intro");
+      if (introSection && !document.querySelector(".transaction-side")) introSection.append(window.createTransactionSideControl());
     </script>
     <script src="./action-registry.js"></script>
     <script src="./deal-hub.js"></script>

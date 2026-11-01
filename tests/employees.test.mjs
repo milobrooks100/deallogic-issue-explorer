@@ -410,7 +410,7 @@ test('standalone, conditional and combined Employment instructions follow the se
  assert.equal(chooseActions(responses,'invalid').map(a=>a.description).join('|'),balanced.map(a=>a.description).join('|'));
 });
 
-test('Actions by Issue renders all three perspective controls for every topic and uses canonical Employment copy',async()=>{
+test('Actions by Issue uses canonical perspective copy for every topic without an inline selector',async()=>{
  const library=await readFile(new URL('../dist/action-playbooks.js',import.meta.url),'utf8');
  const renderSource=library.slice(library.indexOf('  function renderTopic()'),library.indexOf('  function selectArea('));
  const {context:app}=setup(),registry=app.window.DealLogicActionRegistry;
@@ -419,8 +419,7 @@ test('Actions by Issue renders all three perspective controls for every topic an
  vm.runInContext(renderSource,testContext);
  for(const topic of registry.topics)for(const side of ['Buyer','Seller','Balanced']){
   testContext.activeTopic=topic.id;testContext.getTransactionSide=()=>side;testContext.renderTopic();
-  assert.equal((panel.innerHTML.match(/data-logic-side="/g)||[]).length,3);
-  assert.ok(panel.innerHTML.includes(`aria-pressed="true" data-logic-side="${side}"`));
+  assert.doesNotMatch(panel.innerHTML,/data-logic-side=|logic-side-picker/);
   for(const action of topic.actions)assert.ok(panel.innerHTML.includes(registry.forSide(action,side).description));
  }
 });

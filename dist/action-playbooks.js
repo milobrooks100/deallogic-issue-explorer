@@ -5,6 +5,11 @@
   const esc=value=>String(value??"").replace(/[&<>"']/g,char=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[char]));
   const coreItems=library.querySelector(".action-items");
   let activeArea="core",activeTopic=registry.topics[0].id;
+  const header=document.querySelector(".library-view .view-header");
+  const sideControl=window.createTransactionSideControl();
+  sideControl.hidden=true;
+  header?.append(sideControl);
+
 
   const areaTabs=document.createElement("div");areaTabs.className="library-tabs";areaTabs.setAttribute("role","tablist");areaTabs.setAttribute("aria-label","Action Library sections");
   areaTabs.innerHTML='<button type="button" role="tab" id="library-tab-core" aria-controls="library-panel-core" aria-selected="true" tabindex="0" data-library-area="core">Core M&amp;A toolkit</button><button type="button" role="tab" id="library-tab-playbooks" aria-controls="library-panel-playbooks" aria-selected="false" tabindex="-1" data-library-area="playbooks">Actions by issue</button>';
@@ -31,12 +36,14 @@
     const panel=playbooksPanel.querySelector(".playbook-panel");
     panel.setAttribute("aria-labelledby",`playbook-tab-${topic.id}`);
     const side = getTransactionSide();
-    const sidePicker = `<div class="logic-side-picker" role="group" aria-label="Transaction side selector">${["Buyer", "Seller", "Balanced"].map(value => `<button type="button" class="${value === side ? "active" : ""}" aria-pressed="${value === side}" data-logic-side="${value}">${value}</button>`).join("")}</div>`;
-    panel.innerHTML=`<div class="library-section-heading"><div class="playbook-title-row"><h3>${esc(topic.label)}</h3>${sidePicker}<span class="playbook-count">${topic.actions.length} actions</span></div><p>This is the full action set for this issue. Deal Map will recommend only the actions that fit the answers you have recorded.</p><p class="priority-note">Instructions reflect the selected perspective where relevant; priority depends on the recorded facts.</p></div><div class="playbook-grid">${topic.actions.map(baseAction=>{const action=registry.forSide(baseAction,side);const added=window.isActionInDealHub?.(topic.id,action.id);return `<article class="playbook-card" data-library-action="${esc(action.id)}" data-core-icon="${esc(action.icon)}"><span class="action-symbol" data-vector="true"><i data-lucide="${esc(action.icon)}" aria-hidden="true"></i></span><div class="playbook-card-copy"><h4>${esc(action.title)}</h4><p>${esc(action.description)}</p><div class="playbook-card-meta"><span class="phase-label">${esc(action.phase)}</span><button type="button" class="library-add" data-add-library-action="${esc(action.id)}" ${added?"disabled":""}>${added?"Added to Deal Hub":"Add to Deal Hub"}</button></div></div></article>`}).join("")}</div>`;
+    panel.innerHTML=`<div class="library-section-heading"><div class="playbook-title-row"><h3>${esc(topic.label)}</h3><span class="playbook-count">${topic.actions.length} actions</span></div><p>This is the full action set for this issue. Deal Map will recommend only the actions that fit the answers you have recorded.</p><p class="priority-note">Instructions reflect the selected perspective where relevant; priority depends on the recorded facts.</p></div><div class="playbook-grid">${topic.actions.map(baseAction=>{const action=registry.forSide(baseAction,side);const added=window.isActionInDealHub?.(topic.id,action.id);return `<article class="playbook-card" data-library-action="${esc(action.id)}" data-core-icon="${esc(action.icon)}"><span class="action-symbol" data-vector="true"><i data-lucide="${esc(action.icon)}" aria-hidden="true"></i></span><div class="playbook-card-copy"><h4>${esc(action.title)}</h4><p>${esc(action.description)}</p><div class="playbook-card-meta"><span class="phase-label">${esc(action.phase)}</span><button type="button" class="library-add" data-add-library-action="${esc(action.id)}" ${added?"disabled":""}>${added?"Added to Deal Hub":"Add to Deal Hub"}</button></div></div></article>`}).join("")}</div>`;
     window.lucide?.createIcons({attrs:{"stroke-width":1.75}});
   }
   function selectArea(area){
     activeArea=area==="playbooks"?"playbooks":"core";
+    sideControl.hidden=activeArea!=="playbooks";
+    header?.classList.toggle("has-transaction-side",activeArea==="playbooks");
+    sideControl.collapse();
     areaTabs.querySelectorAll("[data-library-area]").forEach(button=>{const selected=button.dataset.libraryArea===activeArea;button.setAttribute("aria-selected",String(selected));button.tabIndex=selected?0:-1;});
     corePanel.hidden=activeArea!=="core";playbooksPanel.hidden=activeArea!=="playbooks";
     if(activeArea==="playbooks")renderTopic();
@@ -61,9 +68,7 @@
   document.addEventListener("deal-project-change",()=>{if(activeArea==="playbooks")renderTopic();});
   document.addEventListener("transaction-side-change",()=>{
     if(activeArea!=="playbooks")return;
-    const restoreFocus=playbooksPanel.contains(document.activeElement);
     renderTopic();
-    if(restoreFocus)playbooksPanel.querySelector(`[data-logic-side="${getTransactionSide()}"]`)?.focus();
   });
   renderTopic();
 })();
