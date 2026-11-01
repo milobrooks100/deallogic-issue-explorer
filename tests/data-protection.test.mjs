@@ -53,8 +53,8 @@ test('compatible multiple selections advance while exclusive/invalid combination
  for(const v of [[],['none','claims'],['unknown','complaints'],['claims','claims'],'claims']){assert.equal(valid('dp-proceedings',v),false);const r={...full,'dp-proceedings':v};normalize(r);assert.ok(!('dp-impact' in r));}
 });
 test('export matches visible current labels and excludes litigation/risk conclusions',()=>{
- const {context,report}=setup();context.answers={...full};context.exportReport();assert.match(report(),/Complaints, Claims/);assert.match(report(),/3b\./);assert.match(report(),/Risk assessment: not yet configured/);assert.doesNotMatch(report(),/Risk score:|Limitation periods|settlement/i);
- context.answers={...full,'dp-type':'compliance-gap'};context.exportReport();assert.doesNotMatch(report(),/3b\.|All made/);
+ const {context,report}=setup();context.answers={...full};context.exportReport();assert.match(report(),/Complaints, Claims/);assert.match(report(),/Have required breach notifications been made\?/);assert.match(report(),/Risk assessment: not yet configured/);assert.doesNotMatch(report(),/Risk score:|Limitation periods|settlement/i);
+ context.answers={...full,'dp-type':'compliance-gap'};context.exportReport();assert.doesNotMatch(report(),/Have required breach notifications been made|All made/);
  context.answers={...full,'dp-issue':'no'};context.exportReport();assert.doesNotMatch(report(),/Complaints, Claims|Manageable/);
  context.current=()=>({id:'other'});context.exportReport();assert.equal(report(),'Other report');
 });

@@ -10,7 +10,7 @@ This delivery is the questionnaire stage only. Reuse Threatened Litigation’s s
 
 ## Canonical questionnaire
 
-Question wording lives in `dist/issues.json`. Stable answer values, labels, numbering and approved tooltips live in `dist/data-protection.js`.
+Question wording lives in `dist/issues.json`. Stable answer values, labels and approved tooltips live in `dist/data-protection.js`.
 
 | No. / ID | Question | Choices | Tooltip |
 | --- | --- | --- | --- |
@@ -37,3 +37,5 @@ Initial shared indicator remains 1/5 No risk, with an explicit questionnaire-onl
 Focused checks exercise the confirmed-absence early exit and all-Unknown progression, progressive reveal, all three notification triggers and the gap-only skip, compatible/exclusive multiple selection, invalid answers, upstream invalidation, reports and isolation from existing issue outputs. Shared build and runtime checks cover data and script loading. Visual and interaction QA checks the template layout, tooltips, reset and narrow viewport. Substantive risk, remediated-risk reductions, transaction-side actions, Hub selection and snapshots are not applicable to this questionnaire-only stage.
 
 Verified on 1 November 2026: build and 12-script runtime check pass; seven focused questionnaire/data tests pass; full suite 107 pass with the existing unrelated core action-colour assertion failing. Browser QA at the narrow in-app viewport confirmed area navigation, title/introduction, progressive reveal, Q3b, compatible selection, None exclusivity, upstream clearing, gap-only skip, reset and first tooltip text. The shared per-deal storage path is reused; cross-deal/reload persistence was inspected in source but not separately exercised in this browser pass. No 21st CLI is installed; existing project template components were reused as explicitly requested.
+
+Question numbers in this specification identify the agreed flow only. On-screen questions and downloaded reports display the question text without numeric prefixes.

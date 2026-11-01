@@ -5,7 +5,6 @@
   const escape = value => String(value ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
   const fields = {
   "dp-issue": {
-    "number": "1",
     "options": [
       [
         "yes",
@@ -27,7 +26,6 @@
     "guidance": "Examples include data leaks, unlawful marketing, excessive retention, unanswered access requests or missing supplier terms. Check diligence findings, incident logs and compliance reviews."
   },
   "dp-type": {
-    "number": "2",
     "options": [
       [
         "compliance-gap",
@@ -49,7 +47,6 @@
     "guidance": "A compliance gap concerns how data is managed; a personal data breach involves its loss, destruction, alteration, unauthorised disclosure or access. Check the findings and incident records."
   },
   "dp-ongoing": {
-    "number": "3",
     "options": [
       [
         "yes",
@@ -71,7 +68,6 @@
     "guidance": "Check whether the affected processing has stopped and any exposed or unavailable data has been secured or restored. Confirm the position with those managing the response."
   },
   "dp-notifications": {
-    "number": "3b",
     "options": [
       [
         "all-made",
@@ -97,7 +93,6 @@
     "guidance": "Check the notification assessment and records of notices to the Information Commissioner’s Office (ICO), affected individuals or relevant controllers, including dates. Select None required only following an assessment."
   },
   "dp-proceedings": {
-    "number": "4",
     "options": [
       [
         "complaints",
@@ -124,7 +119,6 @@
     "multiple": true
   },
   "dp-impact": {
-    "number": "5",
     "options": [
       [
         "minimal",
@@ -150,7 +144,6 @@
     "guidance": "Review estimated costs, potential liabilities, business disruption and restrictions on using data. Assess their effect on the target’s operations, value and the completion timetable."
   },
   "dp-remediation": {
-    "number": "6",
     "options": [
       [
         "completed",
@@ -200,7 +193,7 @@
   };
   // Use the litigation question/top/info/select structure with the shared styles.
   const questionMarkup = ({id, question}) => {
-    const field = fields[id], label = `${field.number}. ${question}`;
+    const field = fields[id], label = question;
     const info = `<button class="info" type="button" aria-label="${escape(`Guidance: ${question}`)}">i<span class="tooltip" role="tooltip">${escape(field.guidance)}</span></button>`;
     if (field.multiple) return `<div class="question" role="group" aria-labelledby="${id}-label"><div class="question-top"><label id="${id}-label">${escape(label)}</label>${info}</div><div class="choice-grid">${field.options.map(([key,text]) => `<label><input type="checkbox" data-dp-choice value="${key}" ${(answers[id] || []).includes(key) ? "checked" : ""}> ${escape(text)}</label>`).join("")}</div></div>`;
     return `<div class="question"><div class="question-top"><label for="${id}">${escape(label)}</label>${info}</div><select id="${id}"><option value="">Unanswered</option>${field.options.map(([key,text]) => `<option value="${key}" ${answers[id] === key ? "selected" : ""}>${escape(text)}</option>`).join("")}</select></div>`;
@@ -260,7 +253,7 @@
     const issue = current();
     if (!isDataProtection(issue)) return previousExportReport();
     normalize(answers);
-    const lines = issue.key_questions.filter(q => visibleIds(answers).includes(q.id)).map(({id,question}) => `${fields[id].number}. ${question}\n  Response: ${labelFor(id, answers[id])}`);
+    const lines = issue.key_questions.filter(q => visibleIds(answers).includes(q.id)).map(({id,question}) => `${question}\n  Response: ${labelFor(id, answers[id])}`);
     const report = ["DEALLOGIC ISSUE REPORT", "", issue.title, `${areas[issue.category]} · ${issue.jurisdiction.primary}`, issue.summary, "Risk assessment: not yet configured", "", "DILIGENCE ANSWERS", ...lines, "", "NOTE", "Questionnaire only. Deal analysis, recommended actions and legal notes are not yet configured.", "Prototype content only. Obtain transaction-specific legal advice."].join("\n");
     const url = URL.createObjectURL(new Blob([report], {type:"text/plain"}));
     const link = document.createElement("a");link.href=url;link.download=`${issue.id}-report.txt`;link.click();URL.revokeObjectURL(url);
