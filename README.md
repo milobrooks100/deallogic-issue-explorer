@@ -67,3 +67,11 @@ The document route verifies that the document belongs to the selected company an
 ## Status
 
 Prototype content only. The application is not legal advice and its outputs must be reviewed and tailored for each transaction and jurisdiction.
+
+### Privacy notice download
+
+`dist/privacy.html` is the published notice and the source for its PDF download.
+After changing the notice text, run `python3 scripts/build-privacy-pdf.py`
+(requires Python's `reportlab` package), then `npm run build` and commit the
+updated PDF. The build checks the notice content hash embedded in the PDF and
+rejects a stale download. Header and layout changes do not require regeneration.

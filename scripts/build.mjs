@@ -1,8 +1,16 @@
 import { readFile, writeFile } from "node:fs/promises";
 import path from "node:path";
+import { createHash } from "node:crypto";
 
 const siteRoot = process.cwd();
 const distRoot = path.join(siteRoot, "dist");
+const privacyHtml = await readFile(path.join(distRoot, "privacy.html"), "utf8");
+const privacyContent = privacyHtml.match(/<main\b[^>]*>([\s\S]*?)<\/main>/)?.[1];
+const privacyPdf = await readFile(path.join(distRoot, "Deal-Logic-Privacy-Notice.pdf"));
+const privacyHash = createHash("sha256").update(privacyContent || "").digest("hex");
+if (!privacyContent || !privacyPdf.toString("latin1").includes(`privacy-source-sha256:${privacyHash}`)) {
+  throw new Error("Privacy PDF is out of date. Run python3 scripts/build-privacy-pdf.py before building.");
+}
 const issues = JSON.parse(await readFile(path.join(distRoot, "issues.json"), "utf8"));
 if (!Array.isArray(issues) || !issues.length || issues.some(issue => !issue.id || !issue.title)) {
   throw new Error("Expected a non-empty collection of valid DealLogic issues.");
