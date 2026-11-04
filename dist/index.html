@@ -13,6 +13,7 @@
     <script src="./app-storage.js?v=1"></script>
     <script src="./app-theme.js"></script>
     <link rel="stylesheet" href="./account.css" />
+    <link rel="stylesheet" href="./privacy.css" />
     <style>
       html.app-loading body > main,
       html.app-loading body > footer { visibility: hidden; }
@@ -60,7 +61,7 @@
   <body>
     <div class="account-restore" role="status"><strong>Restoring your account…</strong><p id="account-restore-message">Loading your saved deal progress.</p><button type="button" onclick="location.reload()">Retry</button><button type="button" onclick="DealLogicStorage.useGuestForSession();location.reload()">Use browser progress</button></div>
     <main><section class="intro"><h2>Deal Map</h2><p>Start with a deal area, open an issue, then record what the diligence tells you. The risk score and protections respond as the picture becomes clearer.</p></section><section class="workspace"><aside class="map"><h3><span class="map-title-wrap"><span class="map-title" tabindex="0" aria-describedby="deal-map-guidance">Deal areas</span><span class="map-guidance" id="deal-map-guidance" role="tooltip">Open an area, then select the issue to explore.</span></span></h3><div class="map-branches" id="mind-map"></div></aside><section class="panel" id="panel"><div class="empty-state">Select a deal area to begin.</div></section></section></main>
-    <footer>Prototype content only — it is not legal advice and must be reviewed and tailored for each transaction and jurisdiction.</footer>
+    <footer>Prototype content only — it is not legal advice and must be reviewed and tailored for each transaction and jurisdiction. <a class="privacy-footer-link" href="./privacy.html">View privacy notice here.</a></footer>
     <script>
       const areas={"commercial-contracts":"Material Contracts","intellectual-property":"Intellectual Property","corporate-and-shares":"Shares","litigation-and-disputes":"Disputes","finance-and-banking":"Finance","employees":"Employment","data-protection":"Data Protection"},order=Object.keys(areas).sort((a,b)=>areas[a].localeCompare(areas[b]));
       const dealProjectStoreKey="deallogic:deal-projects:v1";
@@ -237,7 +238,7 @@
         workspace.insertAdjacentElement("beforebegin", libraryView);
         const settingsView = document.createElement("section");
         settingsView.className = "settings-view";
-        settingsView.innerHTML = '<div class="view-header"><h2>Settings</h2><p>Personalise your workspace and manage your account.</p></div><div class="settings-card settings-panel"><section class="settings-section theme-settings" aria-labelledby="appearance-heading"><div class="theme-settings-heading"><span class="eyebrow">Appearance</span><h3 id="appearance-heading">App colour</h3></div><fieldset class="theme-options"><legend class="sr-only">App colour</legend><label class="theme-option"><input type="radio" name="app-theme" value="grey" aria-label="Grey"><span>Grey</span></label><label class="theme-option"><input type="radio" name="app-theme" value="navy" aria-label="Navy blue"><span>Navy blue</span></label><label class="theme-option"><input type="radio" name="app-theme" value="forest" aria-label="Dark green"><span>Dark green</span></label></fieldset></section></div>';
+        settingsView.innerHTML = '<div class="view-header"><h2>Settings</h2><p>Personalise your workspace and manage your account.</p></div><div class="settings-card settings-panel"><section class="settings-section theme-settings" aria-labelledby="appearance-heading"><div class="theme-settings-heading"><span class="eyebrow">Appearance</span><h3 id="appearance-heading">App colour</h3></div><fieldset class="theme-options"><legend class="sr-only">App colour</legend><label class="theme-option"><input type="radio" name="app-theme" value="grey" aria-label="Grey"><span>Grey</span></label><label class="theme-option"><input type="radio" name="app-theme" value="navy" aria-label="Navy blue"><span>Navy blue</span></label><label class="theme-option"><input type="radio" name="app-theme" value="forest" aria-label="Dark green"><span>Dark green</span></label></fieldset></section><section class="settings-section privacy-settings" aria-label="Privacy and data"><a class="tour-settings-button privacy-settings-link" href="./privacy.html"><i data-lucide="shield-check" aria-hidden="true"></i><span>Privacy and data</span></a></section></div>';
         libraryView.insertAdjacentElement("afterend", settingsView);
         const radarView = document.createElement("section");
         radarView.className = "company-radar-view screen-hidden";
