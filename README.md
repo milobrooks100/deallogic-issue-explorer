@@ -75,3 +75,12 @@ After changing the notice text, run `python3 scripts/build-privacy-pdf.py`
 (requires Python's `reportlab` package), then `npm run build` and commit the
 updated PDF. The build checks the notice content hash embedded in the PDF and
 rejects a stale download. Header and layout changes do not require regeneration.
+
+### Terms of use
+
+`dist/terms.html` is the canonical Terms of Use page. The footer, Settings and
+account-creation agreement link to this page. After changing its content, run
+`python3 scripts/build-privacy-pdf.py terms` (requires `reportlab`), then
+`npm run build`, and commit the updated PDF. The build rejects a stale download.
+Account creation requires the agreement checkbox; existing users can sign in
+without selecting it.

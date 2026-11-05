@@ -36,3 +36,9 @@ html.account-restoring .account-restore{position:fixed;inset:0;z-index:100;displ
 .account-data-dialog .account-operation-status:empty{display:none}
 .account-data-dialog .account-operation-status.account-error{color:#9d3030}
 @media(max-width:700px){.account-data-settings{align-items:flex-start;flex-direction:column;gap:14px}.account-data-dialog{padding:22px}.account-data-dialog .account-actions{justify-content:flex-start}}
+
+.account-settings form .account-terms-agreement { display: flex; align-items: flex-start; gap: 9px; font-weight: 400; line-height: 1.6; }
+.account-settings form .account-terms-agreement input { flex: 0 0 16px; width: 16px; height: 16px; min-height: 16px; padding: 0; margin-top: 2px; accent-color: var(--ink); }
+.account-terms-agreement a { color: inherit; text-underline-offset: 3px; }
+.account-terms-agreement input:focus-visible { outline: 2px solid var(--ink); outline-offset: 3px; }
+.account-terms-help { color: var(--muted); font-size: 11px; margin-top: -10px; }

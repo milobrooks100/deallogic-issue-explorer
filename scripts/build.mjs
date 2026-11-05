@@ -4,12 +4,14 @@ import { createHash } from "node:crypto";
 
 const siteRoot = process.cwd();
 const distRoot = path.join(siteRoot, "dist");
-const privacyHtml = await readFile(path.join(distRoot, "privacy.html"), "utf8");
-const privacyContent = privacyHtml.match(/<main\b[^>]*>([\s\S]*?)<\/main>/)?.[1];
-const privacyPdf = await readFile(path.join(distRoot, "Deal-Logic-Privacy-Notice.pdf"));
-const privacyHash = createHash("sha256").update(privacyContent || "").digest("hex");
-if (!privacyContent || !privacyPdf.toString("latin1").includes(`privacy-source-sha256:${privacyHash}`)) {
-  throw new Error("Privacy PDF is out of date. Run python3 scripts/build-privacy-pdf.py before building.");
+for (const [kind, filename] of [["privacy", "Deal-Logic-Privacy-Notice.pdf"], ["terms", "Deal-Logic-Terms-of-Use.pdf"]]) {
+  const html = await readFile(path.join(distRoot, `${kind}.html`), "utf8");
+  const content = html.match(/<main\b[^>]*>([\s\S]*?)<\/main>/)?.[1];
+  const pdf = await readFile(path.join(distRoot, filename));
+  const hash = createHash("sha256").update(content || "").digest("hex");
+  if (!content || !pdf.toString("latin1").includes(`${kind}-source-sha256:${hash}`)) {
+    throw new Error(`${kind} PDF is out of date. Run python3 scripts/build-privacy-pdf.py ${kind} before building.`);
+  }
 }
 const issues = JSON.parse(await readFile(path.join(distRoot, "issues.json"), "utf8"));
 if (!Array.isArray(issues) || !issues.length || issues.some(issue => !issue.id || !issue.title)) {

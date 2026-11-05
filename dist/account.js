@@ -393,13 +393,18 @@ if (!storage.guestSession() && config?.apiKey && config?.authDomain && config?.p
       card.querySelector("[data-account-signout]").onclick = () => authSdk.signOut(auth).then(() => render());
       return;
     }
-    card.innerHTML = `<span class="eyebrow">Account</span><h3>Save your deal progress</h3><p>Create an account or sign in with your email address and password. New accounts need email verification before cloud saving begins.</p><form data-account-form><label>Email address<input name="email" type="email" maxlength="254" autocomplete="email" required></label><label>Password<input name="password" type="password" maxlength="256" autocomplete="current-password" minlength="6" required></label><div class="account-form-actions"><button type="submit" data-account-action="create">Create account</button><button type="submit" data-account-action="sign-in">Sign in</button></div></form><button type="button" class="account-text-button" data-account-reset>Forgot password?</button><p class="account-message" data-account-message role="status" aria-live="polite"></p>`;
+    card.innerHTML = `<span class="eyebrow">Account</span><h3>Save your deal progress</h3><p>Create an account or sign in with your email address and password. New accounts need email verification before cloud saving begins.</p><form data-account-form><label>Email address<input name="email" type="email" maxlength="254" autocomplete="email" required></label><label>Password<input name="password" type="password" maxlength="256" autocomplete="current-password" minlength="6" required></label><label class="account-terms-agreement"><input type="checkbox" name="termsAgreement" aria-describedby="account-terms-help"><span>I agree to the <a href="./terms.html" target="_blank" rel="noopener">Terms of Use</a>.</span></label><small id="account-terms-help" class="account-terms-help">Required to create an account.</small><div class="account-form-actions"><button type="submit" data-account-action="create">Create account</button><button type="submit" data-account-action="sign-in">Sign in</button></div></form><button type="button" class="account-text-button" data-account-reset>Forgot password?</button><p class="account-message" data-account-message role="status" aria-live="polite"></p>`;
     card.querySelector("[data-account-form]").onsubmit = async event => {
       event.preventDefault();
       const form = event.currentTarget;
       const email = form.elements.namedItem("email").value.trim();
       const password = form.elements.namedItem("password").value;
       const action = event.submitter?.dataset.accountAction || "create";
+      if (action === "create" && !form.elements.namedItem("termsAgreement").checked) {
+        message("You must agree to the Terms of Use before creating an account.", true);
+        form.elements.namedItem("termsAgreement").focus();
+        return;
+      }
       const buttons = form.querySelectorAll("[type=submit]");
       buttons.forEach(button => { button.disabled = true; });
       try {

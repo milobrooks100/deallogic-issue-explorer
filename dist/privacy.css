@@ -40,3 +40,7 @@
   .privacy-notice h2 { break-after: avoid; }
   .privacy-table tr { break-inside: avoid; }
 }
+
+.privacy-settings { display: flex; flex-wrap: wrap; gap: 12px; }
+.terms-notice h3 { font-size: 17px; margin: 24px 0 10px; }
+.terms-notice li { margin-bottom: 12px; overflow-wrap: anywhere; }

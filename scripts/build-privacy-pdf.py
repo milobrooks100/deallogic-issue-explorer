@@ -1,10 +1,11 @@
-"""Regenerate the downloadable notice from dist/privacy.html.
+"""Regenerate a legal PDF from its published HTML (privacy by default, or terms).
 
 Requires reportlab. Run from any directory with Python 3.
 The app build rejects a stale PDF after notice text changes.
 """
 from pathlib import Path
 import hashlib
+import sys
 import re
 import xml.etree.ElementTree as ET
 from html import escape
@@ -15,7 +16,12 @@ from reportlab.lib.pagesizes import A4
 from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Table, TableStyle
 
 root = Path(__file__).resolve().parents[1]
-source = (root / 'dist/privacy.html').read_text(encoding='utf-8')
+kind = sys.argv[1] if len(sys.argv) > 1 else 'privacy'
+if kind not in ('privacy', 'terms'):
+    raise SystemExit('Choose privacy or terms.')
+label = 'Deal Logic privacy notice' if kind == 'privacy' else 'Deal Logic Terms of Use'
+filename = 'Deal-Logic-Privacy-Notice.pdf' if kind == 'privacy' else 'Deal-Logic-Terms-of-Use.pdf'
+source = (root / ('dist/' + kind + '.html')).read_text(encoding='utf-8')
 main = re.search(r'<main\b[^>]*>([\s\S]*?)</main>', source).group(1)
 digest = hashlib.sha256(main.encode()).hexdigest()
 tree = ET.fromstring('<main>' + main + '</main>')
@@ -26,12 +32,21 @@ styles.add(ParagraphStyle(name='NoticeHeading', fontName='Helvetica-Bold', fontS
 styles.add(ParagraphStyle(name='NoticeCell', parent=styles['NoticeBody'], fontSize=9.5, leading=13, spaceAfter=0))
 styles.add(ParagraphStyle(name='NoticeTableHead', parent=styles['NoticeCell'], fontName='Helvetica-Bold'))
 
+if kind == 'terms':
+    styles['NoticeBody'].leading = 14
+    styles['NoticeBody'].spaceAfter = 8
+    styles['NoticeBody'].allowWidows = 0
+    styles['NoticeHeading'].spaceBefore = 12
+    styles['NoticeHeading'].spaceAfter = 6
+
 def inline(element):
     text = escape(element.text or '')
     for child in element:
         body = escape(''.join(child.itertext()))
         if child.tag == 'a':
             text += '<a href="' + escape(child.attrib['href'], quote=True) + '" color="#24566e"><u>' + body + '</u></a>'
+        elif child.tag == 'strong':
+            text += '<b>' + body + '</b>'
         else:
             text += body
         text += escape(child.tail or '')
@@ -39,9 +54,12 @@ def inline(element):
 
 story = []
 for element in tree:
-    if element.tag in ('h1', 'h2', 'p'):
-        style = styles[{'h1':'NoticeTitle', 'h2':'NoticeHeading', 'p':'NoticeBody'}[element.tag]]
+    if element.tag in ('h1', 'h2', 'h3', 'p'):
+        style = styles[{'h1':'NoticeTitle', 'h2':'NoticeHeading', 'h3':'NoticeHeading', 'p':'NoticeBody'}[element.tag]]
         story.append(Paragraph(inline(element), style))
+    elif element.tag == 'ul':
+        for item in element:
+            story.append(Paragraph(inline(item), styles['NoticeBody'], bulletText='•'))
     elif element.tag == 'div':
         rows = []
         for row in element.findall('.//tr'):
@@ -61,13 +79,13 @@ def footer(canvas, doc):
     canvas.saveState()
     canvas.setFont('Helvetica', 8)
     canvas.setFillColor(colors.HexColor('#66716e'))
-    canvas.drawString(50, 27, 'Deal Logic privacy notice')
+    canvas.drawString(50, 27, label)
     canvas.drawRightString(A4[0]-50, 27, str(doc.page))
     canvas.restoreState()
 
-pdf = SimpleDocTemplate(str(root / 'dist/Deal-Logic-Privacy-Notice.pdf'), pagesize=A4,
+pdf = SimpleDocTemplate(str(root / 'dist' / filename), pagesize=A4,
     leftMargin=50, rightMargin=50, topMargin=45, bottomMargin=48,
-    title='Deal Logic privacy notice', author='Milo Brooks',
-    subject='privacy-source-sha256:' + digest)
+    title=label, author='Milo Brooks',
+    subject=kind + '-source-sha256:' + digest)
 pdf.build(story, onFirstPage=footer, onLaterPages=footer)
-print('Generated privacy PDF from the published notice.')
+print('Generated ' + kind + ' PDF from the published page.')
