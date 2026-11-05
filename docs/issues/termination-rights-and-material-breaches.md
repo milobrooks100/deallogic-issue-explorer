@@ -58,4 +58,6 @@ Worked examples: suspected breach, no notice, minimal impact, Yes resolution = 2
 
 ## Verification
 
+The completed summary and implications are included in branch preview deployments alongside the questionnaire and live risk assessment.
+
 Build and runtime checks cover the script and storage boundary. Focused tests cover the agreed examples, starting scores, adjustments, protected minimums, conditional remediation reductions, live/report score parity and delegation to other issues. All 12,348 combinations of current answers, unanswered and invalid values verify integer bounds, the exclusive 5 trigger, floors and hidden-answer exclusion. Existing questionnaire tests cover progressive reveal, early exit and normalization. Shared reset and persistence use the established implementation; browser interaction was not rechecked for this scoring-only change. Analysis checks also exercise all 12,348 combinations for completion gates, exact canonical prose coverage, hidden-answer exclusion, fixed implication membership, uniqueness, severity precedence and the three-bullet cap. Focused tests cover all-Unknown/suspected responses, reported resolution with Fundamental impact, completed/incomplete rendering and live/report parity. Action, Hub and snapshot scenarios remain deferred with that functionality.
