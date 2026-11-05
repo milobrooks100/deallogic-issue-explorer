@@ -142,9 +142,31 @@
     const field = fields[id];
     return `<div class="question"><div class="question-top"><label for="${id}">${escape(question)}</label><button class="info" type="button" aria-label="Guidance: ${escape(question)}">i<span class="tooltip" id="${id}-guidance" role="tooltip">${escape(field.guidance)}</span></button></div><select id="${id}" aria-describedby="${id}-guidance"><option value="" ${!answers[id] ? "selected" : ""}>Unanswered</option>${field.options.map(([value, label]) => `<option value="${value}" ${answers[id] === value ? "selected" : ""}>${escape(label)}</option>`).join("")}</select></div>`;
   }
-  // Questionnaire-only delivery: no borrowed risk formula or transaction advice.
+  // Recompute from reachable answers; ordinary adjustments cap at 4 before floors.
+  function assessRisk(state) {
+    const visible = visibleIds(state);
+    const active = id => visible.includes(id) && valid(id, state[id]) ? state[id] : undefined;
+    const [existence, type, stage, impact, resolution] = ids.map(active);
+    if (!existence || existence === "no") return 1;
+    let score = existence === "yes" ? 3 : existence === "suspected" ? 2 : 1;
+    let floor = existence === "unknown" ? 1 : 2;
+    const atLeast = value => { floor = Math.max(floor, value); };
+    // Type does not add points: a breach and its termination right may be one issue.
+    if (stage === "breach-notice") { score += 1; atLeast(3); }
+    if (["termination-notice", "ended"].includes(stage)) { score += 1; atLeast(4); }
+    if (impact === "minimal") score -= 1;
+    if (impact === "significant") atLeast(4);
+    if (impact === "fundamental") atLeast(5);
+    if (resolution === "addressed") {
+      atLeast(2);
+      if ([type, stage, impact].every(value => value && value !== "unknown")) score -= 1;
+    }
+    if (resolution === "partly") atLeast(3);
+    if (resolution === "no") { score += 1; atLeast(3); }
+    return Math.max(floor, Math.min(4, Math.max(1, score)));
+  }
   const previousRiskScore = riskScore;
-  riskScore = function () { return isTermination(current()) ? 1 : previousRiskScore(); };
+  riskScore = function () { return isTermination(current()) ? assessRisk(answers) : previousRiskScore(); };
   const previousRenderLogic = renderLogic;
   renderLogic = function (issue) {
     if (!isTermination(issue)) return previousRenderLogic(issue);
@@ -187,7 +209,7 @@
     normalize(answers);
     const visible = visibleIds(answers);
     const lines = issue.key_questions.filter(question => visible.includes(question.id)).map(({id, question}) => `- ${question}\n  Response: ${fields[id].options.find(([value]) => value === answers[id])?.[1] || "Unanswered"}`);
-    const report = ["DEALLOGIC ISSUE REPORT", "", issue.title, `${areas[issue.category]} · ${issue.jurisdiction.primary}`, issue.summary, "", "DILIGENCE ANSWERS", ...lines, "", "NOTE", "Questionnaire only. Risk assessment and deal analysis are not yet configured. Prototype content only. Obtain transaction-specific legal advice."].join("\n");
+    const report = ["DEALLOGIC ISSUE REPORT", "", issue.title, `${areas[issue.category]} · ${issue.jurisdiction.primary}`, issue.summary, `Risk score: ${assessRisk(answers)}/5 — ${riskNames[assessRisk(answers) - 1]}`, "", "DILIGENCE ANSWERS", ...lines, "", "NOTE", "Deal analysis and recommended actions are not yet configured. Prototype content only. Obtain transaction-specific legal advice."].join("\n");
     const url = URL.createObjectURL(new Blob([report], {type: "text/plain"}));
     const link = document.createElement("a");
     link.href = url;

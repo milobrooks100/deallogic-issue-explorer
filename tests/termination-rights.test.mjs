@@ -8,8 +8,8 @@ const issue = issues.find(i => i.id === 'termination-rights-and-material-breache
 function setup() {
   let report;
   const card = {innerHTML:'', classList:{add(){}}};
-  const context = vm.createContext({answers:{}, escapeLogicText: value => String(value), current:()=>issue, riskScore:()=>4, renderPanel(){}, renderLogic(){card.innerHTML='Other issue';}, exportReport(){report='Other export';}, areas:{'commercial-contracts':'Material Contracts'}, Blob:class {constructor(parts){report=parts.join('');}}, URL:{createObjectURL:()=> 'blob:test', revokeObjectURL(){}}, document:{querySelector: selector => selector === '#logic-card' ? card : null, createElement:()=>({click(){}})}});
-  vm.runInContext(source.replace(/\}\)\(\);\s*$/, 'globalThis.testApi = {fields, ids, visibleIds, normalize}; })();'),context);
+  const context = vm.createContext({answers:{}, escapeLogicText: value => String(value), current:()=>issue, riskScore:()=>4, renderPanel(){}, renderLogic(){card.innerHTML='Other issue';}, exportReport(){report='Other export';}, riskNames:["No risk","Low risk","Medium risk","High risk","Very high risk"], areas:{'commercial-contracts':'Material Contracts'}, Blob:class {constructor(parts){report=parts.join('');}}, URL:{createObjectURL:()=> 'blob:test', revokeObjectURL(){}}, document:{querySelector: selector => selector === '#logic-card' ? card : null, createElement:()=>({click(){}})}});
+  vm.runInContext(source.replace(/\}\)\(\);\s*$/, 'globalThis.testApi = {fields, ids, visibleIds, normalize, assessRisk}; })();'),context);
   return {...context.testApi,context,card,report:()=>report};
 }
 test('progressive reveal, early exit and invalid saved data',()=>{
@@ -28,9 +28,66 @@ test('questionnaire exports exclude hidden answers and borrowed advice',()=>{
   context.answers={[ids[0]]:'no',[ids[3]]:'fundamental'};
   context.exportReport();
   assert.match(report(),/Response: No/);
-  assert.doesNotMatch(report(),/Response: Fundamental|Risk score:|Reasonableness/);
+  assert.doesNotMatch(report(),/Response: Fundamental|Reasonableness/);
   context.renderLogic(issue);
   assert.match(card.innerHTML,/Answer all relevant questions/);
   assert.equal(context.riskScore(),1);
   context.renderLogic({id:'other'});assert.equal(card.innerHTML,'Other issue');
+});
+function responses(ids, values) { return Object.fromEntries(ids.map((id,index)=>[id,values[index]])); }
+test('agreed scoring examples, starts, adjustments and resolution conditions',()=>{
+  const {ids,assessRisk}=setup();
+  const cases=[
+    [[],1], [['no','both','ended','fundamental','no'],1],
+    [['unknown','unknown','unknown','unknown','unknown'],1],
+    [['yes'],3], [['suspected'],2], [['unknown'],1],
+    [['suspected','breach','no-notice','minimal','yes'],2],
+    [['yes','breach','breach-notice','manageable','yes'],4],
+    [['yes','breach','no-notice','manageable','addressed'],2],
+    [['yes','both','termination-notice','minimal','addressed'],4],
+    [['yes','both','ended','minimal','addressed'],4],
+    [['yes','breach','no-notice','fundamental','addressed'],5],
+    [['yes','breach','no-notice','significant','addressed'],4],
+    [['yes','unknown','no-notice','manageable','addressed'],3],
+    [['yes','breach','unknown','manageable','addressed'],3],
+    [['yes','breach','no-notice','unknown','addressed'],3],
+    [['yes','breach','no-notice','manageable','yes'],3],
+    [['yes','breach','no-notice','minimal','partly'],3],
+    [['yes','breach','no-notice','manageable','no'],4],
+    [['yes','breach','breach-notice','minimal','yes'],3],
+    [['unknown','unknown','unknown','minimal','unknown'],1]
+  ];
+  for(const [values,expected] of cases) assert.equal(assessRisk(responses(ids,values)),expected,JSON.stringify(values));
+});
+test('all answer combinations preserve floors, cap and hidden-answer exclusion',()=>{
+  const {ids,fields,assessRisk,normalize}=setup();
+  let count=0;
+  function visit(values) {
+    if(values.length<ids.length) {
+      for(const value of ['', 'invalid', ...fields[ids[values.length]].options.map(([key])=>key)]) visit([...values,value]);
+      return;
+    }
+    const state=responses(ids,values), normalized={...state};normalize(normalized);
+    const score=assessRisk(state);
+    assert.equal(score,assessRisk(normalized));
+    assert.ok(Number.isInteger(score)&&score>=1&&score<=5);
+    if(!normalized[ids[0]]||normalized[ids[0]]==='no') assert.equal(score,1);
+    else {
+      if(normalized[ids[3]]==='fundamental') assert.equal(score,5);
+      else assert.ok(score<=4);
+      if(['termination-notice','ended'].includes(normalized[ids[2]])||normalized[ids[3]]==='significant') assert.ok(score>=4);
+      if(normalized[ids[2]]==='breach-notice'||['partly','no'].includes(normalized[ids[4]])) assert.ok(score>=3);
+      if(['yes','suspected'].includes(normalized[ids[0]])) assert.ok(score>=2);
+    }
+    count++;
+  }
+  visit([]); assert.equal(count,12348);
+});
+test('live scoring and export agree and other issues retain their own score',()=>{
+  const {ids,context,assessRisk,report}=setup();
+  context.answers=responses(ids,['yes','breach','ended','fundamental','addressed']);
+  assert.equal(context.riskScore(),5);
+  context.exportReport();assert.match(report(),/Risk score: 5\/5 — Very high risk/);
+  assert.equal(context.riskScore(),assessRisk(context.answers));
+  context.current=()=>({id:'other'});assert.equal(context.riskScore(),4);
 });
