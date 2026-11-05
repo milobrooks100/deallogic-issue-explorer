@@ -69,6 +69,7 @@
 .settings-panel .account-settings .account-avatar-settings { margin-top: 24px; }
 .settings-panel .account-settings .settings-subsection p { margin: 0; }
 .settings-panel .account-settings .account-actions { margin: 0; }
+.settings-panel .account-settings > .account-actions { margin: 18px 0; }
 .settings-panel .account-settings [data-account-import]:not(:empty),
 .settings-panel .account-settings .account-security-settings { display: flex; align-items: center; justify-content: space-between; gap: 20px; }
 .settings-panel .account-settings .account-message { margin-top: 0; }

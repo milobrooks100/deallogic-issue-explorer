@@ -59,7 +59,9 @@ Each action must have a registry entry and matching `data-action-id`. Use the ex
 | --- | --- | --- | --- | --- | --- | --- |
 | … | … | … | Required / Recommended / Consider / absent | … | … | … |
 
-Ordering, duplicate / overlapping-action rules and any cap: …
+Buyer/Seller/Balanced one-sentence instructions (not labels alone): …
+
+Ordering, duplicate / overlapping-action rules and consolidation to at most nine recommendation cards, preserving constituent identities and the highest priority: …
 
 ## Legal notes
 

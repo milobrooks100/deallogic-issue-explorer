@@ -240,6 +240,10 @@ test('all 54000 answer and perspective combinations retain protections within ni
       assert.deepEqual([...covered].sort(),Array.from(original, action => action.id).sort());
       const ranks = {Required:3,Recommended:2,Consider:1};
       for (const action of original) assert.ok(ranks[cards.find(card => card.constituentIds.includes(action.id)).priority] >= ranks[action.priority]);
+      for (const card of cards) {
+        assert.equal((card.description.match(/[.!?]/g)||[]).length,1);
+        assert.ok(card.description.split(/\s+/).length<=32,card.description);
+      }
       if (responses[ids[0]] === 'no') assert.equal(cards.length,0);
       checked++;
     }
@@ -272,8 +276,8 @@ test('saving consolidated cards keeps component identities and preserves edited 
   const state = {actions:[original]};
   const {context:registryContext} = setup();
   const registry = registryContext.window.DealLogicActionRegistry;
-  const components = ['ER13','ER02'].map(id=>({...registry.actionFor(employee.id,'','',id),priority:'Recommended'}));
-  const picks = new Map([['merged',{issueId:employee.id,side:'Buyer',actionId:'ER13',title:'Combined',instruction:'Combined',priority:'Recommended',components}]]);
+  const components = ['ER13','ER02'].map(id=>({...registry.forSide(registry.actionFor(employee.id,'','',id),'Seller'),priority:'Recommended'}));
+  const picks = new Map([['merged',{issueId:employee.id,side:'Seller',actionId:'ER13',title:'Combined',instruction:'Combined',priority:'Recommended',components}]]);
   const context = vm.createContext({
     picks,state, picking:true, window:registryContext.window, statuses:['To Review'],
     actionKey:(...values)=>values.join('|'), issueById:()=>({id:employee.id}),
@@ -287,6 +291,8 @@ test('saving consolidated cards keeps component identities and preserves edited 
   assert.equal(state.actions[0],original);
   assert.equal(state.actions[0].title,'User edited indemnity');
   assert.equal(state.actions[1].stableActionId,'ER02');
+  assert.equal(state.actions[1].side,'Seller');
+  assert.equal(state.actions[1].instruction,components.find(a=>a.id==='ER02').description);
   assert.equal(picks.size,0);
 });
 
@@ -367,4 +373,53 @@ test('approved legal notes follow actions and appear in completed reports only',
   context.exportReport();
   assert.doesNotMatch(card.innerHTML,/<h4>Notes<\/h4>/);
   assert.doesNotMatch(getReport(),/LEGAL NOTES/);
+});
+
+test('Employment catalogue differentiates advice while retaining neutral factual checks',()=>{
+ const {context}=setup(),r=context.window.DealLogicActionRegistry,topic=r.byTopic.get(employee.id);
+ const neutral=new Set(['ER13','ER15']);
+ for(const action of topic.actions){
+  const descriptions=['Buyer','Seller','Balanced'].map(side=>r.forSide(action,side).description);
+  assert.equal(new Set(descriptions).size,neutral.has(action.id)?1:3,action.id);
+  for(const description of descriptions){assert.equal((description.match(/[.!?]/g)||[]).length,1);assert.ok(description.split(/\s+/).length<=32,description);}
+ }
+ assert.match(r.forSide(r.actionFor(employee.id,'','','ER08'),'Seller').description,/resist broad indemnities/);
+ assert.match(r.forSide(r.actionFor(employee.id,'','','ER05'),'Seller').description,/without guaranteeing/);
+});
+
+test('standalone, conditional and combined Employment instructions follow the selected side in reports and live analysis',()=>{
+ const {context,ids,chooseActions,card,getReport}=setup(),r=context.window.DealLogicActionRegistry;
+ const responses=Object.fromEntries(ids.map((id,i)=>[id,['yes','difficult','all-leaving','no','yes','none-agreed'][i]]));
+ for(const side of ['Buyer','Seller','Balanced']){
+  context.getTransactionSide=()=>side;context.answers={...responses};context.renderLogic(employee);context.exportReport();
+  const raw=chooseActions(responses,side,false),cards=chooseActions(responses,side);
+  for(const action of raw)assert.equal(action.description,r.forSide(r.actionFor(employee.id,'','',action.id),side).description);
+  for(const cardAction of cards){assert.ok(card.innerHTML.includes(cardAction.description));assert.ok(getReport().includes(cardAction.description));}
+  for(const candidate of [{...responses,'employee-payments':'unclear'},{...responses,'employee-arrangements':'not-needed'}]){
+   const actions=chooseActions(candidate,side,false);
+   const target=actions.find(a=>a.id===(candidate['employee-payments']==='unclear'?'ER07':'ER01'));
+   const otherSide=side==='Buyer'?'Seller':'Buyer';
+   assert.notEqual(target.description,chooseActions(candidate,otherSide,false).find(a=>a.id===target.id).description);
+  }
+ }
+ const buyer=chooseActions(responses,'Buyer'),seller=chooseActions(responses,'Seller'),balanced=chooseActions(responses,'Balanced');
+ for(const a of seller.filter(a=>a.constituentIds.length>1)){
+  const b=balanced.find(b=>b.id===a.id);assert.notEqual(a.description,b.description);
+  const buy=buyer.find(b=>b.id===a.id);if(buy?.constituentIds.length>1)assert.notEqual(a.description,buy.description);
+ }
+ assert.equal(chooseActions(responses,'invalid').map(a=>a.description).join('|'),balanced.map(a=>a.description).join('|'));
+});
+
+test('Actions by Issue uses canonical perspective copy for every topic without an inline selector',async()=>{
+ const library=await readFile(new URL('../dist/action-playbooks.js',import.meta.url),'utf8');
+ const renderSource=library.slice(library.indexOf('  function renderTopic()'),library.indexOf('  function selectArea('));
+ const {context:app}=setup(),registry=app.window.DealLogicActionRegistry;
+ const panel={innerHTML:'',setAttribute(){}};
+ const testContext=vm.createContext({registry,activeTopic:employee.id,getTransactionSide:()=> 'Balanced',esc:v=>String(v),window:{},playbooksPanel:{querySelectorAll:()=>[],querySelector:()=>panel}});
+ vm.runInContext(renderSource,testContext);
+ for(const topic of registry.topics)for(const side of ['Buyer','Seller','Balanced']){
+  testContext.activeTopic=topic.id;testContext.getTransactionSide=()=>side;testContext.renderTopic();
+  assert.doesNotMatch(panel.innerHTML,/data-logic-side=|logic-side-picker/);
+  for(const action of topic.actions)assert.ok(panel.innerHTML.includes(registry.forSide(action,side).description));
+ }
 });

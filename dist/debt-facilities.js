@@ -207,25 +207,12 @@
     return implications.slice(0, 3);
   };
 
-  const actionCatalog = {
-    D01: ["Finance schedule and trigger review", "Require a complete schedule of borrowing, guarantees and security, and identify the repayment or consent terms triggered by the transaction."],
-    D02: ["Repayment covenant", "Require the seller to procure repayment or cancellation of specified facilities on or before completion."],
-    D03: ["Payoff deliverable", "Require a current written lender statement covering all amounts due, payment details and release conditions."],
-    D04: ["Lender consent or waiver", "Obtain effective written consent or a waiver covering the transaction where a facility will continue."],
-    D05: ["Pre-completion covenant", "Govern lender engagement, changes to borrowing or security, and acceptance of lender conditions before completion."],
-    D06: ["Alternative lender route", "If the proposed route fails, agree amended terms, refinancing, a different repayment route or a revised timetable."],
-    D07: ["Funding and shortfall allocation", "Confirm committed repayment funds and specify who bears any payoff shortfall."],
-    D08: ["Security and guarantee releases", "Require agreed releases, or a binding lender undertaking to deliver them against repayment, at completion."],
-    D09: ["Completion funds flow", "Link lender payment, consent effectiveness and release delivery in a simultaneous completion process."],
-    D10: ["Completion condition and longstop", "Make material lender steps conditions or completion deliverables, with an objective deadline and termination route where appropriate."],
-    D11: ["Debt and price mechanism", "Define how principal, interest, fees, break costs and hedging amounts affect consideration without counting the payoff twice."],
-    D12: ["Finance warranties and disclosure", "Cover facilities, security, amounts outstanding, defaults and required lender consents, with specific disclosure of exceptions."],
-    D13: ["Charge-register update", "After actual repayment or release, arrange any appropriate Companies House record update."],
-    D14: ["APA excluded liabilities", "In cases of asset sales, specify which finance liabilities the buyer assumes, exclude the others, and obtain any necessary creditor consent or novation."]
-  };
   const priorityRank = { Required: 3, Recommended: 2, Consider: 1 };
   const actionOrder = ["D06", "D04", "D07", "D08", "D09", "D02", "D03", "D10", "D11", "D14", "D01", "D12", "D05", "D13"];
-  const debtActions = (side = getTransactionSide()) => {
+  const debtActions = (side = getTransactionSide(), consolidate = true, responses = answers) => {
+    side = ["Buyer", "Seller", "Balanced"].includes(side) ? side : "Balanced";
+    const answer = id => responses[id] || "Unanswered";
+    const copy = (buyer, seller, balanced) => ({ Buyer: buyer, Seller: seller, Balanced: balanced }[side]);
     const selected = new Map();
     const add = (id, buyer, seller, balanced) => {
       const priority = { Buyer: buyer, Seller: seller, Balanced: balanced }[side] || balanced;
@@ -280,12 +267,43 @@
         }
       }
     }
-    return [...selected.entries()]
-      .map(([id, priority]) => ({ id, priority, title: actionCatalog[id][0], description: actionCatalog[id][1] }))
-      .sort((left, right) => priorityRank[right.priority] - priorityRank[left.priority]
-        || actionOrder.indexOf(left.id) - actionOrder.indexOf(right.id))
-      .slice(0, 10);
+    const registry = window.DealLogicActionRegistry;
+    const actions = [...selected.entries()].map(([id, priority]) => ({
+      ...registry.forSide(registry.actionFor(issueId, "", "", id), side), priority, constituentIds: [id]
+    }));
+    const merge = (first, second, title, buyer, seller, balanced) => {
+      if (!consolidate || actions.length <= 9) return;
+      const a = actions.find(action => action.id === first), b = actions.find(action => action.id === second);
+      if (!a || !b) return;
+      a.title = title; a.description = copy(buyer, seller, balanced);
+      a.constituentIds.push(...b.constituentIds);
+      if (priorityRank[b.priority] > priorityRank[a.priority]) a.priority = b.priority;
+      actions.splice(actions.indexOf(b), 1);
+    };
+    merge("D01", "D12", "Finance review, warranties and disclosure",
+      "Review the complete finance schedule and transaction triggers and seek warranties supported by specific disclosure of facilities, security, amounts outstanding, defaults and lender requirements.",
+      "Review the complete finance schedule and transaction triggers, give qualified warranties and fairly disclose facilities, security, amounts outstanding, defaults and lender requirements.",
+      "Review the complete finance schedule and transaction triggers and agree warranties supported by specific disclosure of facilities, security, amounts outstanding, defaults and lender requirements.");
+    merge("D02", "D03", "Repayment and payoff deliverable",
+      "Require repayment or cancellation by completion, backed by a current written lender payoff covering all amounts due, payment details and release conditions.",
+      "Agree defined repayment or cancellation duties by completion and obtain a current written payoff covering all amounts due, payment details and release conditions.",
+      "Agree repayment or cancellation responsibilities by completion and obtain a current written payoff covering all amounts due, payment details and release conditions.");
+    merge("D07", "D11", "Funding, shortfalls and price treatment",
+      "Require committed repayment funds, allocate any shortfall and reflect all principal, interest, fees, break costs and hedging amounts in the price without double counting.",
+      "Confirm agreed repayment funds and limit seller shortfall obligations and deductions for principal, interest, fees, break costs and hedging to agreed amounts without double counting.",
+      "Confirm committed repayment funds, allocate any shortfall and reflect all principal, interest, fees, break costs and hedging amounts in the price without double counting.");
+    merge("D08", "D09", "Security releases and completion funds flow",
+      "Require lender payment, any required consents and target-group security and guarantee releases to be coordinated at completion using binding release arrangements or lender undertakings.",
+      "Agree lender payment, any required consents and target-group security and guarantee release deliverables within a coordinated completion funds flow, using binding release arrangements or lender undertakings.",
+      "Coordinate lender payment, any required consents and target-group security and guarantee releases through the completion funds flow using binding release arrangements or lender undertakings.");
+    merge("D05", "D10", "Lender controls and completion conditions",
+      "Require objective lender completion conditions with a longstop and termination rights, plus controls over material lender dealings, borrowing and security changes if signing precedes completion.",
+      "Limit lender completion conditions to material, measurable steps with proportionate longstop and termination rights, adding defined interim finance controls and appropriate exceptions if signing precedes completion.",
+      "Agree objective lender completion conditions with a longstop and proportionate termination rights, plus appropriate interim lender, borrowing and security controls if signing precedes completion.");
+    return actions.sort((left, right) => priorityRank[right.priority] - priorityRank[left.priority]
+      || actionOrder.indexOf(left.id) - actionOrder.indexOf(right.id));
   };
+  window.DealLogicDebtActions = (responses, side) => debtActions(side, false, responses);
 
   const previousRenderPanel = renderPanel;
   renderPanel = function () {
@@ -319,16 +337,34 @@
     if (!debtAnswersComplete()) {
       logicCard.classList.add("logic-standby");
       logicCard.innerHTML = `<h3>Apply deal logic</h3><p>Answer all relevant questions to generate your deal analysis.</p>`;
+      document.dispatchEvent(new CustomEvent("debt-facilities-logic-rendered"));
       return;
     }
     logicCard.classList.remove("logic-standby");
     const side = getTransactionSide();
     const actions = debtActions(side);
     const sidePicker = `<div class="logic-side-picker" aria-label="Transaction side selector"><button type="button" class="active" data-logic-side-toggle>${escapeLogicText(side)}</button></div>`;
-    const actionMarkup = actions.length ? actions.map(({ id, priority, title, description }) => `<div class="logic-action" data-action-id="${escapeLogicText(id)}"><span class="logic-icon" aria-hidden="true"></span><div><span class="logic-priority" data-level="${escapeLogicText(priority.toLowerCase())}">${escapeLogicText(priority)}</span><strong>${escapeLogicText(title)}</strong><span>${escapeLogicText(description)}</span></div></div>`).join("") : `<p>There are no active transaction actions on the information recorded.</p>`;
+    const actionMarkup = actions.length ? actions.map(({ id, priority, title, description, constituentIds }) => `<div class="logic-action" data-action-id="${escapeLogicText(id)}" data-constituent-ids="${constituentIds.join(",")}"><span class="logic-icon" aria-hidden="true"></span><div><span class="logic-priority" data-level="${escapeLogicText(priority.toLowerCase())}">${escapeLogicText(priority)}</span><strong>${escapeLogicText(title)}</strong><span>${escapeLogicText(description)}</span></div></div>`).join("") : `<p>There are no active transaction actions on the information recorded.</p>`;
     const implications = debtImplications().map(item => `<li>${escapeLogicText(item)}</li>`).join("");
     const notes = (issue.notes || "").split(/\n\s*\n/).filter(Boolean).map(entry => `<div class="logic-note">${escapeLogicText(entry).replace(/^(Transaction triggers:|Register updates:)/, "<strong>$1</strong>")}${entry.startsWith("Register updates:") ? ' <a href="https://www.gov.uk/government/publications/register-a-statement-of-satisfaction-mr04" target="_blank" rel="noopener noreferrer">Companies House: statement of satisfaction (MR04)</a>' : ""}</div>`).join("");
     logicCard.innerHTML = `<h3>Apply deal logic</h3><section class="logic-section"><h4>Summary</h4><p class="logic-conclusion">${escapeLogicText(debtSummary())}</p></section><section class="logic-section"><h4>Key deal implications</h4><ul>${implications}</ul></section><section class="logic-section"><div class="logic-section-heading"><h4>Recommended actions</h4>${sidePicker}</div>${actionMarkup}</section>${notes ? `<section class="logic-section"><h4>Notes</h4>${notes}</section>` : ""}`;
     document.dispatchEvent(new CustomEvent("debt-facilities-logic-rendered"));
+  };
+  const previousExportReport = exportReport;
+  exportReport = function () {
+    const issue = current();
+    if (issue?.id !== issueId) return previousExportReport();
+    const complete = debtAnswersComplete(), side = getTransactionSide();
+    const actions = complete ? debtActions(side) : [];
+    const report = ["DEALLOGIC ISSUE REPORT", "", issue.title, `${areas[issue.category]} · ${issue.jurisdiction.primary}`,
+      `Risk score: ${debtRiskScore()}/5 — ${riskNames[debtRiskScore() - 1]}`, "", "DILIGENCE ANSWERS",
+      ...visibleIds().map(id => `- ${issue.key_questions.find(q => q.id === id).question}\n  Response: ${answer(id)}`),
+      ...(complete ? ["", "SUMMARY", debtSummary(), "", "KEY DEAL IMPLICATIONS", ...debtImplications().map(text => `- ${text}`),
+        "", `RECOMMENDED ACTIONS (${side})`, ...(actions.length ? actions.map(action => `- ${action.title} (${action.priority})\n  ${action.description}`) : ["There are no active transaction actions on the information recorded."]),
+        "", "LEGAL NOTES", issue.notes || "", "Source: Companies House, statement of satisfaction (MR04) — https://www.gov.uk/government/publications/register-a-statement-of-satisfaction-mr04"]
+        : ["", "Answer all relevant questions to generate your deal analysis."]),
+      "", "NOTE", "Prototype content only. Obtain transaction-specific legal advice."].join("\n");
+    const url = URL.createObjectURL(new Blob([report], { type: "text/plain" }));
+    const link = document.createElement("a"); link.href = url; link.download = `${issue.id}-report.txt`; link.click(); URL.revokeObjectURL(url);
   };
 })();

@@ -162,6 +162,8 @@
   const actionOrder = ["SO01", "SO02", "SO03", "SO04", "SO05", "SO09", "SO10", "SO07", "SO06", "SO08"];
   const chooseActions = (responses, side = "Balanced") => {
     if (!buildAnalysis(responses)) return [];
+    side = ["Buyer", "Seller", "Balanced"].includes(side) ? side : "Balanced";
+    const copy = (buyer, seller, balanced) => ({ Buyer: buyer, Seller: seller, Balanced: balanced }[side]);
     const selected = [];
     const add = (id, buyer, seller = buyer, balanced = buyer, description) => {
       const priority = { Buyer: buyer, Seller: seller, Balanced: balanced }[side] || balanced;
@@ -178,23 +180,23 @@
     if (ownership === "verified") add("SO01", "Recommended", "Consider", "Recommended");
     else add("SO01", "Required");
     if (titleIssue) add("SO02", "Required", "Required", "Required", ownership === "disputed"
-      ? "Resolve the ownership dispute through corrective documents, settlement or appropriate register rectification before completion."
-      : "Obtain missing ownership evidence and correct gaps in the share records before completion.");
+      ? copy("Require effective resolution of the ownership dispute through corrective documents, settlement or appropriate register rectification before completion.", "Resolve the ownership dispute through proportionate corrective documents, settlement or appropriate register rectification before completion.", "Resolve the ownership dispute through corrective documents, settlement or appropriate register rectification before completion.")
+      : copy("Require missing ownership evidence and correction of gaps in the share records before completion.", "Provide missing ownership evidence and correct gaps in the share records before completion.", "Obtain missing ownership evidence and correct gaps in the share records before completion."));
     if (participation !== "all-agreed") add("SO03", "Required", "Required", "Required", participation === "some-refusing" ? undefined
-      : "Confirm participation with outstanding shareholders and agree the steps needed to deliver the intended shareholding.");
+      : copy("Confirm participation with outstanding shareholders and require a workable route to acquire the intended shareholding.", "Confirm participation with outstanding shareholders and agree the steps needed to deliver the intended shareholding.", "Confirm participation with outstanding shareholders and agree the steps needed to deliver the intended shareholding."));
     if (restrictions === "yes" && addressed !== "all-addressed") add("SO04", "Required");
     else if (["partly-unclear", "unchecked"].includes(restrictions)) add("SO04", "Required", "Recommended", "Required",
-      "Review the transfer restrictions and confirm which approvals, waivers or other clearances are required.");
+      copy("Review the transfer restrictions and confirm which approvals, waivers or other clearances are required before relying on the transfer route.", "Review the transfer documents and establish which approvals, waivers or other clearances the sellers need to arrange.", "Review the transfer restrictions and confirm which approvals, waivers or other clearances are required."));
     if (security === "yes") {
       if (release === "release-agreed") add("SO05", "Recommended", "Recommended", "Recommended",
-        "Confirm that the agreed security releases will take effect with the share transfer at completion.");
+        copy("Verify that the agreed security releases will take effect with the share transfer at completion.", "Coordinate the agreed security releases and share transfer so the release arrangements take effect at completion.", "Confirm that the agreed security releases will take effect with the share transfer at completion."));
       else add("SO05", "Required");
     }
     add("SO06", "Required", "Recommended", "Recommended");
     if (titleIssue || ["yes", "partly-unclear"].includes(restrictions) || security === "yes") add("SO07", "Recommended", "Required", "Recommended");
     if (ownership === "disputed") add("SO08", "Recommended", "Consider", "Recommended");
     else if (ownership === "evidence-gaps") add("SO08", "Consider", "Consider", "Consider",
-      "Assess whether the ownership evidence gaps expose the buyer to a specific loss requiring an indemnity or supporting security.");
+      copy("Assess whether the ownership evidence gaps expose the buyer to a specific loss requiring an indemnity or supporting security.", "Assess the ownership evidence gaps before accepting an indemnity and limit any protection to identified loss.", "Assess whether the ownership evidence gaps expose the buyer to a specific loss requiring an indemnity or supporting security."));
     const score = assessRisk(responses).score;
     if (score >= 4) add("SO09", "Required", "Recommended", "Recommended");
     else if (score === 3) add("SO09", "Recommended", "Consider", "Recommended");
@@ -203,7 +205,7 @@
       || actionOrder.indexOf(left.id) - actionOrder.indexOf(right.id)).slice(0, 8);
   };
   const actionsFor = (responses, side) => chooseActions(responses, side).map(choice => ({
-    ...window.DealLogicActionRegistry.actionFor(issueId, "", "", choice.id), ...choice
+    ...window.DealLogicActionRegistry.forSide(window.DealLogicActionRegistry.actionFor(issueId, "", "", choice.id), side), ...choice
   }));
 
   const legalNotes = [

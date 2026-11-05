@@ -219,7 +219,7 @@
       {
         "id": "conduct-dispute-diligence",
         "type": "further-diligence",
-        "recommendation": "Review the claim's factual basis, procedural status, merits, potential exposure and likely effect on the target and transaction.",
+        "recommendation": "Review the claim’s factual basis, procedural status, merits, potential exposure and likely effect on the target and transaction.",
         "relevance": "context-dependent",
         "rationale": "The parties need a reliable understanding of the claim before settling the transaction terms.",
         "owner": "buyer",
@@ -228,7 +228,7 @@
       {
         "id": "obtain-contentious-advice",
         "type": "other",
-        "recommendation": "Obtain or update privileged contentious advice on the claim, available defences, likely remedies and reasonable settlement range.",
+        "recommendation": "Obtain or update privileged legal advice on the claim, available defences, likely remedies and a reasonable settlement range.",
         "relevance": "context-dependent",
         "rationale": "A legally informed assessment is important where the merits or exposure are uncertain.",
         "owner": "adviser",
@@ -237,7 +237,7 @@
       {
         "id": "specific-litigation-disclosure",
         "type": "disclosure",
-        "recommendation": "Require detailed disclosure of the claim, material documents, procedural status, financial exposure, insurance position and developments, while protecting privilege.",
+        "recommendation": "Agree specific disclosure of the claim, exposure, recovery position and material developments, while protecting privilege.",
         "relevance": "context-dependent",
         "rationale": "Specific disclosure establishes the known position against which transaction protections can be negotiated.",
         "owner": "seller",
@@ -246,7 +246,7 @@
       {
         "id": "confirm-insurance-and-recovery-rights",
         "type": "rectification",
-        "recommendation": "Confirm available insurance, indemnities, liability limitations and contribution rights, including compliance with notice, consent and preservation requirements.",
+        "recommendation": "Confirm available insurance and other recovery rights, and satisfy applicable notice, consent and preservation requirements.",
         "relevance": "context-dependent",
         "rationale": "Available recoveries may materially reduce the target's net exposure if they remain enforceable and properly preserved.",
         "owner": "target",
@@ -255,7 +255,7 @@
       {
         "id": "resolve-claim-before-completion",
         "type": "rectification",
-        "recommendation": "Require the matter to be settled, withdrawn, dismissed or otherwise resolved before completion, supported by an effective release.",
+        "recommendation": "Agree and implement a binding resolution before completion, including any remaining payments, releases and procedural steps.",
         "relevance": "context-dependent",
         "rationale": "A binding resolution can remove or materially reduce the identified transaction risk.",
         "owner": "seller",
@@ -264,7 +264,7 @@
       {
         "id": "litigation-resolution-condition-precedent",
         "type": "condition-precedent",
-        "recommendation": "Make completion conditional on settlement, dismissal, release or another objectively verifiable litigation milestone.",
+        "recommendation": "Agree objective litigation milestones as completion conditions, with a longstop date and proportionate waiver and termination rights.",
         "relevance": "context-dependent",
         "rationale": "A completion condition may be appropriate where the buyer should not assume an unresolved material risk.",
         "owner": "joint",
@@ -273,7 +273,7 @@
       {
         "id": "pre-completion-litigation-covenant",
         "type": "pre-completion-covenant",
-        "recommendation": "Restrict material admissions, settlements, waivers and changes in strategy between signing and completion without appropriate buyer consultation or consent.",
+        "recommendation": "If signing precedes completion, agree controls over material admissions, settlements and strategy changes, allowing timely compliance with procedural duties.",
         "relevance": "context-dependent",
         "rationale": "Interim controls prevent the target's position from being materially altered before completion.",
         "owner": "seller",
@@ -282,7 +282,7 @@
       {
         "id": "litigation-warranty",
         "type": "warranty",
-        "recommendation": "Obtain warranties covering the disclosed position, the absence of related undisclosed claims and material developments.",
+        "recommendation": "Agree appropriately qualified warranties covering the dispute position, related undisclosed claims and material developments, supported by specific disclosure.",
         "relevance": "context-dependent",
         "rationale": "Targeted warranties support the accuracy and completeness of the contractual risk record.",
         "owner": "seller",
@@ -291,7 +291,7 @@
       {
         "id": "specific-litigation-indemnity",
         "type": "indemnity",
-        "recommendation": "Allocate defined litigation losses to the seller, addressing liability caps, baskets, time limits, claim conduct, mitigation, recoveries and double recovery.",
+        "recommendation": "Agree a specific indemnity for defined litigation losses, with clear limits, claims control and treatment of recoveries.",
         "relevance": "context-dependent",
         "rationale": "A specific indemnity can allocate the financial consequences of a known, unresolved claim.",
         "owner": "seller",
@@ -300,7 +300,7 @@
       {
         "id": "litigation-ring-fencing-retention",
         "type": "escrow-or-retention",
-        "recommendation": "Hold part of the purchase price in escrow or retention until final judgment, executed settlement or expiry of an agreed claims period.",
+        "recommendation": "Agree proportionate escrow or retention for identified litigation exposure, with clear payment and release triggers.",
         "relevance": "context-dependent",
         "rationale": "Ring-fenced consideration provides security for an unresolved exposure.",
         "owner": "joint",
@@ -309,7 +309,7 @@
       {
         "id": "litigation-purchase-price-adjustment",
         "type": "price-adjustment",
-        "recommendation": "Reduce the purchase price where significant litigation risk affects valuation, taking account of expected loss, costs and available recoveries.",
+        "recommendation": "Agree any price adjustment for material litigation exposure, taking account of expected losses, costs and recoveries without double counting.",
         "relevance": "context-dependent",
         "rationale": "A direct price adjustment may be appropriate where the exposure affects the agreed valuation.",
         "owner": "joint",
@@ -318,7 +318,7 @@
       {
         "id": "litigation-closing-loss-reserve",
         "type": "completion-mechanic",
-        "recommendation": "Require an agreed loss reserve, debt-like treatment or working-capital adjustment, with clear accounting policies and no double counting.",
+        "recommendation": "Agree any litigation reserve or completion accounts adjustment, with clear accounting policies and no duplicate recovery.",
         "relevance": "context-dependent",
         "rationale": "The completion mechanism can reflect a measurable exposure without duplicating other protections.",
         "owner": "joint",
@@ -327,7 +327,7 @@
       {
         "id": "litigation-wi-insurance",
         "type": "other",
-        "recommendation": "Ask W&I underwriters whether the matter is excluded and explore specific cover or riders for related or secondary exposures.",
+        "recommendation": "Check W&I exclusions for the known dispute and explore available cover for related exposures without assuming the dispute is insured.",
         "relevance": "context-dependent",
         "rationale": "Early engagement can clarify whether any related exposure is capable of insurance protection.",
         "owner": "joint",
@@ -336,7 +336,7 @@
       {
         "id": "specific-mae-mac-walk-right",
         "type": "walk-away",
-        "recommendation": "Permit termination for defined material developments, such as significant escalation, adverse judgment or injunctive relief, subject to agreed thresholds and carve-outs.",
+        "recommendation": "Consider termination rights for defined material litigation developments, with objective thresholds and agreed exclusions.",
         "relevance": "context-dependent",
         "rationale": "A specific walk-right can protect the buyer against serious deterioration before completion.",
         "owner": "joint",
@@ -377,6 +377,46 @@
       {
         "id": "employee-arrangements",
         "question": "Are any necessary retention or handover arrangements agreed?"
+      }
+    ]
+  },
+  {
+    "id": "compliance-gaps-and-personal-data-breaches",
+    "title": "Compliance Gaps and Personal Data Breaches",
+    "category": "data-protection",
+    "summary": "The target may have compliance gaps or personal data breaches affecting how it collects, uses or protects personal data. Review the issues, potential exposure and remedial steps to identify any effect on the transaction and work needed before completion.",
+    "jurisdiction": {
+      "primary": "England and Wales",
+      "legal_system": "common-law"
+    },
+    "key_questions": [
+      {
+        "id": "dp-issue",
+        "question": "Has a data protection issue been identified?"
+      },
+      {
+        "id": "dp-type",
+        "question": "What does the issue concern?"
+      },
+      {
+        "id": "dp-ongoing",
+        "question": "Is the issue still ongoing?"
+      },
+      {
+        "id": "dp-notifications",
+        "question": "Have required breach notifications been made?"
+      },
+      {
+        "id": "dp-proceedings",
+        "question": "Are there related complaints, claims or regulatory enquiries? (select all that apply)"
+      },
+      {
+        "id": "dp-impact",
+        "question": "What is the likely impact on the target or deal?"
+      },
+      {
+        "id": "dp-remediation",
+        "question": "Can all necessary remedial steps be completed before completion?"
       }
     ]
   }

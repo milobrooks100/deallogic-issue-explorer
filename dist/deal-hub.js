@@ -52,12 +52,16 @@
     const issue = currentIssue();
     if (!issue) return [];
     const card = document.querySelector("#logic-card");
-    if (["customer-change-of-control", "missing-ip-assignment", "option-holders", "threatened-litigation", "debt-facilities-repayment", "share-ownership-and-transfer-restrictions", "key-employee-retention-and-employment-terms"].includes(issue.id) && card?.querySelector(".logic-section-heading")) {
+    if (["customer-change-of-control", "missing-ip-assignment", "option-holders", "threatened-litigation", "debt-facilities-repayment", "share-ownership-and-transfer-restrictions", "key-employee-retention-and-employment-terms", "compliance-gaps-and-personal-data-breaches"].includes(issue.id) && card?.querySelector(".logic-section-heading")) {
       return [...card.querySelectorAll(".logic-action")].map(row => ({
         issueId: issue.id, side: getTransactionSide(),
         actionId: stableActionIdFor(issue.id,row.querySelector("strong")?.textContent.trim(),row.querySelector("span:last-child")?.textContent.trim(),row.dataset.actionId),
-        components: issue.id === "key-employee-retention-and-employment-terms" && row.dataset.constituentIds?.includes(",")
-          ? window.DealLogicEmploymentActions?.(answers, getTransactionSide()).filter(action => row.dataset.constituentIds.split(",").includes(action.id)) : undefined,
+        components: row.dataset.constituentIds?.includes(",")
+          ? (issue.id === "key-employee-retention-and-employment-terms" ? window.DealLogicEmploymentActions?.(answers, getTransactionSide())
+            : issue.id === "compliance-gaps-and-personal-data-breaches" ? window.DealLogicDataProtectionActions?.(answers, getTransactionSide())
+            : issue.id === "debt-facilities-repayment" ? window.DealLogicDebtActions?.(answers, getTransactionSide())
+            : issue.id === "threatened-litigation" ? window.DealLogicLitigationActions?.(issue, getTransactionSide()) : undefined)
+            ?.filter(action => row.dataset.constituentIds.split(",").includes(action.id)) : undefined,
         priority: row.querySelector(".logic-priority")?.textContent.trim() || "Recommended",
         title: row.querySelector("strong")?.textContent.trim() || "Action",
         instruction: row.querySelector("span:last-child")?.textContent.trim() || ""
@@ -172,7 +176,7 @@
       if (hasEquivalentAction(item)) continue;
       state.actions.push({id:uid(),sourceKey:key,stableActionId:item.actionId||"",issueId:item.issueId,side:item.side,priority:item.priority,
         title:item.title,instruction:item.instruction,originalTitle:item.title,originalInstruction:item.instruction,
-        status:statuses[0],dealPhase:["share-ownership-and-transfer-restrictions", "key-employee-retention-and-employment-terms"].includes(item.issueId) ? libraryPhase(window.DealLogicActionRegistry.actionFor(item.issueId,"","",item.actionId)?.phase) : phaseFor(item.title,item.instruction),
+        status:statuses[0],dealPhase:["share-ownership-and-transfer-restrictions", "key-employee-retention-and-employment-terms", "compliance-gaps-and-personal-data-breaches", "debt-facilities-repayment", "threatened-litigation", "option-holders", "missing-ip-assignment", "customer-change-of-control"].includes(item.issueId) ? libraryPhase(window.DealLogicActionRegistry.actionFor(item.issueId,"","",item.actionId)?.phase) : phaseFor(item.title,item.instruction),
         urgency:"Medium",notes:"",createdAt:new Date().toISOString(),manual:false});
       added++;
     }
@@ -187,7 +191,7 @@
     const source=(typeof issues!=="undefined"?issues:[]).find(issue=>issue.id===issueId);
     if(source && !issueById(issueId)){
       const storedAnswers=parse(DealLogicStorage.getItem(`deallogic:deal-project:${activeDealProjectId()}:issue:${issueId}`),{});
-      state.issues.push({id:source.id,title:source.title,category:(typeof areas==="object"&&areas[source.category])||source.category,risk:currentIssue()?.id===issueId?riskLabel():"Not assessed",summary:source.summary||"Manually selected from the Action Library.",answers:storedAnswers,capturedAt:new Date().toISOString(),sourceDocument:"",sourceClause:"",sourceUrl:""});
+      state.issues.push({id:source.id,title:source.title,category:(typeof areas==="object"&&areas[source.category])||source.category,risk:currentIssue()?.id===issueId?riskLabel():"Not assessed",summary:currentIssue()?.id===issueId?liveSummary():source.summary||"Manually selected from the Action Library.",answers:storedAnswers,capturedAt:new Date().toISOString(),sourceDocument:"",sourceClause:"",sourceUrl:""});
     }
     state.actions.push({id:uid(),sourceKey:actionKey(issueId,item.side,item.title,item.instruction,action.id),stableActionId:action.id,issueId,side:item.side,iconKey:action.icon,priority:"Consider",title:item.title,instruction:item.instruction,originalTitle:item.title,originalInstruction:item.instruction,status:statuses[0],dealPhase:libraryPhase(action.phase),urgency:"Medium",notes:"",createdAt:new Date().toISOString(),manual:true,selectionSource:"library"});
     save();renderHub();renderProjectRail();document.dispatchEvent(new CustomEvent("deal-hub-actions-change"));toast("Action added to Deal Hub");return true;
@@ -331,14 +335,10 @@
   hub.addEventListener("drop",event=>{const target=event.target.closest("[data-drop-status]");if(!target)return;event.preventDefault();const action=actionById(event.dataTransfer.getData("text/plain"));if(action){action.status=target.dataset.dropStatus;save();renderHub();}});
   const priorRender=renderLogic;
   renderLogic=function(issue){priorRender(issue);decorateRecommendations();};
-  document.addEventListener("missing-ip-logic-rendered",decorateRecommendations);
-  document.addEventListener("option-holders-logic-rendered",decorateRecommendations);
-  document.addEventListener("threatened-litigation-logic-rendered",decorateRecommendations);
-  document.addEventListener("debt-facilities-logic-rendered",decorateRecommendations);
   const refreshIssuePicks = () => {
     // Keep deliberate selections, but refresh their side, priority and snapshot.
     const issue = currentIssue();
-    if (!["share-ownership-and-transfer-restrictions", "key-employee-retention-and-employment-terms"].includes(issue?.id)) return;
+    if (!["share-ownership-and-transfer-restrictions", "key-employee-retention-and-employment-terms", "compliance-gaps-and-personal-data-breaches", "debt-facilities-repayment", "threatened-litigation", "option-holders", "missing-ip-assignment", "customer-change-of-control"].includes(issue?.id)) return;
     const latest = new Map(available().map(item => [actionKey(item.issueId,item.side,item.title,item.instruction,item.actionId), item]));
     for (const [key, item] of picks) {
       if (item.issueId !== issue.id) continue;
@@ -347,8 +347,32 @@
     }
     decorateRecommendations();
   };
+  document.addEventListener("change-of-control-logic-rendered", () => {
+    refreshIssuePicks();
+    if (issueById(currentIssue()?.id)) renderHub();
+  });
+  document.addEventListener("missing-ip-logic-rendered", () => {
+    refreshIssuePicks();
+    if (issueById(currentIssue()?.id)) renderHub();
+  });
+  document.addEventListener("option-holders-logic-rendered", () => {
+    refreshIssuePicks();
+    if (issueById(currentIssue()?.id)) renderHub();
+  });
+  document.addEventListener("threatened-litigation-logic-rendered", () => {
+    refreshIssuePicks();
+    if (issueById(currentIssue()?.id)) renderHub();
+  });
   document.addEventListener("share-ownership-logic-rendered", refreshIssuePicks);
   document.addEventListener("employees-logic-rendered", refreshIssuePicks);
+  document.addEventListener("debt-facilities-logic-rendered", () => {
+    refreshIssuePicks();
+    if (issueById(currentIssue()?.id)) renderHub();
+  });
+  document.addEventListener("data-protection-logic-rendered", () => {
+    refreshIssuePicks();
+    if (issueById(currentIssue()?.id)) renderHub();
+  });
   renderProjectRail();
   renderHub();
   if(currentIssue())decorateRecommendations();

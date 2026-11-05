@@ -13,6 +13,7 @@
     <script src="./app-storage.js?v=1"></script>
     <script src="./app-theme.js"></script>
     <link rel="stylesheet" href="./account.css" />
+    <link rel="stylesheet" href="./privacy.css" />
     <style>
       html.app-loading body > main,
       html.app-loading body > footer { visibility: hidden; }
@@ -60,9 +61,9 @@
   <body>
     <div class="account-restore" role="status"><strong>Restoring your account…</strong><p id="account-restore-message">Loading your saved deal progress.</p><button type="button" onclick="location.reload()">Retry</button><button type="button" onclick="DealLogicStorage.useGuestForSession();location.reload()">Use browser progress</button></div>
     <main><section class="intro"><h2>Deal Map</h2><p>Start with a deal area, open an issue, then record what the diligence tells you. The risk score and protections respond as the picture becomes clearer.</p></section><section class="workspace"><aside class="map"><h3><span class="map-title-wrap"><span class="map-title" tabindex="0" aria-describedby="deal-map-guidance">Deal areas</span><span class="map-guidance" id="deal-map-guidance" role="tooltip">Open an area, then select the issue to explore.</span></span></h3><div class="map-branches" id="mind-map"></div></aside><section class="panel" id="panel"><div class="empty-state">Select a deal area to begin.</div></section></section></main>
-    <footer>Prototype content only — it is not legal advice and must be reviewed and tailored for each transaction and jurisdiction.</footer>
+    <footer>Prototype content only — it is not legal advice and must be reviewed and tailored for each transaction and jurisdiction. <a class="privacy-footer-link" href="./privacy.html">View privacy notice here.</a> <a class="privacy-footer-link" href="./terms.html">See terms of use.</a></footer>
     <script>
-      const areas={"commercial-contracts":"Material Contracts","intellectual-property":"Intellectual Property","corporate-and-shares":"Shares","litigation-and-disputes":"Disputes","finance-and-banking":"Finance","employees":"Employment"},order=Object.keys(areas).sort((a,b)=>areas[a].localeCompare(areas[b]));
+      const areas={"commercial-contracts":"Material Contracts","intellectual-property":"Intellectual Property","corporate-and-shares":"Shares","litigation-and-disputes":"Disputes","finance-and-banking":"Finance","employees":"Employment","data-protection":"Data Protection"},order=Object.keys(areas).sort((a,b)=>areas[a].localeCompare(areas[b]));
       const dealProjectStoreKey="deallogic:deal-projects:v1";
       const parseStored=(value,fallback)=>{try{return JSON.parse(value)||fallback}catch{return fallback}};
       const makeDealId=()=>crypto.randomUUID?crypto.randomUUID():`${Date.now()}-${Math.random().toString(36).slice(2)}`;
@@ -122,23 +123,27 @@
       exportReport = function () {
         const issue = current();
         if (issue.id !== "customer-change-of-control") return baseExportReport();
-        const saved = JSON.parse(DealLogicStorage.getItem(`deallogic:${issue.id}`) || "{}");
+        const saved = answers, clause = saved["contract-provision-exists"] || "Unanswered", trigger = saved["transaction-triggers-provision"] || "Unanswered";
         const importance = { "1": "Low importance", "2": "Moderate importance", "3": "High importance" };
-        const lines = [
-          `- ${issue.key_questions[0].question}\n  Response: ${saved["contract-provision-exists"] || "Unanswered"}`,
-          `- ${issue.key_questions[1].question}\n  Response: ${saved["transaction-triggers-provision"] || "Unanswered"}`,
-          `- ${issue.key_questions[2].question}\n  Response: ${saved["triggered-provision-consequences"] === "Other" ? (saved["other-consequence"] || "Other") : (saved["triggered-provision-consequences"] || "Unanswered")}`
-        ];
-        if (saved["triggered-provision-consequences"] === "Third party must provide consent") {
-          lines.push("- Is consent subject to a reasonableness standard?\n  Response: " + (saved["consent-reasonableness"] || "Unanswered"));
+        const lines = [`- ${issue.key_questions[0].question}\n  Response: ${clause}`];
+        if (clause !== "No" && clause !== "Unanswered") {
+          lines.push(`- ${issue.key_questions[1].question}\n  Response: ${trigger}`);
+          if (trigger !== "No" && trigger !== "Unanswered") {
+            const consequence = saved["triggered-provision-consequences"] || "Unanswered";
+            lines.push(`- ${issue.key_questions[2].question}\n  Response: ${consequence === "Other" ? (saved["other-consequence"] || "Other") : consequence}`);
+            if (consequence === "Third party must provide consent") lines.push(`- Is consent subject to a reasonableness standard?\n  Response: ${saved["consent-reasonableness"] || "Unanswered"}`);
+            lines.push(`- ${issue.key_questions[3].question}\n  Response: ${importance[String(saved["contract-importance"])] || "Unanswered"}`);
+            if (["Third party must provide consent", "Other"].includes(consequence)) {
+              const prospects = (saved["consent-prospects"] || []).map(value => value === "Other" ? (saved["other-consent-prospects"] || "Other") : value);
+              lines.push(`- ${issue.key_questions[4].question}\n  Response: ${prospects.join(", ") || "Unanswered"}`);
+            }
+          }
         }
-        lines.push(`- ${issue.key_questions[3].question}\n  Response: ${importance[String(saved["contract-importance"] || 1)]}`);
-        if (["Third party must provide consent", "Other"].includes(saved["triggered-provision-consequences"])) {
-          const prospects = (saved["consent-prospects"] || []).map((value) => value === "Other" ? (saved["other-consent-prospects"] || "Other") : value);
-          lines.push(`- ${issue.key_questions[4].question}\n  Response: ${prospects.join(", ") || "Unanswered"}`);
-        }
+        const side = getTransactionSide(), analysis = buildCocAnalysis(side);
         const score = riskScore();
-        const report = ["DEALLOGIC ISSUE REPORT", "", issue.title, `${areas[issue.category]} · ${issue.jurisdiction.primary}`, `Risk score: ${score}/5 — ${riskNames[score - 1]}`, "", "DILIGENCE ANSWERS", ...lines, "", "NOTE", "Prototype content only. Obtain transaction-specific legal advice."].join("\n");
+        const report = ["DEALLOGIC ISSUE REPORT", "", issue.title, `${areas[issue.category]} · ${issue.jurisdiction.primary}`, `Risk score: ${score}/5 — ${riskNames[score - 1]}`, "", "DILIGENCE ANSWERS", ...lines,
+          ...(analysis.ready ? ["", "SUMMARY", analysis.summary, "", "KEY DEAL IMPLICATIONS", ...analysis.implications.map(text => `- ${text}`),
+            "", `RECOMMENDED ACTIONS (${side})`, ...(analysis.actions.length ? analysis.actions.map(action => `- ${action.title} (${action.priority})\n  ${action.description}`) : ["There are no active transaction actions on the information recorded."])] : ["", "Answer all relevant questions to generate your deal analysis."]), "", "NOTE", "Prototype content only. Obtain transaction-specific legal advice."].join("\n");
         const blob = new Blob([report], { type: "text/plain" }); const url = URL.createObjectURL(blob); const link = document.createElement("a"); link.href = url; link.download = `${issue.id}-report.txt`; link.click(); URL.revokeObjectURL(url);
       };
     </script>
@@ -233,7 +238,7 @@
         workspace.insertAdjacentElement("beforebegin", libraryView);
         const settingsView = document.createElement("section");
         settingsView.className = "settings-view";
-        settingsView.innerHTML = '<div class="view-header"><h2>Settings</h2><p>Personalise your workspace and manage your account.</p></div><div class="settings-card settings-panel"><section class="settings-section theme-settings" aria-labelledby="appearance-heading"><div class="theme-settings-heading"><span class="eyebrow">Appearance</span><h3 id="appearance-heading">App colour</h3></div><fieldset class="theme-options"><legend class="sr-only">App colour</legend><label class="theme-option"><input type="radio" name="app-theme" value="grey" aria-label="Grey"><span>Grey</span></label><label class="theme-option"><input type="radio" name="app-theme" value="navy" aria-label="Navy blue"><span>Navy blue</span></label><label class="theme-option"><input type="radio" name="app-theme" value="forest" aria-label="Dark green"><span>Dark green</span></label></fieldset></section></div>';
+        settingsView.innerHTML = '<div class="view-header"><h2>Settings</h2><p>Personalise your workspace and manage your account.</p></div><div class="settings-card settings-panel"><section class="settings-section theme-settings" aria-labelledby="appearance-heading"><div class="theme-settings-heading"><span class="eyebrow">Appearance</span><h3 id="appearance-heading">App colour</h3></div><fieldset class="theme-options"><legend class="sr-only">App colour</legend><label class="theme-option"><input type="radio" name="app-theme" value="grey" aria-label="Grey"><span>Grey</span></label><label class="theme-option"><input type="radio" name="app-theme" value="navy" aria-label="Navy blue"><span>Navy blue</span></label><label class="theme-option"><input type="radio" name="app-theme" value="forest" aria-label="Dark green"><span>Dark green</span></label></fieldset></section><section class="settings-section privacy-settings" aria-label="Privacy and terms"><a class="tour-settings-button privacy-settings-link" href="./privacy.html"><i data-lucide="shield-check" aria-hidden="true"></i><span>Privacy and data</span></a><a class="tour-settings-button privacy-settings-link" href="./terms.html"><i data-lucide="file-text" aria-hidden="true"></i><span>Terms of use</span></a></section></div>';
         libraryView.insertAdjacentElement("afterend", settingsView);
         const radarView = document.createElement("section");
         radarView.className = "company-radar-view screen-hidden";
@@ -342,7 +347,7 @@
       const consentOutlookSentence = (factors, customText) => {
         if (factors.includes("Other")) {
           const text = customText.trim().replace(/[.!?]+$/, "");
-          return text ? `Obtaining consent or a waiver may be ${escapeLogicText(text.charAt(0).toLowerCase() + text.slice(1))}.` : "";
+          return text ? `Obtaining consent or a waiver may be ${text.charAt(0).toLowerCase() + text.slice(1)}.` : "";
         }
         const cost = factors.includes("Expensive") ? "costly" : factors.includes("Inexpensive") ? "inexpensive" : "";
         const likelihood = factors.includes("Unlikely") ? "difficult" : factors.includes("Likely") ? "straightforward" : "";
@@ -351,51 +356,47 @@
       };
       const getTransactionSide = () => activeDealProject()?.side || "Balanced";
       const setTransactionSide = (side) => {const store=getDealProjects(),project=store.projects.find(item=>item.id===store.activeProjectId);if(project){project.side=side;saveDealProjects(store);}};
-      const cocAction = (priority, title, instruction) => [priority, title, instruction];
+      const cocAction = (priority, id) => [priority, id];
       const cocActionMatrix = {
         Low: {
           notification: {
-            Seller: [cocAction("Required", "Post-completion action", "Serve contractual CoC notice post-closing."), cocAction("Recommended", "Warranty", "Include standard CoC warranty in SPA and disclose in Disclosure Letter.")],
-            Buyer: [cocAction("Recommended", "Warranty", "Include standard CoC warranty in SPA and disclose in Disclosure Letter."), cocAction("Consider", "Pre-completion covenant", "Jointly draft and agree CoC communication text pre-closing.")],
-            Balanced: [cocAction("Required", "Post-completion action", "Serve contractual CoC notice post-closing."), cocAction("Recommended", "Warranty", "Include standard CoC warranty in SPA and disclose in Disclosure Letter.")]
+            Seller: [cocAction("Required", "coc-serve-notice"), cocAction("Recommended", "coc-warranty-disclosure")],
+            Buyer: [cocAction("Recommended", "coc-warranty-disclosure"), cocAction("Consider", "coc-agree-communication")],
+            Balanced: [cocAction("Required", "coc-serve-notice"), cocAction("Recommended", "coc-warranty-disclosure")]
           },
           consent: {
-            Seller: [cocAction("Recommended", "Warranty", "Include standard CoC warranty in SPA and disclose in Disclosure Letter."), cocAction("Recommended", "Pre-completion covenant", "Include covenant in SPA to use commercially reasonable endeavors to seek consent."), cocAction("Consider", "Condition precedent", "Resist making consent a Condition Precedent (CP) to closing.")],
-            Buyer: [cocAction("Recommended", "Warranty", "Include standard CoC warranty in SPA and disclose in Disclosure Letter."), cocAction("Recommended", "Pre-completion covenant", "Include covenant in SPA to use commercially reasonable endeavors to seek consent.")],
-            Balanced: [cocAction("Recommended", "Warranty", "Include standard CoC warranty in SPA and disclose in Disclosure Letter."), cocAction("Recommended", "Pre-completion covenant", "Include covenant in SPA to use commercially reasonable endeavors to seek consent.")]
+            Seller: [cocAction("Recommended", "coc-warranty-disclosure"), cocAction("Recommended", "coc-seek-consent-covenant"), cocAction("Consider", "coc-consent-cp")],
+            Buyer: [cocAction("Recommended", "coc-warranty-disclosure"), cocAction("Recommended", "coc-seek-consent-covenant")],
+            Balanced: [cocAction("Recommended", "coc-warranty-disclosure"), cocAction("Recommended", "coc-seek-consent-covenant")]
           }
         },
         Moderate: {
           notification: {
-            Seller: [cocAction("Required", "Post-completion action", "Serve contractual CoC notice post-closing."), cocAction("Recommended", "Pre-completion covenant", "Jointly draft and agree CoC communication text pre-closing."), cocAction("Recommended", "Warranty", "Include standard CoC warranty in SPA and disclose in Disclosure Letter.")],
-            Buyer: [cocAction("Recommended", "Pre-completion covenant", "Jointly draft and agree CoC communication text pre-closing."), cocAction("Recommended", "Warranty", "Include standard CoC warranty in SPA and disclose in Disclosure Letter.")],
-            Balanced: [cocAction("Required", "Post-completion action", "Serve contractual CoC notice post-closing."), cocAction("Recommended", "Pre-completion covenant", "Jointly draft and agree CoC communication text pre-closing."), cocAction("Recommended", "Warranty", "Include standard CoC warranty in SPA and disclose in Disclosure Letter.")]
+            Seller: [cocAction("Required", "coc-serve-notice"), cocAction("Recommended", "coc-agree-communication"), cocAction("Recommended", "coc-warranty-disclosure")],
+            Buyer: [cocAction("Recommended", "coc-agree-communication"), cocAction("Recommended", "coc-warranty-disclosure")],
+            Balanced: [cocAction("Required", "coc-serve-notice"), cocAction("Recommended", "coc-agree-communication"), cocAction("Recommended", "coc-warranty-disclosure")]
           },
           consent: {
-            Seller: [cocAction("Recommended", "Pre-completion covenant", "Include covenant in SPA to use commercially reasonable endeavors to seek consent."), cocAction("Recommended", "Warranty", "Include standard CoC warranty in SPA and disclose in Disclosure Letter."), cocAction("Consider", "Condition precedent", "Resist making consent a Condition Precedent (CP) to closing.")],
-            Buyer: [cocAction("Recommended", "Pre-completion covenant", "Include covenant in SPA to use commercially reasonable endeavors to seek consent."), cocAction("Recommended", "Specific indemnity", "Include specific indemnity in SPA for third-party termination or losses."), cocAction("Consider", "Condition precedent", "Make obtaining third-party CoC consent a Condition Precedent (CP) to closing.")],
-            Balanced: [cocAction("Recommended", "Pre-completion covenant", "Include covenant in SPA to use commercially reasonable endeavors to seek consent."), cocAction("Recommended", "Specific indemnity", "Include specific indemnity in SPA for third-party termination or losses."), cocAction("Recommended", "Warranty", "Include standard CoC warranty in SPA and disclose in Disclosure Letter.")]
+            Seller: [cocAction("Recommended", "coc-seek-consent-covenant"), cocAction("Recommended", "coc-warranty-disclosure"), cocAction("Consider", "coc-consent-cp")],
+            Buyer: [cocAction("Recommended", "coc-seek-consent-covenant"), cocAction("Recommended", "coc-specific-indemnity"), cocAction("Consider", "coc-consent-cp")],
+            Balanced: [cocAction("Recommended", "coc-seek-consent-covenant"), cocAction("Recommended", "coc-specific-indemnity"), cocAction("Recommended", "coc-warranty-disclosure")]
           }
         },
         High: {
           notification: {
-            Seller: [cocAction("Required", "Post-completion action", "Serve contractual CoC notice post-closing."), cocAction("Recommended", "Pre-completion covenant", "Jointly draft and agree CoC communication text pre-closing."), cocAction("Recommended", "Warranty", "Include standard CoC warranty in SPA and disclose in Disclosure Letter.")],
-            Buyer: [cocAction("Recommended", "Pre-completion covenant", "Jointly draft and agree CoC communication text pre-closing."), cocAction("Recommended", "Warranty", "Include standard CoC warranty in SPA and disclose in Disclosure Letter."), cocAction("Consider", "Walk away or renegotiate", "Set a Longstop Date with walk-away rights if notice triggers termination rights.")],
-            Balanced: [cocAction("Required", "Post-completion action", "Serve contractual CoC notice post-closing."), cocAction("Recommended", "Pre-completion covenant", "Jointly draft and agree CoC communication text pre-closing."), cocAction("Recommended", "Warranty", "Include standard CoC warranty in SPA and disclose in Disclosure Letter.")]
+            Seller: [cocAction("Required", "coc-serve-notice"), cocAction("Recommended", "coc-agree-communication"), cocAction("Recommended", "coc-warranty-disclosure")],
+            Buyer: [cocAction("Recommended", "coc-agree-communication"), cocAction("Recommended", "coc-warranty-disclosure"), cocAction("Consider", "coc-longstop-rights")],
+            Balanced: [cocAction("Required", "coc-serve-notice"), cocAction("Recommended", "coc-agree-communication"), cocAction("Recommended", "coc-warranty-disclosure")]
           },
           consent: {
-            Seller: [cocAction("Recommended", "Pre-completion covenant", "Include covenant in SPA to use commercially reasonable endeavors to seek consent."), cocAction("Consider", "Walk away or renegotiate", "Set a Longstop Date with walk-away rights if consent is withheld."), cocAction("Consider", "Pre-completion covenant", "Jointly draft and agree CoC communication text pre-closing.")],
-            Buyer: [cocAction("Required", "Condition precedent", "Make obtaining third-party CoC consent a Condition Precedent (CP) to closing."), cocAction("Recommended", "Specific indemnity", "Include specific indemnity in SPA for third-party termination or losses."), cocAction("Consider", "Walk away or renegotiate", "Set a Longstop Date with walk-away rights if consent is withheld.")],
-            Balanced: [cocAction("Required", "Condition precedent", "Make obtaining third-party CoC consent a Condition Precedent (CP) to closing."), cocAction("Recommended", "Pre-completion covenant", "Include covenant in SPA to use commercially reasonable endeavors to seek consent."), cocAction("Consider", "Walk away or renegotiate", "Set a Longstop Date with walk-away rights if consent is withheld.")]
+            Seller: [cocAction("Recommended", "coc-seek-consent-covenant"), cocAction("Consider", "coc-longstop-rights"), cocAction("Consider", "coc-agree-communication")],
+            Buyer: [cocAction("Required", "coc-consent-cp"), cocAction("Recommended", "coc-specific-indemnity"), cocAction("Consider", "coc-longstop-rights")],
+            Balanced: [cocAction("Required", "coc-consent-cp"), cocAction("Recommended", "coc-seek-consent-covenant"), cocAction("Consider", "coc-longstop-rights")]
           }
         }
       };
-      renderLogic = function (issue) {
-        if (issue.id !== "customer-change-of-control") return standardDealLogic(issue);
-        const logicCard = document.querySelector("#logic-card");
-        const protectionsCard = document.querySelector("#recommendations-card");
-        protectionsCard?.remove();
-        logicCard.classList.add("coc-deal-logic");
+      const buildCocAnalysis = (transactionSide = getTransactionSide()) => {
+        transactionSide = ["Buyer", "Seller", "Balanced"].includes(transactionSide) ? transactionSide : "Balanced";
         const clause = answers["contract-provision-exists"] || "Unanswered";
         const trigger = answers["transaction-triggers-provision"] || "Unanswered";
         const consequence = answers["triggered-provision-consequences"] || "Unanswered";
@@ -406,57 +407,58 @@
         const customProspect = answers["other-consent-prospects"] || "";
         const consentRequired = consequence === "Third party must provide consent";
         const highImpact = importanceValue === 3;
-        const hasCompleteConsentOutlook = prospects.includes("Other") || prospects.some((factor) => ["Likely", "Unlikely", "Expensive", "Inexpensive"].includes(factor));
-        const challengingConsent = hasCompleteConsentOutlook && (prospects.includes("Unlikely") || prospects.includes("Expensive"));
         const consequenceComplete = consequence !== "Unanswered" && (consequence !== "Other" || Boolean(customConsequence.trim()));
         const downstreamComplete = consequenceComplete && Boolean(answers["contract-importance"]);
         const readyForLogic = clause === "No" || (clause !== "Unanswered" && trigger === "No") || (clause !== "Unanswered" && trigger !== "Unanswered" && downstreamComplete);
-        if (!readyForLogic) {
-          logicCard.classList.add("logic-standby");
-          logicCard.innerHTML = `<h3>Apply deal logic</h3><p>Answer all relevant questions to generate your deal analysis.</p>`;
-          return;
-        }
-        logicCard.classList.remove("logic-standby");
+        if (!readyForLogic) return { ready: false, actions: [] };
         let actions = [];
-        const transactionSide = getTransactionSide();
         let conclusion = "Record whether a relevant contractual provision exists to generate the transaction response.";
         let implications = ["The executed contract and transaction structure must be reviewed before a final deal response is determined."];
-        let residual = "The position remains unassessed until the contract and transaction trigger have been reviewed.";
         if (clause === "No") {
           conclusion = "No relevant change-of-control, assignment, termination or analogous provision has been identified. On the information recorded, this issue presents no transaction risk.";
           implications = ["No consent-related completion step is currently indicated."];
-          residual = "No residual risk is currently indicated, subject to confirming the contract review is complete.";
         } else if (clause !== "Unanswered" && trigger === "No") {
           conclusion = "A relevant provision exists, but it is not engaged by the proposed transaction. No consent-related completion risk has been identified.";
           implications = ["The deal structure should be retained in the diligence record with the trigger analysis."];
-          residual = "No residual transaction risk is currently indicated, subject to the recorded trigger analysis remaining correct.";
         } else if (clause !== "Unanswered" && trigger !== "Unanswered") {
           const consequenceText = consequence === "Third party must provide consent" ? "third-party consent" : consequence === "Third party must be notified" ? "notification of the third party" : consequence === "Other" ? (customConsequence || "a further contractual consequence") : consequence.toLowerCase();
           const importancePhrase = { Low: "marginally important", Moderate: "moderately important", High: "highly important" }[importance];
           const customConsequenceText = customConsequence ? `${customConsequence.charAt(0).toLowerCase()}${customConsequence.slice(1)}` : "a further contractual consequence";
           const triggerPhrase = trigger === "Partly / unclear" ? "may be triggered" : "is likely to be triggered";
-          const consequenceSentence = `A change-of-control clause which requires ${escapeLogicText(consequence === "Other" ? customConsequenceText : consequenceText)} ${triggerPhrase} by the transaction.`;
+          const consequenceSentence = `A change-of-control clause which requires ${(consequence === "Other" ? customConsequenceText : consequenceText)} ${triggerPhrase} by the transaction.`;
           conclusion = `${consequenceSentence} The contract is ${importancePhrase} for the target's business.${consentRequired ? ` ${consentOutlookSentence(prospects, customProspect)}` : ""}`;
           implications = consequence === "Other"
             ? ["Review the user-defined consequence against the contract and transaction timetable to determine the appropriate response."]
-            : [consentRequired ? "Completion timing may depend on obtaining consent or a waiver." : `The recorded consequence is ${escapeLogicText(consequenceText)} and should be built into the transaction plan.`];
+            : [consentRequired ? "Completion timing may depend on obtaining consent or a waiver." : `The recorded consequence is ${consequenceText} and should be built into the transaction plan.`];
           if (consequence !== "Other" && highImpact) implications.splice(1, 0, "The contract may materially affect revenue continuity, operations or valuation.");
           const matrixRequirement = consentRequired ? "consent" : consequence === "Third party must be notified" ? "notification" : "other";
           actions = matrixRequirement === "other"
-            ? [cocAction("Recommended", "Other", "Review the user-defined consequence and agree a tailored contractual and transaction response.")]
+            ? [cocAction("Recommended", "coc-tailored-response")]
             : cocActionMatrix[importance][matrixRequirement][transactionSide].map((action) => [...action]);
-          residual = challengingConsent || highImpact ? "Residual risk remains material until the required step is completed or adequate contractual and financial protection is agreed." : "Residual risk should reduce once the required contractual step and supporting evidence are completed.";
-          if (prospects.includes("Other") && customProspect) implications.push(`Additional recorded consideration: ${escapeLogicText(customProspect)}.`);
-        } else if (clause !== "Unanswered") {
-          conclusion = "A relevant provision has been identified, but it is not yet clear whether the proposed transaction triggers it.";
-          implications = ["The transaction structure and the clause definition require targeted review before a completion response is selected."];
-          actions.push(["Required", "Further diligence", "Confirm whether the proposed transaction falls within the clause definition and any exceptions."]);
-          residual = "Residual risk remains unresolved until the trigger analysis is complete.";
+          if (["Third party must provide consent", "Other"].includes(consequence) && prospects.includes("Other") && customProspect) implications.push(`Additional recorded consideration: ${customProspect}.`);
         }
+        const registry = window.DealLogicActionRegistry;
+        return { ready: true, summary: conclusion, implications, actions: actions.map(([priority, id]) => ({ ...registry.forSide(registry.actionFor("customer-change-of-control", "", "", id), transactionSide), priority })) };
+      };
+      renderLogic = function (issue) {
+        if (issue.id !== "customer-change-of-control") return standardDealLogic(issue);
+        const logicCard = document.querySelector("#logic-card");
+        document.querySelector("#recommendations-card")?.remove();
+        logicCard.classList.add("coc-deal-logic");
+        const transactionSide = getTransactionSide(), analysis = buildCocAnalysis(transactionSide);
+        if (!analysis.ready) {
+          logicCard.classList.add("logic-standby");
+          logicCard.innerHTML = `<h3>Apply deal logic</h3><p>Answer all relevant questions to generate your deal analysis.</p>`;
+          document.dispatchEvent(new CustomEvent("change-of-control-logic-rendered"));
+          return;
+        }
+        logicCard.classList.remove("logic-standby");
+        const { summary, implications, actions } = analysis;
         const cocNotes = `<div class="logic-note"><strong>Triggers:</strong> Change of Control triggers vary widely, ranging from share transfers to voting power reorganisations. Review key commercial contracts early to determine whether the proposed transaction structure actually triggers the clause.</div><div class="logic-note"><strong>Reasonableness:</strong> Where consent must not be unreasonably withheld, assess the refusal against the clause and its commercial context. Porton confirms that a party may reasonably withhold consent by considering its own relevant interest, such as the buyer being a direct competitor or lacking financial standing. <a href="https://caselaw.nationalarchives.gov.uk/ewhc/comm/2011/2895" target="_blank" rel="noopener noreferrer">Porton Capital v 3M [2011] EWHC 2895 (Comm), paragraphs 223 and 228</a></div>`;
-        const actionMarkup = actions.length ? actions.map(([priority, title, rationale]) => `<div class="logic-action" data-action-id="${escapeLogicText(window.DealLogicActionRegistry?.actionFor(issue.id, title, rationale)?.id || "")}"><span class="logic-icon" aria-hidden="true"></span><div><span class="logic-priority">${priority}</span><strong>${title}</strong><span>${rationale}</span></div></div>`).join("") : `<p>There are no active transaction actions on the information recorded.</p>`;
+        const actionMarkup = actions.length ? actions.map(action => `<div class="logic-action" data-action-id="${action.id}"><span class="logic-icon" aria-hidden="true"></span><div><span class="logic-priority" data-level="${action.priority.toLowerCase()}">${action.priority}</span><strong>${escapeLogicText(action.title)}</strong><span>${escapeLogicText(action.description)}</span></div></div>`).join("") : `<p>There are no active transaction actions on the information recorded.</p>`;
         const sidePicker = `<div class="logic-side-picker" aria-label="Transaction side selector"><button type="button" class="active" data-logic-side-toggle>${transactionSide}</button></div>`;
-        logicCard.innerHTML = `<h3>Apply deal logic</h3><section class="logic-section"><h4>Summary</h4><p class="logic-conclusion">${conclusion}</p></section><section class="logic-section"><h4>Key deal implications</h4><ul>${implications.map((item) => `<li>${item}</li>`).join("")}</ul></section><section class="logic-section"><div class="logic-section-heading"><h4>Recommended actions</h4>${sidePicker}</div>${actionMarkup}</section><section class="logic-section"><h4>Notes</h4>${cocNotes}</section>`;
+        logicCard.innerHTML = `<h3>Apply deal logic</h3><section class="logic-section"><h4>Summary</h4><p class="logic-conclusion">${escapeLogicText(summary)}</p></section><section class="logic-section"><h4>Key deal implications</h4><ul>${implications.map((item) => `<li>${escapeLogicText(item)}</li>`).join("")}</ul></section><section class="logic-section"><div class="logic-section-heading"><h4>Recommended actions</h4>${sidePicker}</div>${actionMarkup}</section><section class="logic-section"><h4>Notes</h4>${cocNotes}</section>`;
+        document.dispatchEvent(new CustomEvent("change-of-control-logic-rendered"));
       };
     </script>
     <script>
@@ -479,10 +481,11 @@
       });
     </script>
     <script>
-      const introSection = document.querySelector(".intro");
-      if (introSection && !document.querySelector(".transaction-side")) {
+      window.createTransactionSideControl = () => {
         const sideControl = document.createElement("div");
         sideControl.className = "transaction-side";
+        sideControl.setAttribute("role", "group");
+        sideControl.setAttribute("aria-label", "Transaction side selector");
         let expanded = false;
         const draw = () => {
           const storedSide = activeDealProject()?.side;
@@ -491,7 +494,7 @@
           if (!storedSide && !expanded) {
             const selectButton = document.createElement("button");
             selectButton.type = "button"; selectButton.className = "transaction-side-toggle"; selectButton.textContent = "Select Transaction Side";
-            selectButton.onclick = () => { expanded = true; draw(); };
+            selectButton.onclick = () => { expanded = true; draw(); sideControl.querySelector("button")?.focus(); };
             sideControl.append(selectButton);
             return;
           }
@@ -499,19 +502,29 @@
           options.className = "transaction-side-options";
           (expanded ? ["Buyer", "Seller", "Balanced"] : [selected]).forEach((side) => {
             const option = document.createElement("button");
-            option.type = "button"; option.textContent = side; option.classList.toggle("active", side === selected);
+            option.type = "button"; option.textContent = side;
+            option.setAttribute("aria-expanded", String(expanded));
+            option.setAttribute("aria-pressed", String(side === selected)); option.classList.toggle("active", side === selected);
             option.onclick = () => {
-              if (!expanded) { expanded = true; draw(); return; }
-              setTransactionSide(side); expanded = false; draw(); document.dispatchEvent(new CustomEvent("transaction-side-change")); if (current()) renderLogic(current());
+              if (!expanded) { expanded = true; draw(); sideControl.querySelector("button.active")?.focus(); return; }
+              setTransactionSide(side); expanded = false; draw(); document.dispatchEvent(new CustomEvent("transaction-side-change")); if (current()) renderLogic(current()); sideControl.querySelector("button")?.focus();
             };
             options.append(option);
           });
           sideControl.append(options);
         };
+        sideControl.collapse = () => { expanded = false; draw(); };
+        sideControl.addEventListener("keydown", event => {
+          if (event.key === "Escape" && expanded) {
+            expanded = false; draw(); sideControl.querySelector("button")?.focus();
+          }
+        });
         draw();
         document.addEventListener("transaction-side-change", draw);
-        introSection.append(sideControl);
-      }
+        return sideControl;
+      };
+      const introSection = document.querySelector(".intro");
+      if (introSection && !document.querySelector(".transaction-side")) introSection.append(window.createTransactionSideControl());
     </script>
     <script src="./action-registry.js"></script>
     <script src="./deal-hub.js"></script>
@@ -588,19 +601,6 @@
       };
 
       const renderLogicWithMissingIpAssignment = renderLogic;
-      const ipActionRegistry = {
-        R01: ["Rectification", "Execute a retroactive Confirmatory Deed of Assignment from the IP owner as a standard closing deliverable or completion condition."],
-        R02: ["Further diligence", "Prepare an asset-by-asset chain-of-title review covering owner status, engagement terms, assignments, licences, waivers, registry records and restrictions to establish secondary evidence of equitable title transferred by the IP owner."],
-        R03: ["Rectification", "Contact the IP owner early to clear assignment terms, offering nominal consideration or an execution fee if required to secure agreement."],
-        R04: ["Specific indemnity", "Include a specific indemnity for IP ownership or infringement claims by the IP owner or third parties, supported by a price escrow or retention holdback where appropriate."],
-        R05: ["Specific disclosure", "Formally disclose missing title documentation, incomplete historical records or IP owner title gaps against IP warranties to manage post-closing liability."],
-        R06: ["Warranty", "Set out fundamental IP title warranties paired with a capped indemnity to cover potential unknown title defects."],
-        R07: ["Rectification", "Assess the cost, timeframe and legal feasibility of an independent \"clean-room\" rewrite to replace the affected IP without creating derivative-work infringement risks."],
-        R08: ["Condition precedent", "Require a formal settlement, release and full IP transfer from the asserting IP owner as a condition precedent before completing the transaction."],
-        R09: ["Price adjustment", "Review claim validity and financial exposure to consider a purchase price adjustment or account for potential litigation costs."],
-        R10: ["Other", "Consider structuring the transaction as an asset purchase rather than a share purchase to isolate liabilities, while taking into account any ongoing IP risk."],
-        R11: ["Walk away or renegotiate", "Evaluate whether the IP owner's assertion significantly affects target value, considering potential termination rights or deal-term renegotiation."]
-      };
       const ipProfileActions = {
         profile1: {
           Buyer: [["Required", "R01"], ["Recommended", "R02"]],
@@ -646,7 +646,23 @@
         if (importance === "High importance" && difficulty === "Hard") return "profile2";
         return "profile1";
       };
-      const ipActionMarkup = (profile, side) => {
+      const missingIpVisibleIds = () => {
+        const ids = ["ip-assignment-gap"], gap = answers[ids[0]];
+        if (!["Yes", "Partly / unclear"].includes(gap)) return ids;
+        ids.push("ip-ownership-evidence");
+        if (!["No", "Partly / unclear"].includes(answers["ip-ownership-evidence"])) return ids;
+        for (const id of ["ip-importance", "ip-redesign-difficulty", "ip-owner-relationship", "ip-owner-claim"]) {
+          ids.push(id);
+          if (!answers[id] || answers[id] === "Unanswered") break;
+        }
+        return ids;
+      };
+      const missingIpAnswersComplete = () => answers["ip-assignment-gap"] === "No"
+        || (["Yes", "Partly / unclear"].includes(answers["ip-assignment-gap"]) && (answers["ip-ownership-evidence"] === "Yes"
+          || (missingIpVisibleIds().length === 6 && missingIpVisibleIds().every(id => answers[id] && answers[id] !== "Unanswered"))));
+      const missingIpActions = (profile, side) => {
+        side = ["Buyer", "Seller", "Balanced"].includes(side) ? side : "Balanced";
+        if (!missingIpAnswersComplete() || answers["ip-assignment-gap"] === "No" || answers["ip-ownership-evidence"] === "Yes") return [];
         const configuredActions = ipProfileActions[profile][side] || [];
         let selectedActions = configuredActions;
         if (side === "Buyer") {
@@ -657,42 +673,15 @@
             ? [...withoutRewritePlan, configuredRewritePlan || ["Consider", "R07"]]
             : withoutRewritePlan;
         }
-        return selectedActions.map(([priority, id]) => {
-        const [title, description] = ipActionRegistry[id];
-        const strictAssignment = profile === "profile2" && id === "R01" ? `${description} Treat execution as a strict condition precedent.` : description;
-        return `<div class="logic-action" data-action-id="${id}"><span class="logic-icon" aria-hidden="true"></span><div><span class="logic-priority">${priority}</span><strong>${title}</strong><span>${strictAssignment}</span></div></div>`;
-        }).join("");
+        const registry = window.DealLogicActionRegistry;
+        return selectedActions.map(([priority, id]) => ({ ...registry.forSide(registry.actionFor("missing-ip-assignment", "", "", id), side), priority }));
       };
-      renderLogic = function (issue) {
-        if (!isMissingIpAssignment(issue)) return renderLogicWithMissingIpAssignment(issue);
-        const logicCard = document.querySelector("#logic-card");
-        const protectionsCard = document.querySelector("#recommendations-card");
-        protectionsCard?.remove();
-        logicCard.classList.add("coc-deal-logic");
-        const gap = answers["ip-assignment-gap"] || "Unanswered";
-        const evidence = answers["ip-ownership-evidence"] || "Unanswered";
-        const noGap = gap === "No";
-        const ownershipConfirmed = evidence === "Yes";
-        const missingIpNotes = `<div class="logic-note"><strong>Contractor vs Employee Ownership:</strong> For copyright, the author is generally the first owner; copyright in works made by an employee in the course of employment generally belongs to the employer. This rule does not apply to IP created by an independent contractor. Copyright of works created by a founder prior to incorporation does not automatically transfer to the target. Without an express written assignment the target may not legally own its core assets, such as its logo, website or software. <a href="https://www.legislation.gov.uk/ukpga/1988/48/section/11" target="_blank" rel="noopener noreferrer">CDPA 1988, s.11</a></div><div class="logic-note"><strong>Assignment formalities:</strong> An assignment of existing copyright must be written and signed by or on behalf of the assignor. Check execution, consideration and the rights covered, and consider a deed where appropriate. <a href="https://www.legislation.gov.uk/ukpga/1988/48/section/90/data.html" target="_blank" rel="noopener noreferrer">CDPA 1988, s.90(3)</a>; <a href="https://www.legislation.gov.uk/ukpga/1988/48/section/91/data.html" target="_blank" rel="noopener noreferrer">s.91</a></div>`;
-        const finalAnswer = answers["ip-owner-claim"] || "Unanswered";
-        if (!noGap && !ownershipConfirmed && finalAnswer === "Unanswered") {
-          logicCard.classList.add("logic-standby");
-          logicCard.innerHTML = `<h3>Apply deal logic</h3><p>Answer all relevant questions to generate your deal analysis.</p>`;
-          return;
-        }
-        logicCard.classList.remove("logic-standby");
-        const transactionSide = getTransactionSide();
-        if (noGap || ownershipConfirmed) {
-          const conclusion = noGap
-            ? "No potentially missing IP assignment has been identified on the information recorded."
-            : "The target has complete, executed and enforceable documents evidencing ownership or a sufficient right to use the affected IP.";
-          const implication = noGap
-            ? "No title-gap remediation is currently indicated."
-            : "No corrective assignment or additional title protection is currently indicated.";
-          logicCard.innerHTML = `<h3>Apply deal logic</h3><section class="logic-section"><h4>Summary</h4><p class="logic-conclusion">${conclusion}</p></section><section class="logic-section"><h4>Key deal implications</h4><ul><li>${implication}</li></ul></section><section class="logic-section"><div class="logic-section-heading"><h4>Recommended actions</h4></div><p>There are no active transaction actions on the information recorded.</p></section><section class="logic-section"><h4>Notes</h4>${missingIpNotes}</section>`;
-          document.dispatchEvent(new CustomEvent("missing-ip-logic-rendered"));
-          return;
-        }
+      const ipActionMarkup = (profile, side) => missingIpActions(profile, side).map(action =>
+        `<div class="logic-action" data-action-id="${action.id}"><span class="logic-icon" aria-hidden="true"></span><div><span class="logic-priority" data-level="${action.priority.toLowerCase()}">${action.priority}</span><strong>${escapeLogicText(action.title)}</strong><span>${escapeLogicText(action.description)}</span></div></div>`
+      ).join("");
+      const missingIpAnalysis = () => {
+        if (answers["ip-assignment-gap"] === "No") return { summary: "No potentially missing IP assignment has been identified on the information recorded.", implications: ["No title-gap remediation is currently indicated."] };
+        if (answers["ip-ownership-evidence"] === "Yes") return { summary: "The target has complete, executed and enforceable documents evidencing ownership or a sufficient right to use the affected IP.", implications: ["No corrective assignment or additional title protection is currently indicated."] };
         const importance = answers["ip-importance"];
         const difficulty = answers["ip-redesign-difficulty"];
         const owner = answers["ip-owner-relationship"];
@@ -707,10 +696,53 @@
           activeClaimFallback: ["An ownership claim, royalty demand or litigation threat has been asserted in relation to the affected IP.", "The claim requires pre-completion settlement and financial protection; the practical replacement route should also be assessed proportionately.", "Residual risk remains material until the claim is settled, the IP position is secured and the financial exposure is quantified."]
         }[profile];
         const recordedFacts = `The IP is recorded as ${importance.toLowerCase()}, replacement is ${difficulty.toLowerCase()}, and the IP owner is ${owner.toLowerCase()}.`;
+        return { summary: `${profileCopy[0]} ${recordedFacts}`, implications: [profileCopy[1], `The recorded claim status is ${claim.toLowerCase()}.`] };
+      };
+      renderLogic = function (issue) {
+        if (!isMissingIpAssignment(issue)) return renderLogicWithMissingIpAssignment(issue);
+        const logicCard = document.querySelector("#logic-card");
+        const protectionsCard = document.querySelector("#recommendations-card");
+        protectionsCard?.remove();
+        logicCard.classList.add("coc-deal-logic");
+        const gap = answers["ip-assignment-gap"] || "Unanswered";
+        const evidence = answers["ip-ownership-evidence"] || "Unanswered";
+        const noGap = gap === "No";
+        const ownershipConfirmed = evidence === "Yes";
+        const missingIpNotes = `<div class="logic-note"><strong>Contractor vs Employee Ownership:</strong> For copyright, the author is generally the first owner; copyright in works made by an employee in the course of employment generally belongs to the employer. This rule does not apply to IP created by an independent contractor. Copyright of works created by a founder prior to incorporation does not automatically transfer to the target. Without an express written assignment the target may not legally own its core assets, such as its logo, website or software. <a href="https://www.legislation.gov.uk/ukpga/1988/48/section/11" target="_blank" rel="noopener noreferrer">CDPA 1988, s.11</a></div><div class="logic-note"><strong>Assignment formalities:</strong> An assignment of existing copyright must be written and signed by or on behalf of the assignor. Check execution, consideration and the rights covered, and consider a deed where appropriate. <a href="https://www.legislation.gov.uk/ukpga/1988/48/section/90/data.html" target="_blank" rel="noopener noreferrer">CDPA 1988, s.90(3)</a>; <a href="https://www.legislation.gov.uk/ukpga/1988/48/section/91/data.html" target="_blank" rel="noopener noreferrer">s.91</a></div>`;
+        if (!missingIpAnswersComplete()) {
+          logicCard.classList.add("logic-standby");
+          logicCard.innerHTML = `<h3>Apply deal logic</h3><p>Answer all relevant questions to generate your deal analysis.</p>`;
+          document.dispatchEvent(new CustomEvent("missing-ip-logic-rendered"));
+          return;
+        }
+        logicCard.classList.remove("logic-standby");
+        const transactionSide = getTransactionSide();
+        if (noGap || ownershipConfirmed) {
+          const analysis = missingIpAnalysis();
+          logicCard.innerHTML = `<h3>Apply deal logic</h3><section class="logic-section"><h4>Summary</h4><p class="logic-conclusion">${escapeLogicText(analysis.summary)}</p></section><section class="logic-section"><h4>Key deal implications</h4><ul><li>${escapeLogicText(analysis.implications[0])}</li></ul></section><section class="logic-section"><div class="logic-section-heading"><h4>Recommended actions</h4></div><p>There are no active transaction actions on the information recorded.</p></section><section class="logic-section"><h4>Notes</h4>${missingIpNotes}</section>`;
+          document.dispatchEvent(new CustomEvent("missing-ip-logic-rendered"));
+          return;
+        }
+        const profile = missingIpProfile();
+        const analysis = missingIpAnalysis();
         const actions = ipActionMarkup(profile, transactionSide);
         const sidePicker = `<div class="logic-side-picker" aria-label="Transaction side selector"><button type="button" class="active" data-logic-side-toggle>${transactionSide}</button></div>`;
-        logicCard.innerHTML = `<h3>Apply deal logic</h3><section class="logic-section"><h4>Summary</h4><p class="logic-conclusion">${profileCopy[0]} ${recordedFacts}</p></section><section class="logic-section"><h4>Key deal implications</h4><ul><li>${profileCopy[1]}</li><li>The recorded claim status is ${claim.toLowerCase()}.</li></ul></section><section class="logic-section"><div class="logic-section-heading"><h4>Recommended actions</h4>${sidePicker}</div>${actions}</section><section class="logic-section"><h4>Notes</h4>${missingIpNotes}</section>`;
+        logicCard.innerHTML = `<h3>Apply deal logic</h3><section class="logic-section"><h4>Summary</h4><p class="logic-conclusion">${escapeLogicText(analysis.summary)}</p></section><section class="logic-section"><h4>Key deal implications</h4><ul>${analysis.implications.map(text => `<li>${escapeLogicText(text)}</li>`).join("")}</ul></section><section class="logic-section"><div class="logic-section-heading"><h4>Recommended actions</h4>${sidePicker}</div>${actions}</section><section class="logic-section"><h4>Notes</h4>${missingIpNotes}</section>`;
         document.dispatchEvent(new CustomEvent("missing-ip-logic-rendered"));
+      };
+      const exportReportBeforeMissingIp = exportReport;
+      exportReport = function () {
+        const issue = current();
+        if (!isMissingIpAssignment(issue)) return exportReportBeforeMissingIp();
+        const complete = missingIpAnswersComplete(), side = getTransactionSide(), score = riskScore();
+        const analysis = complete ? missingIpAnalysis() : null, actions = complete ? missingIpActions(missingIpProfile(), side) : [];
+        const report = ["DEALLOGIC ISSUE REPORT", "", issue.title, `${areas[issue.category]} · ${issue.jurisdiction.primary}`, `Risk score: ${score}/5 — ${riskNames[score - 1]}`,
+          "", "DILIGENCE ANSWERS", ...missingIpVisibleIds().map(id => `- ${issue.key_questions.find(q => q.id === id).question}\n  Response: ${answers[id] || "Unanswered"}`),
+          ...(complete ? ["", "SUMMARY", analysis.summary, "", "KEY DEAL IMPLICATIONS", ...analysis.implications.map(text => `- ${text}`),
+            "", `RECOMMENDED ACTIONS (${side})`, ...(actions.length ? actions.map(action => `- ${action.title} (${action.priority})\n  ${action.description}`) : ["There are no active transaction actions on the information recorded."])] : ["", "Answer all relevant questions to generate your deal analysis."]),
+          "", "NOTE", "Prototype content only. Obtain transaction-specific legal advice."].join("\n");
+        const url = URL.createObjectURL(new Blob([report], { type: "text/plain" }));
+        const link = document.createElement("a"); link.href = url; link.download = `${issue.id}-report.txt`; link.click(); URL.revokeObjectURL(url);
       };
     </script>
     <script>
@@ -834,13 +866,21 @@
         const issue = current();
         if (!isOptionHolders(issue)) return exportReportBeforeOptionHolders();
         const responseIds = ["option-rights-exist", "award-register-reconciliation", "award-transaction-treatment", "award-treatment-implementation", "award-dilution-percentage", "award-tax-payroll-position"];
-        const lines = optionHolderQuestions.map((question, index) => {
+        const lines = optionHolderQuestions.flatMap((question, index) => {
+          if (index > 0 && !["Yes", "Possibly — the records are incomplete or inconsistent"].includes(answers[responseIds[0]])) return [];
           const response = answers[responseIds[index]];
           const display = Array.isArray(response) ? (response.join(", ") || "Unanswered") : (response || "Unanswered");
           return `- ${question}\n  Response: ${display}`;
         });
+        const complete = optionHolderAnswersComplete(), side = getTransactionSide();
+        const actions = complete ? optionHolderActions(side) : new Map();
         const score = riskScore();
-        const report = ["DEALLOGIC ISSUE REPORT", "", issue.title, `${areas[issue.category]} · ${issue.jurisdiction.primary}`, `Risk score: ${score}/5 — ${riskNames[score - 1]}`, "", "DILIGENCE ANSWERS", ...lines, "", "NOTE", "Prototype content only. Obtain transaction-specific legal advice."].join("\n");
+        const report = ["DEALLOGIC ISSUE REPORT", "", issue.title, `${areas[issue.category]} · ${issue.jurisdiction.primary}`, `Risk score: ${score}/5 — ${riskNames[score - 1]}`, "", "DILIGENCE ANSWERS", ...lines,
+          ...(complete ? ["", "SUMMARY", optionHolderSummary(), "", "KEY DEAL IMPLICATIONS", ...optionHolderImplications().map(text => `- ${text}`),
+            "", `RECOMMENDED ACTIONS (${side})`, ...(actions.size ? [...actions].map(([id, priority]) => {
+              const action = window.DealLogicActionRegistry.forSide(window.DealLogicActionRegistry.actionFor(issue.id, "", "", id), side);
+              return `- ${action.title} (${priority})\n  ${action.description}`;
+            }) : ["There are no active transaction actions on the information recorded."])] : ["", "Answer all relevant questions to generate your deal analysis."]), "", "NOTE", "Prototype content only. Obtain transaction-specific legal advice."].join("\n");
         const blob = new Blob([report], { type: "text/plain" });
         const url = URL.createObjectURL(blob);
         const link = document.createElement("a");
@@ -850,23 +890,13 @@
         URL.revokeObjectURL(url);
       };
 
-      const optionHolderActionRegistry = {
-        OH01: ["Further diligence", "Reconcile the option and award registers, historic exercises/cancellations and fully diluted cap table."],
-        OH03: ["Completion mechanic", "Agree an award treatment schedule covering each holder, award, treatment and closing step."],
-        OH04: ["Rectification", "Obtain required board/shareholder approvals and draft the required documents."],
-        OH05: ["Third-party consent", "Obtain each required holder consent, election, release or power of attorney."],
-        OH06: ["Completion mechanic", "Produce the final closing cap table."],
-        OH07: ["Further diligence", "Obtain transaction-specific share-scheme tax and payroll advice."],
-        OH08: ["Condition precedent", "Make completion conditional on effective implementation of the agreed treatment and delivery of the final cap table and supporting documents."],
-        OH10: ["Specific indemnity", "Allocate identified residual award, dilution or tax exposure through an indemnity, potentially supported by escrow, retention or a price adjustment."],
-        OH11: ["Walk away or renegotiate", "Where material awards cannot be implemented by completion, consider delaying/restructuring the deal, renegotiating value or requiring an alternative route to the agreed capital structure."]
-      };
       const optionPriorityRank = { Consider: 1, Recommended: 2, Required: 3 };
       const addOptionHolderAction = (actions, id, priority) => {
         const currentPriority = actions.get(id);
         if (!currentPriority || optionPriorityRank[priority] > optionPriorityRank[currentPriority]) actions.set(id, priority);
       };
       const optionHolderActions = (side) => {
+        side = ["Buyer", "Seller", "Balanced"].includes(side) ? side : "Balanced";
         const actions = new Map();
         const sidePriority = (buyer, seller, balanced) => ({ Buyer: buyer, Seller: seller, Balanced: balanced }[side] || balanced);
         const existence = answers["option-rights-exist"] || "Unanswered";
@@ -906,24 +936,14 @@
         const identifiedExposure = reconciliation === "No — material discrepancies or undocumented awards exist" || implementation === "No — it cannot currently be implemented by completion" || tax === "Reviewed — treatment must change or a material cost arises";
         if (identifiedExposure) addOptionHolderAction(actions, "OH10", side === "Buyer" ? "Required" : side === "Seller" ? "Consider" : "Recommended");
         if (blocked && material) addOptionHolderAction(actions, "OH11", sidePriority("Recommended", "Required", "Recommended"));
-        // Keep every required action; fill remaining places with recommended,
-        // then consider actions. Some critical buyer profiles require eight.
-        const requiredCount = [...actions.values()].filter(priority => priority === "Required").length;
+        // All nine registered steps fit the shared limit without truncation.
         return new Map([...actions.entries()]
-          .sort((left, right) => optionPriorityRank[right[1]] - optionPriorityRank[left[1]])
-          .slice(0, Math.max(7, requiredCount)));
+          .sort((left, right) => optionPriorityRank[right[1]] - optionPriorityRank[left[1]]));
       };
       const optionHolderActionMarkup = (actions, side) => [...actions.entries()]
-        .sort((left, right) => optionPriorityRank[right[1]] - optionPriorityRank[left[1]])
         .map(([id, priority]) => {
-          const [title, description] = optionHolderActionRegistry[id];
-          const sellerDescriptions = {
-            OH08: "Limit any completion condition to material unresolved award steps, with objective satisfaction criteria and an agreed deadline.",
-            OH10: "Limit any indemnity for identified award or tax exposure by scope, cap and duration; resist overlapping escrow, retention or price deductions.",
-            OH11: "Where material awards block completion, propose a workable alternative treatment or timetable and agree its effect on value."
-          };
-          const instruction = side === "Seller" ? (sellerDescriptions[id] || description) : description;
-          return `<div class="logic-action" data-action-id="${id}"><span class="logic-icon" aria-hidden="true"></span><div><span class="logic-priority" data-level="${priority.toLowerCase()}">${priority}</span><strong>${title}</strong><span>${instruction}</span></div></div>`;
+          const action = window.DealLogicActionRegistry.forSide(window.DealLogicActionRegistry.actionFor("option-holders", "", "", id), side);
+          return `<div class="logic-action" data-action-id="${id}"><span class="logic-icon" aria-hidden="true"></span><div><span class="logic-priority" data-level="${priority.toLowerCase()}">${priority}</span><strong>${escapeLogicText(action.title)}</strong><span>${escapeLogicText(action.description)}</span></div></div>`;
         }).join("");
       const optionHolderSummary = () => {
         const existence = answers["option-rights-exist"] || "Unanswered";
@@ -973,7 +993,19 @@
         if (["Reviewed — treatment must change or a material cost arises", "Not reviewed — tax-advantaged awards are present", "Tax status is unknown"].includes(tax)) implications.push("Tax and payroll treatment must be resolved before the award mechanics are implemented.");
         return implications.slice(0, 4);
       };
-      const optionHolderNotes = `<div class="logic-note"><strong>Exit Mechanics:</strong> Whether options accelerate, lapse, cash out, or roll over is governed by scheme rules, grant terms, articles, and resolutions. The board must act within these explicit powers; unsupported changes risk contractual disputes and tax liabilities.</div><div class="logic-note"><strong>Tax and Payroll:</strong> Option exercise or cash cancellation may create Income Tax, PAYE and NIC liabilities; the outcome depends on the scheme, reliefs and transaction facts. Check scheme-specific tax treatment and ERS reporting separately before implementing the exit. <a href="https://www.gov.uk/hmrc-internal-manuals/employment-income-manual/eim11875" target="_blank" rel="noopener noreferrer">HMRC: PAYE on option gains and cancellation payments</a>; <a href="https://www.gov.uk/guidance/how-employment-related-securities-work-if-youre-an-employer" target="_blank" rel="noopener noreferrer">HMRC: ERS reporting</a></div>`;
+      const optionHolderNotes = `<div class="logic-note"><strong>Exit Mechanics:</strong> Whether options accelerate, lapse, cash out, or roll over is governed by scheme rules, grant terms, articles, and resolutions. The board must act within these explicit powers; unsupported changes risk contractual disputes and tax liabilities.</div><div class="logic-note"><strong>Tax and Payroll:</strong> Option exercise or cash cancellation may create Income Tax, PAYE and NIC liabilities; the outcome depends on the scheme, reliefs and transaction facts. Check scheme-specific tax treatment and ERS reporting separately before implementing the exit. <a href="https://www.gov.uk/hmrc-internal-manuals/employment-income-manual/eim12300" target="_blank" rel="noopener noreferrer">HMRC: PAYE on securities option gains</a>; <a href="https://www.gov.uk/guidance/how-employment-related-securities-work-if-youre-an-employer" target="_blank" rel="noopener noreferrer">HMRC: ERS reporting</a></div>`;
+
+      const optionHolderAnswersComplete = () => {
+        const existence = answers["option-rights-exist"] || "Unanswered";
+        return existence === "No — confirmed against the relevant records" || (
+          ["Yes", "Possibly — the records are incomplete or inconsistent"].includes(existence) &&
+          answers["award-register-reconciliation"] && answers["award-register-reconciliation"] !== "Unanswered" &&
+          (answers["award-transaction-treatment"] || []).length > 0 &&
+          answers["award-treatment-implementation"] && answers["award-treatment-implementation"] !== "Unanswered" &&
+          answers["award-dilution-percentage"] && answers["award-dilution-percentage"] !== "Unanswered" &&
+          answers["award-tax-payroll-position"] && answers["award-tax-payroll-position"] !== "Unanswered"
+        );
+      };
 
       const renderLogicBeforeOptionHolders = renderLogic;
       renderLogic = function (issue) {
@@ -983,17 +1015,11 @@
         protectionsCard?.remove();
         logicCard.classList.add("coc-deal-logic");
         const existence = answers["option-rights-exist"] || "Unanswered";
-        const questionnaireComplete = existence === "No — confirmed against the relevant records" || (
-          ["Yes", "Possibly — the records are incomplete or inconsistent"].includes(existence) &&
-          answers["award-register-reconciliation"] && answers["award-register-reconciliation"] !== "Unanswered" &&
-          (answers["award-transaction-treatment"] || []).length > 0 &&
-          answers["award-treatment-implementation"] && answers["award-treatment-implementation"] !== "Unanswered" &&
-          answers["award-dilution-percentage"] && answers["award-dilution-percentage"] !== "Unanswered" &&
-          answers["award-tax-payroll-position"] && answers["award-tax-payroll-position"] !== "Unanswered"
-        );
+        const questionnaireComplete = optionHolderAnswersComplete();
         if (!questionnaireComplete) {
           logicCard.classList.add("logic-standby");
           logicCard.innerHTML = `<h3>Apply deal logic</h3><p>Answer all relevant questions to generate your deal analysis.</p>`;
+          document.dispatchEvent(new CustomEvent("option-holders-logic-rendered"));
           return;
         }
         logicCard.classList.remove("logic-standby");
@@ -1202,9 +1228,14 @@
       exportReport = function () {
         const issue = current();
         if (!isThreatenedLitigation(issue)) return exportReportBeforeThreatenedLitigation();
-        const lines = litigationQuestions.map((question, index) => `- ${question}\n  Response: ${answers[litigationQuestionIds[index]] || "Unanswered"}`);
+        const lines = litigationQuestions.flatMap((question, index) => index > 0 && ![2, 3].includes(litigationAnswerIndex(litigationQuestionIds[0])) ? [] : [`- ${question}\n  Response: ${answers[litigationQuestionIds[index]] || "Unanswered"}`]);
+        const complete = litigationAnswerComplete(), side = getTransactionSide();
+        const actions = complete ? litigationActions(issue, side) : [];
         const score = riskScore();
-        const report = ["DEALLOGIC ISSUE REPORT", "", issue.title, `${areas[issue.category]} · ${issue.jurisdiction.primary}`, `Risk score: ${score}/5 — ${riskNames[score - 1]}`, "", "DILIGENCE ANSWERS", ...lines, "", "NOTE", "Prototype content only. Obtain transaction-specific legal advice."].join("\n");
+        const report = ["DEALLOGIC ISSUE REPORT", "", issue.title, `${areas[issue.category]} · ${issue.jurisdiction.primary}`, `Risk score: ${score}/5 — ${riskNames[score - 1]}`, "", "DILIGENCE ANSWERS", ...lines,
+          ...(complete ? ["", "SUMMARY", litigationSummary(), "", "KEY DEAL IMPLICATIONS", ...litigationImplications().map(text => `- ${text}`),
+            "", `RECOMMENDED ACTIONS (${side})`, ...(actions.length ? actions.map(action => `- ${action.title} (${action.priority})\n  ${action.description}`) : ["There are no active transaction actions on the information recorded."])]
+            : ["", "Answer all relevant questions to generate your deal analysis."]), "", "NOTE", "Prototype content only. Obtain transaction-specific legal advice."].join("\n");
         const blob = new Blob([report], { type: "text/plain" });
         const url = URL.createObjectURL(blob);
         const link = document.createElement("a");
@@ -1228,7 +1259,7 @@
         "litigation-risk-transfer": ["", "Cover or recovery is confirmed, and required notices and approvals have been satisfied.", "Notice has been given, but coverage or recovery remains undecided.", "Cover or recovery may exist, but notice, consent or other steps remain outstanding.", "Cover or recovery is unavailable, denied or insufficient.", "Insurance and other recovery rights have not been reviewed or remain unknown."],
         "litigation-resolution": ["", "The matter is resolved through a binding settlement, withdrawal or full release.", "Resolution documents are signed, but final steps remain outstanding.", "A credible resolution route is likely before completion, but it is not yet binding.", "Resolution is possible, but timing or terms are uncertain.", "Resolution before completion is unlikely or no viable route has been identified.", "The prospect of resolution before completion has not been assessed."]
       };
-      const litigationSummary = () => litigationQuestionIds
+      const litigationSummary = () => ([2, 3].includes(litigationAnswerIndex(litigationQuestionIds[0])) ? litigationQuestionIds : litigationQuestionIds.slice(0, 1))
         .map((id) => litigationSummaryCopy[id]?.[litigationAnswerIndex(id)] || "")
         .filter(Boolean)
         .join(" ");
@@ -1244,22 +1275,6 @@
         return implications.slice(0, 4);
       };
       const litigationPriorityRank = { Consider: 1, Recommended: 2, Required: 3 };
-      const litigationActionTitles = {
-        "conduct-dispute-diligence": "Further diligence",
-        "obtain-contentious-advice": "Specialist legal assessment",
-        "specific-litigation-disclosure": "Specific disclosure",
-        "confirm-insurance-and-recovery-rights": "Confirm insurance and recovery rights",
-        "resolve-claim-before-completion": "Resolve before completion",
-        "litigation-resolution-condition-precedent": "Condition precedent",
-        "pre-completion-litigation-covenant": "Pre-completion conduct covenant",
-        "litigation-warranty": "Specific warranty",
-        "specific-litigation-indemnity": "Specific indemnity",
-        "litigation-ring-fencing-retention": "Ring-fencing or purchase-price retention",
-        "litigation-purchase-price-adjustment": "Purchase-price adjustment",
-        "litigation-closing-loss-reserve": "Closing balance-sheet loss reserve or net working capital true-up",
-        "litigation-wi-insurance": "Warranty and indemnity insurance",
-        "specific-mae-mac-walk-right": "Specific MAE/MAC walk-right"
-      };
       const litigationActionOrder = [
         "resolve-claim-before-completion",
         "litigation-resolution-condition-precedent",
@@ -1282,18 +1297,71 @@
         const current = actions.get(id);
         if (!current || litigationPriorityRank[priority] > litigationPriorityRank[current]) actions.set(id, priority);
       };
-      const limitLitigationFamily = (actions, ids, maximum, preference) => {
-        const active = ids.filter((id) => actions.has(id));
-        if (active.length <= maximum) return;
-        const preferenceIndex = new Map(preference.map((id, index) => [id, index]));
-        const retained = active
-          .sort((left, right) => litigationPriorityRank[actions.get(right)] - litigationPriorityRank[actions.get(left)]
-            || (preferenceIndex.get(left) ?? 99) - (preferenceIndex.get(right) ?? 99))
-          .slice(0, maximum);
-        active.filter((id) => !retained.includes(id)).forEach((id) => actions.delete(id));
-      };
-      const litigationActions = (issue, side) => {
-        const actionsById = new Map((issue.recommended_actions || []).map((action) => [action.id, action]));
+      const litigationConsolidations = [
+  [
+    [
+      "conduct-dispute-diligence",
+      "obtain-contentious-advice"
+    ],
+    "Dispute review and legal advice",
+    {
+      "Buyer": "Review the claim, deadlines and exposure, and obtain privileged legal advice on defences, remedies and settlement options.",
+      "Seller": "Review the claim, deadlines and exposure, and obtain privileged legal advice on defences, remedies and settlement options.",
+      "Balanced": "Review the claim, deadlines and exposure, and obtain privileged legal advice on defences, remedies and settlement options."
+    }
+  ],
+  [
+    [
+      "specific-litigation-disclosure",
+      "litigation-warranty"
+    ],
+    "Dispute warranties and disclosure",
+    {
+      "Buyer": "Seek warranties covering the dispute position and related undisclosed claims, supported by specific disclosure of exposure and developments while protecting privilege.",
+      "Seller": "Give appropriately qualified dispute warranties and make fair, specific disclosure of claims, exposure and developments while protecting privilege.",
+      "Balanced": "Agree appropriately qualified dispute warranties and specific disclosure of claims, exposure and developments while protecting privilege."
+    }
+  ],
+  [
+    [
+      "resolve-claim-before-completion",
+      "litigation-resolution-condition-precedent"
+    ],
+    "Resolution and completion conditions",
+    {
+      "Buyer": "Require effective resolution and evidence of completed settlement steps, backed by objective completion conditions, a longstop date and clear waiver and termination rights.",
+      "Seller": "Complete agreed settlement steps and releases, limiting completion conditions to material, measurable milestones with an agreed longstop and proportionate termination rights.",
+      "Balanced": "Implement agreed settlement steps and releases, backed by objective completion conditions, an agreed longstop date and proportionate waiver and termination rights."
+    }
+  ],
+  [
+    [
+      "specific-litigation-indemnity",
+      "litigation-ring-fencing-retention"
+    ],
+    "Litigation indemnity and security",
+    {
+      "Buyer": "Seek a specific litigation indemnity supported by proportionate escrow or retention, with clear claims control, release triggers and no double recovery.",
+      "Seller": "Limit any litigation indemnity and supporting retention to defined exposure, with agreed caps, claim periods, claims control, recovery credits and release triggers.",
+      "Balanced": "Agree a specific litigation indemnity and proportionate escrow or retention, with defined limits, claims control, recovery credits and release triggers."
+    }
+  ],
+  [
+    [
+      "litigation-purchase-price-adjustment",
+      "litigation-closing-loss-reserve"
+    ],
+    "Litigation price and accounts treatment",
+    {
+      "Buyer": "Seek an appropriate price reduction and litigation reserve or completion accounts adjustment for substantiated exposure, allowing for recoveries and avoiding duplicate deductions.",
+      "Seller": "Limit litigation price reductions and reserves or completion accounts deductions to substantiated exposure and agreed accounting policies, allowing for recoveries and avoiding double counting.",
+      "Balanced": "Agree litigation price adjustments and reserves or completion accounts treatment for substantiated exposure, with clear accounting policies, recovery credits and no double counting."
+    }
+  ]
+];
+      const litigationActions = (issue, side, consolidate = true) => {
+        side = ["Buyer", "Seller", "Balanced"].includes(side) ? side : "Balanced";
+        const registry = window.DealLogicActionRegistry;
         const actions = new Map();
         const add = (id, buyer, balanced, seller) => addLitigationAction(actions, id, litigationSidePriority(side, buyer, balanced, seller));
         const [threat, stage, merits, impact, transfer, resolution] = litigationQuestionIds.map(litigationAnswerIndex);
@@ -1473,30 +1541,30 @@
           }
         }
 
-        const economicPreference = fundamental
-          ? ["litigation-purchase-price-adjustment", "litigation-ring-fencing-retention", "litigation-closing-loss-reserve"]
-          : (noRecovery || recoveryStepsOpen || transfer === 5 || resolutionUncertain || resolutionUnlikely)
-            ? ["litigation-ring-fencing-retention", "litigation-purchase-price-adjustment", "litigation-closing-loss-reserve"]
-            : ["litigation-closing-loss-reserve", "litigation-purchase-price-adjustment", "litigation-ring-fencing-retention"];
-        limitLitigationFamily(actions, ["litigation-ring-fencing-retention", "litigation-purchase-price-adjustment", "litigation-closing-loss-reserve"], 2, economicPreference);
-        const completionPreference = fundamental || resolutionUnlikely
-          ? ["litigation-resolution-condition-precedent", "specific-mae-mac-walk-right", "resolve-claim-before-completion"]
-          : ["resolve-claim-before-completion", "litigation-resolution-condition-precedent", "specific-mae-mac-walk-right"];
-        limitLitigationFamily(actions, ["resolve-claim-before-completion", "litigation-resolution-condition-precedent", "specific-mae-mac-walk-right"], 2, completionPreference);
-
+        let result = [...actions.entries()].map(([id, priority]) => {
+          const action = registry.forSide(registry.actionFor(issue.id, "", "", id), side);
+          return { ...action, recommendation: action.description, priority, constituentIds: [id] };
+        });
+        // Merge only when needed; every triggered step and its stable identity survives.
+        if (consolidate) for (const [ids, title, descriptions] of litigationConsolidations) {
+          if (result.length <= 9) break;
+          const components = result.filter(action => ids.includes(action.id));
+          if (components.length < 2) continue;
+          const priority = components.reduce((best, action) => litigationPriorityRank[action.priority] > litigationPriorityRank[best] ? action.priority : best, "Consider");
+          const description = descriptions[side];
+          result = result.filter(action => !ids.includes(action.id));
+          result.push({ ...components.find(action => action.id === ids[0]), title, description, recommendation: description, priority, constituentIds: ids });
+        }
         const orderIndex = new Map(litigationActionOrder.map((id, index) => [id, index]));
-        return [...actions.entries()]
-          .map(([id, priority]) => ({ ...actionsById.get(id), priority }))
-          .filter((action) => action.id)
-          .sort((left, right) => litigationPriorityRank[right.priority] - litigationPriorityRank[left.priority]
-            || (orderIndex.get(left.id) ?? 99) - (orderIndex.get(right.id) ?? 99))
-          .slice(0, 9);
+        return result.sort((left, right) => litigationPriorityRank[right.priority] - litigationPriorityRank[left.priority]
+          || (orderIndex.get(left.id) ?? 99) - (orderIndex.get(right.id) ?? 99));
       };
+      window.DealLogicLitigationActions = (issue, side) => litigationActions(issue, side, false);
       const litigationActionMarkup = (actions) => actions.length
         ? actions.map((action) => {
           const priority = action.priority || (action.relevance === "required" ? "Required" : action.relevance === "recommended" ? "Recommended" : "Consider");
-          const title = litigationActionTitles[action.id] || titleCase(action.type);
-          return `<div class="logic-action" data-action-id="${escapeLogicText(action.id)}"><span class="logic-icon" aria-hidden="true"></span><div><span class="logic-priority" data-level="${priority.toLowerCase()}">${priority}</span><strong>${escapeLogicText(title)}</strong><span>${escapeLogicText(action.recommendation)}</span></div></div>`;
+          const title = action.title;
+          return `<div class="logic-action" data-action-id="${escapeLogicText(action.id)}" data-constituent-ids="${escapeLogicText(action.constituentIds.join(","))}"><span class="logic-icon" aria-hidden="true"></span><div><span class="logic-priority" data-level="${priority.toLowerCase()}">${priority}</span><strong>${escapeLogicText(title)}</strong><span>${escapeLogicText(action.recommendation)}</span></div></div>`;
         }).join("")
         : `<p>There are no active transaction actions on the information recorded.</p>`;
 
@@ -1510,6 +1578,7 @@
         if (!litigationAnswerComplete()) {
           logicCard.classList.add("logic-standby");
           logicCard.innerHTML = `<h3>Apply deal logic</h3><p>Answer all relevant questions to generate your deal analysis.</p>`;
+          document.dispatchEvent(new CustomEvent("threatened-litigation-logic-rendered"));
           return;
         }
         logicCard.classList.remove("logic-standby");
@@ -1525,6 +1594,7 @@
     <script src="./debt-facilities.js"></script>
     <script src="./share-ownership.js"></script>
     <script src="./employees.js"></script>
+    <script src="./data-protection.js"></script>
     <script src="./action-playbooks.js"></script>
     <script src="./onboarding.js"></script>
     <script type="module" src="./account.js"></script>

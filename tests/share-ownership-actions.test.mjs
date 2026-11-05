@@ -94,6 +94,10 @@ test("every permutation and perspective stays capped without dropping required a
       if (!complete) { assert.equal(actions.length, 0); continue; }
       assert.equal(new Set(actions.map(action => action.id)).size, actions.length);
       assert.ok(actions.every(action => action.title && action.description && action.icon));
+      for(const action of actions){
+        assert.equal((action.description.match(/[.!?]/g)||[]).length,1);
+        assert.ok(action.description.split(/\s+/).length<=32,action.description);
+      }
       const required = ["SO10"];
       const ownership = responses["share-ownership-verified"];
       const restrictions = responses["share-transfer-restrictions"];
@@ -111,4 +115,48 @@ test("every permutation and perspective stays capped without dropping required a
   };
   visit(0);
   assert.equal(checked, 15625);
+});
+
+test('Share Ownership catalogue uses perspective wording except neutral verification and completion mechanics',()=>{
+ const registry=context.window.DealLogicActionRegistry,topic=registry.byTopic.get('share-ownership-and-transfer-restrictions');
+ for(const action of topic.actions){
+  const copy=['Buyer','Seller','Balanced'].map(side=>registry.forSide(action,side).description);
+  assert.equal(new Set(copy).size,['SO01','SO10'].includes(action.id)?1:3,action.id);
+  for(const sentence of copy){assert.equal((sentence.match(/[.!?]/g)||[]).length,1);assert.ok(sentence.split(/\s+/).length<=32,sentence);}
+ }
+ assert.match(registry.forSide(registry.actionFor(topic.id,'','','SO06'),'Seller').description,/each seller’s own title/);
+ assert.match(registry.forSide(registry.actionFor(topic.id,'','','SO08'),'Seller').description,/Resist broad title indemnities/);
+});
+
+test('conditional instructions remain factual and change perspective where the advice differs',()=>{
+ const cases=[
+  [{'share-ownership-verified':'evidence-gaps'},'SO02'],
+  [{'share-ownership-verified':'disputed'},'SO02'],
+  [{'share-seller-participation':'unchecked'},'SO03'],
+  [{'share-transfer-restrictions':'unchecked'},'SO04'],
+  [{'share-security-exists':'yes','share-security-release':'release-agreed'},'SO05'],
+  [{'share-ownership-verified':'evidence-gaps'},'SO08']
+ ];
+ for(const [changes,id] of cases){
+  const descriptions=['Buyer','Seller','Balanced'].map(side=>actionsFor({...clean,...changes},side).find(a=>a.id===id).description);
+  assert.notEqual(descriptions[0],descriptions[1],id);
+ }
+ assert.match(actionsFor({...clean,'share-ownership-verified':'evidence-gaps'},'Seller').find(a=>a.id==='SO08').description,/Assess.*before accepting/);
+ assert.equal(actionsFor(clean,'invalid').map(a=>a.description).join('|'),actionsFor(clean,'Balanced').map(a=>a.description).join('|'));
+});
+
+test('Apply deal logic and reports use identical perspective-specific instructions and priorities',async()=>{
+ const issues=JSON.parse(await readFile(new URL('../dist/issues.json',import.meta.url),'utf8'));
+ const issue=issues.find(i=>i.id==='share-ownership-and-transfer-restrictions');
+ const card={innerHTML:'',classList:{add(){},toggle(){}}};let report;
+ const app=vm.createContext({window:{},answers:{...adverse},current:()=>issue,getTransactionSide:()=> 'Balanced',riskScore:()=>1,riskNames:['No risk','Low risk','Medium risk','High risk','Very high risk'],areas:{shares:'Shares'},renderPanel(){},renderLogic(){},exportReport(){},CustomEvent:class{},document:{querySelector:s=>s==='#logic-card'?card:null,dispatchEvent(){},createElement:()=>({click(){}})},Blob:class{constructor(parts){report=parts.join('');}},URL:{createObjectURL:()=>'',revokeObjectURL(){}}});
+ vm.runInContext(registrySource,app);vm.runInContext(source,app);
+ for(const side of ['Buyer','Seller','Balanced']){
+  app.getTransactionSide=()=>side;app.renderLogic(issue);app.exportReport();
+  for(const action of actionsFor(adverse,side)){
+   assert.ok(card.innerHTML.includes(action.description));assert.ok(report.includes(action.description));
+   assert.ok(report.includes(`${action.title} (${action.priority})`));assert.ok(card.innerHTML.includes(`data-action-id="${action.id}"`));
+  }
+  assert.ok((card.innerHTML.match(/class="logic-action"/g)||[]).length<=8);
+ }
 });
