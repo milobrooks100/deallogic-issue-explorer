@@ -6,8 +6,12 @@
 .privacy-page a { color: #24566e; text-underline-offset: 3px; overflow-wrap: anywhere; }
 .privacy-page a:focus-visible { outline: 3px solid #8aa9a0; outline-offset: 4px; border-radius: 3px; }
 .privacy-header { max-width: 960px; margin: auto; padding: 32px 24px 20px; display: flex; align-items: center; justify-content: space-between; gap: 24px; }
-.privacy-header a:first-child { display: inline-flex; align-items: center; gap: 10px; color: #252a2a; text-decoration: none; font-weight: 650; font-size: 20px; }
-.privacy-header a:last-child { font-size: 14px; }
+.privacy-header > .privacy-brand { display: inline-flex; align-items: center; gap: 10px; color: #252a2a; text-decoration: none; font-size: 20px; }
+.privacy-brand-wordmark { white-space: nowrap; font-weight: 400; letter-spacing: -.04em; }
+.privacy-brand-wordmark strong { font-weight: 750; }
+.privacy-header-actions { display: flex; align-items: center; justify-content: flex-end; flex-wrap: wrap; gap: 12px 20px; font-size: 14px; }
+.privacy-header-actions .privacy-download { display: inline-flex; align-items: center; min-height: 44px; padding: 10px 14px; border: 1px solid #d9dfdf; border-radius: 12px; background: white; color: #252a2a; text-decoration: none; font-weight: 600; }
+.privacy-header-actions .privacy-download:hover { background: #e6edf1; }
 .privacy-notice { max-width: 912px; margin: 0 auto 48px; padding: 40px 48px; border: 1px solid #e4e5e3; border-radius: 24px; background: #fff; }
 .privacy-notice h1 { font-size: clamp(28px, 4vw, 38px); line-height: 1.15; letter-spacing: -.035em; margin: 0 0 18px; }
 .privacy-notice h2 { font-size: 22px; line-height: 1.3; letter-spacing: -.02em; margin: 36px 0 12px; }
@@ -22,7 +26,8 @@
 .privacy-skip { position: fixed; top: 8px; left: 8px; transform: translateY(-160%); background: #fff; padding: 10px 16px; z-index: 1; }
 .privacy-skip:focus { transform: translateY(0); }
 @media (max-width: 600px) {
-  .privacy-header { padding: 20px 16px; gap: 16px; }
+  .privacy-header { padding: 20px 16px; gap: 16px; flex-wrap: wrap; }
+  .privacy-header-actions { justify-content: flex-start; }
   .privacy-notice { margin: 0 12px 24px; padding: 26px 20px; border-radius: 18px; }
   .privacy-notice h2 { font-size: 20px; }
   .privacy-table th, .privacy-table td { padding: 10px 8px; }
