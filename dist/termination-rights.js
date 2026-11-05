@@ -165,6 +165,82 @@
     if (resolution === "no") { score += 1; atLeast(3); }
     return Math.max(floor, Math.min(4, Math.max(1, score)));
   }
+  const summaryCopy = {
+    existence: {
+      yes: "A breach or termination risk has been identified under a material contract.",
+      suspected: "A breach or termination risk is suspected under a material contract, but has not been confirmed.",
+      unknown: "It is unclear whether a material contract is affected by a breach or termination risk."
+    },
+    type: {
+      breach: "The recorded concern relates to a breach.",
+      "termination-right": "The recorded concern relates to a counterparty termination right.",
+      both: "The recorded concern relates to both a breach and a counterparty termination right.",
+      unknown: "The nature of the concern is unknown."
+    },
+    stage: {
+      "no-notice": "No formal notice has been reported.",
+      "breach-notice": "A breach notice has been received.",
+      "termination-notice": "A termination notice has been received.",
+      ended: "The contract has ended.",
+      unknown: "The stage reached is unknown."
+    },
+    impact: {
+      minimal: "The likely impact on the target or deal is assessed as minimal.",
+      manageable: "The likely impact on the target or deal is assessed as manageable.",
+      significant: "The likely impact on the target or deal is assessed as significant.",
+      fundamental: "The likely impact on the target or deal is assessed as fundamental.",
+      unknown: "The likely impact on the target or deal is unknown."
+    },
+    resolution: {
+      addressed: "The issue and its consequences are reported to have been addressed.",
+      yes: "The issue and its consequences are expected to be capable of being addressed before completion.",
+      partly: "The issue and its consequences can only partly be addressed before completion.",
+      no: "The issue and its consequences cannot be addressed before completion.",
+      unknown: "It is unclear whether the issue and its consequences can be addressed before completion."
+    }
+  };
+  const implicationCopy = {
+    absent: "No specific completion protection is indicated by these answers; wider contract compliance remains unconfirmed.",
+    fundamental: "The issue may undermine the deal; reassess whether it can proceed and on what terms.",
+    significant: "The issue may materially affect operations or value; reflect the exposure in the deal terms.",
+    uncertain: "Clarify the issue and its impact before agreeing how the deal risk is allocated.",
+    ended: "Contract continuity has been lost; assess replacement arrangements and any remaining exposure.",
+    termination: "Contract continuity is at risk; confirm the termination timetable and available alternatives.",
+    breach: "The breach notice may create time-sensitive dependencies; confirm response and cure deadlines.",
+    stageUnknown: "Confirm the contract’s current status and any deadlines affecting completion.",
+    outstanding: "Allocate responsibility and costs for unresolved matters continuing after completion.",
+    planned: "The completion timetable depends on the planned remedial or replacement arrangements being delivered.",
+    readinessUnknown: "Confirm the resolution timetable before deciding whether the target is ready for completion.",
+    residualImpact: "Reconcile the reported resolution with the continuing impact before treating the exposure as closed.",
+    addressed: "Confirm the resolution is effective and covers any remaining liabilities or continuity needs."
+  };
+  function buildAnalysis(state) {
+    const visible = visibleIds(state);
+    if (!visible.every(id => valid(id, state[id]))) return null;
+    const [existence, type, stage, impact, resolution] = ids.map(id => state[id]);
+    if (existence === "no") return {
+      summary: "No breach or termination risk has been identified under a material contract on the recorded assessment. This does not confirm wider contract compliance or the absence of other contractual risks.",
+      implications: [implicationCopy.absent]
+    };
+    const summary = [summaryCopy.existence[existence], summaryCopy.type[type], summaryCopy.stage[stage], summaryCopy.impact[impact], summaryCopy.resolution[resolution]].join(" ");
+    // One statement per theme, with explicit precedence rather than truncation.
+    const implications = [];
+    if (impact === "fundamental") implications.push(implicationCopy.fundamental);
+    else if (impact === "significant") implications.push(implicationCopy.significant);
+    else if (existence !== "yes" || type === "unknown" || impact === "unknown") implications.push(implicationCopy.uncertain);
+
+    if (stage === "ended") implications.push(implicationCopy.ended);
+    else if (stage === "termination-notice") implications.push(implicationCopy.termination);
+    else if (stage === "breach-notice") implications.push(implicationCopy.breach);
+    else if (stage === "unknown") implications.push(implicationCopy.stageUnknown);
+
+    if (["partly", "no"].includes(resolution)) implications.push(implicationCopy.outstanding);
+    else if (resolution === "yes") implications.push(implicationCopy.planned);
+    else if (resolution === "unknown") implications.push(implicationCopy.readinessUnknown);
+    else if (["significant", "fundamental"].includes(impact)) implications.push(implicationCopy.residualImpact);
+    else implications.push(implicationCopy.addressed);
+    return {summary, implications};
+  }
   const previousRiskScore = riskScore;
   riskScore = function () { return isTermination(current()) ? assessRisk(answers) : previousRiskScore(); };
   const previousRenderLogic = renderLogic;
@@ -172,8 +248,15 @@
     if (!isTermination(issue)) return previousRenderLogic(issue);
     document.querySelector("#recommendations-card")?.remove();
     const card = document.querySelector("#logic-card");
-    card.classList.add("coc-deal-logic", "logic-standby");
-    card.innerHTML = '<h3>Apply deal logic</h3><p>Answer all relevant questions to generate your deal analysis.</p>';
+    card.classList.add("coc-deal-logic");
+    const analysis = buildAnalysis(answers);
+    if (!analysis) {
+      card.classList.add("logic-standby");
+      card.innerHTML = '<h3>Apply deal logic</h3><p>Answer all relevant questions to generate your deal analysis.</p>';
+      return;
+    }
+    card.classList.remove("logic-standby");
+    card.innerHTML = `<h3>Apply deal logic</h3><section class="logic-section"><h4>Summary</h4><p class="logic-conclusion">${escape(analysis.summary)}</p></section><section class="logic-section"><h4>Key deal implications</h4><ul>${analysis.implications.map(text => `<li>${escape(text)}</li>`).join("")}</ul></section>`;
   };
   const previousRenderPanel = renderPanel;
   renderPanel = function () {
@@ -209,7 +292,9 @@
     normalize(answers);
     const visible = visibleIds(answers);
     const lines = issue.key_questions.filter(question => visible.includes(question.id)).map(({id, question}) => `- ${question}\n  Response: ${fields[id].options.find(([value]) => value === answers[id])?.[1] || "Unanswered"}`);
-    const report = ["DEALLOGIC ISSUE REPORT", "", issue.title, `${areas[issue.category]} · ${issue.jurisdiction.primary}`, issue.summary, `Risk score: ${assessRisk(answers)}/5 — ${riskNames[assessRisk(answers) - 1]}`, "", "DILIGENCE ANSWERS", ...lines, "", "NOTE", "Deal analysis and recommended actions are not yet configured. Prototype content only. Obtain transaction-specific legal advice."].join("\n");
+    const analysis = buildAnalysis(answers);
+    const analysisLines = analysis ? ["", "SUMMARY", analysis.summary, "", "KEY DEAL IMPLICATIONS", ...analysis.implications.map(text => `- ${text}`)] : [];
+    const report = ["DEALLOGIC ISSUE REPORT", "", issue.title, `${areas[issue.category]} · ${issue.jurisdiction.primary}`, issue.summary, `Risk score: ${assessRisk(answers)}/5 — ${riskNames[assessRisk(answers) - 1]}`, "", "DILIGENCE ANSWERS", ...lines, ...analysisLines, "", "NOTE", "Recommended actions are not yet configured. Prototype content only. Obtain transaction-specific legal advice."].join("\n");
     const url = URL.createObjectURL(new Blob([report], {type: "text/plain"}));
     const link = document.createElement("a");
     link.href = url;

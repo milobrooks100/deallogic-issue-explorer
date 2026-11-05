@@ -2,7 +2,7 @@
 
 ## Scope and current delivery
 
-Material Contracts (`commercial-contracts`), issue `termination-rights-and-material-breaches`. England and Wales. Questionnaire and risk-assessment delivery using the existing Change-of-Control issue header, introduction, risk bar, facts card, question/info/select styling, reset and standby panel. Change-of-Control remains unchanged. The introduction gives examples of important contracts. Change-of-control triggers remain in their separate issue.
+Material Contracts (`commercial-contracts`), issue `termination-rights-and-material-breaches`. England and Wales. Questionnaire, risk-assessment and prose-analysis delivery using the existing Change-of-Control issue header, introduction, risk bar, facts card, question/info/select styling, reset and standby panel. Change-of-Control remains unchanged. The introduction gives examples of important contracts. Change-of-control triggers remain in their separate issue.
 
 ## Questionnaire
 
@@ -18,7 +18,21 @@ Start with Q1 only, with Unanswered as an empty placeholder. No at Q1 ends the r
 
 ## Outputs and deferred work
 
-Summary, implications, recommendations, legal notes, action registry entries and Hub capture remain deferred. Apply deal logic retains the shared standby text. Reports export visible questions, current answer labels and the same calculated risk score and label as the live indicator, with a note explaining that deal analysis and actions are not yet configured. Buyer/Seller/Balanced does not change risk.
+Completed routes show Summary followed by Key deal implications using the shared Change-of-Control section styling. Incomplete routes retain the shared standby text. Reports export visible questions, current answer labels, the live risk score and the same summary and implications when complete. Recommendations, legal notes, action registry entries and Hub capture remain deferred. Buyer/Seller/Balanced does not change factual analysis or risk.
+
+## Summary and implication rules
+
+`buildAnalysis` returns null until Q1 No or every reachable answer is valid. Q1 No produces a scoped negative finding, expressly leaving wider contract compliance unconfirmed, plus one implication. Hidden downstream answers never contribute.
+
+For other completed routes, canonical `summaryCopy` provides one sentence per answer: existence, issue type, stage, impact and resolution. Suspected concerns remain unconfirmed; Unknown stays explicit. A reported notice is not treated as proof of an enforceable termination right. Planned resolution is an expectation rather than an achieved cure. Already addressed is qualified as a reported position; it does not erase the recorded stage or impact.
+
+Canonical `implicationCopy` is selected by three themes without truncating an overlong list:
+
+1. **Deal impact:** Fundamental takes precedence, then Significant, then uncertainty if existence is not confirmed or type/impact is Unknown. Otherwise omit this theme.
+2. **Contract continuity:** Select one fixed statement for Contract ended, Termination notice, Breach notice or Unknown stage. No formal notice has no separate continuity implication.
+3. **Completion readiness:** Partly/No resolution selects responsibility and costs for unresolved matters; Yes selects delivery dependency; Unknown selects timetable clarification. Already addressed with Significant/Fundamental impact selects reconciliation of the reported resolution and continuing impact; other addressed cases select effectiveness and remaining exposure checks.
+
+Each completed route therefore produces one to three concise, unique implications. Severe impact, loss of continuity and unresolved post-completion matters can all appear together. Uncertainty and answer-level detail remain in the prose even when a more material implication takes precedence.
 
 ## Agreed risk decision table
 
@@ -44,4 +58,4 @@ Worked examples: suspected breach, no notice, minimal impact, Yes resolution = 2
 
 ## Verification
 
-Build and runtime checks cover the script and storage boundary. Focused tests cover the agreed examples, starting scores, adjustments, protected minimums, conditional remediation reductions, live/report score parity and delegation to other issues. All 12,348 combinations of current answers, unanswered and invalid values verify integer bounds, the exclusive 5 trigger, floors and hidden-answer exclusion. Existing questionnaire tests cover progressive reveal, early exit and normalization. Shared reset and persistence use the established implementation; browser interaction was not rechecked for this scoring-only change. Action, Hub and snapshot scenarios remain deferred with that functionality.
+Build and runtime checks cover the script and storage boundary. Focused tests cover the agreed examples, starting scores, adjustments, protected minimums, conditional remediation reductions, live/report score parity and delegation to other issues. All 12,348 combinations of current answers, unanswered and invalid values verify integer bounds, the exclusive 5 trigger, floors and hidden-answer exclusion. Existing questionnaire tests cover progressive reveal, early exit and normalization. Shared reset and persistence use the established implementation; browser interaction was not rechecked for this scoring-only change. Analysis checks also exercise all 12,348 combinations for completion gates, exact canonical prose coverage, hidden-answer exclusion, fixed implication membership, uniqueness, severity precedence and the three-bullet cap. Focused tests cover all-Unknown/suspected responses, reported resolution with Fundamental impact, completed/incomplete rendering and live/report parity. Action, Hub and snapshot scenarios remain deferred with that functionality.

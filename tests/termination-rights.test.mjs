@@ -7,9 +7,9 @@ const issues = JSON.parse(await readFile(new URL('../dist/issues.json', import.m
 const issue = issues.find(i => i.id === 'termination-rights-and-material-breaches');
 function setup() {
   let report;
-  const card = {innerHTML:'', classList:{add(){}}};
+  const card = {innerHTML:'', classList:{add(){},remove(){}}};
   const context = vm.createContext({answers:{}, escapeLogicText: value => String(value), current:()=>issue, riskScore:()=>4, renderPanel(){}, renderLogic(){card.innerHTML='Other issue';}, exportReport(){report='Other export';}, riskNames:["No risk","Low risk","Medium risk","High risk","Very high risk"], areas:{'commercial-contracts':'Material Contracts'}, Blob:class {constructor(parts){report=parts.join('');}}, URL:{createObjectURL:()=> 'blob:test', revokeObjectURL(){}}, document:{querySelector: selector => selector === '#logic-card' ? card : null, createElement:()=>({click(){}})}});
-  vm.runInContext(source.replace(/\}\)\(\);\s*$/, 'globalThis.testApi = {fields, ids, visibleIds, normalize, assessRisk}; })();'),context);
+  vm.runInContext(source.replace(/\}\)\(\);\s*$/, 'globalThis.testApi = {fields, ids, visibleIds, normalize, assessRisk, buildAnalysis, summaryCopy, implicationCopy}; })();'),context);
   return {...context.testApi,context,card,report:()=>report};
 }
 test('progressive reveal, early exit and invalid saved data',()=>{
@@ -30,7 +30,7 @@ test('questionnaire exports exclude hidden answers and borrowed advice',()=>{
   assert.match(report(),/Response: No/);
   assert.doesNotMatch(report(),/Response: Fundamental|Reasonableness/);
   context.renderLogic(issue);
-  assert.match(card.innerHTML,/Answer all relevant questions/);
+  assert.match(card.innerHTML,/Key deal implications/);
   assert.equal(context.riskScore(),1);
   context.renderLogic({id:'other'});assert.equal(card.innerHTML,'Other issue');
 });
@@ -90,4 +90,62 @@ test('live scoring and export agree and other issues retain their own score',()=
   context.exportReport();assert.match(report(),/Risk score: 5\/5 — Very high risk/);
   assert.equal(context.riskScore(),assessRisk(context.answers));
   context.current=()=>({id:'other'});assert.equal(context.riskScore(),4);
+});
+test('analysis handles uncertainty, completion gating and conflicting resolution reports',()=>{
+  const {ids,buildAnalysis,implicationCopy,context,card,report}=setup();
+  assert.equal(buildAnalysis({}),null);
+  context.renderLogic(issue);assert.match(card.innerHTML,/Answer all relevant questions/);
+  const uncertain=buildAnalysis(responses(ids,['suspected','unknown','unknown','unknown','unknown']));
+  assert.match(uncertain.summary,/suspected.*not been confirmed/);
+  assert.match(uncertain.summary,/nature of the concern is unknown/);
+  assert.deepEqual(Array.from(uncertain.implications),[implicationCopy.uncertain,implicationCopy.stageUnknown,implicationCopy.readinessUnknown]);
+  context.answers=responses(ids,['yes','both','ended','fundamental','addressed']);
+  const severe=buildAnalysis(context.answers);
+  assert.match(severe.summary,/both a breach and a counterparty termination right/);
+  assert.deepEqual(Array.from(severe.implications),[implicationCopy.fundamental,implicationCopy.ended,implicationCopy.residualImpact]);
+  context.renderLogic(issue);
+  assert.match(card.innerHTML,/Summary/);assert.equal((card.innerHTML.match(/<li>/g)||[]).length,3);
+  context.exportReport();assert.ok(report().includes(severe.summary));
+  for(const text of severe.implications) assert.ok(report().includes(text));
+  context.answers={[ids[0]]:'yes'};context.exportReport();assert.doesNotMatch(report(),/KEY DEAL IMPLICATIONS|\nSUMMARY\n/);
+});
+test('all answer combinations produce reachable factual prose and at most three canonical implications',()=>{
+  const {ids,fields,buildAnalysis,summaryCopy,implicationCopy,normalize}=setup();
+  const canonical=new Set(Object.values(implicationCopy));
+  const covered=Object.fromEntries(Object.keys(summaryCopy).map(key=>[key,new Set()]));
+  const themes=['existence','type','stage','impact','resolution'];
+  let completeCount=0;
+  function visit(values) {
+    if(values.length<ids.length) {
+      for(const value of ['', 'invalid', ...fields[ids[values.length]].options.map(([key])=>key)]) visit([...values,value]);
+      return;
+    }
+    const state=responses(ids,values), clean={...state};normalize(clean);
+    const analysis=buildAnalysis(state);
+    assert.equal(JSON.stringify(analysis),JSON.stringify(buildAnalysis(clean)));
+    const expectedComplete=values[0]==='no'||ids.every((id,index)=>fields[id].options.some(([key])=>key===values[index]));
+    assert.equal(Boolean(analysis),expectedComplete);
+    if(!analysis)return;
+    completeCount++;
+    assert.ok(!/undefined|null|Unanswered/.test(analysis.summary));
+    assert.ok(analysis.implications.length>=1&&analysis.implications.length<=3);
+    assert.equal(new Set(analysis.implications).size,analysis.implications.length);
+    for(const text of analysis.implications)assert.ok(canonical.has(text));
+    if(values[0]==='no') {
+      assert.equal(analysis.implications.length,1);
+      assert.equal(analysis.implications[0],implicationCopy.absent);
+    } else {
+      themes.forEach((theme,index)=>{
+        assert.ok(analysis.summary.includes(summaryCopy[theme][values[index]]));
+        covered[theme].add(values[index]);
+      });
+      if(values[3]==='fundamental')assert.equal(analysis.implications[0],implicationCopy.fundamental);
+      if(values[3]==='significant')assert.equal(analysis.implications[0],implicationCopy.significant);
+      if(values[2]==='ended')assert.ok(analysis.implications.includes(implicationCopy.ended));
+      if(['partly','no'].includes(values[4]))assert.ok(analysis.implications.includes(implicationCopy.outstanding));
+    }
+  }
+  visit([]);
+  assert.equal(completeCount,3558);
+  for(const theme of themes)assert.equal(covered[theme].size,Object.keys(summaryCopy[theme]).length);
 });
