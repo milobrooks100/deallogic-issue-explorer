@@ -36,6 +36,7 @@ test("every registered core icon has its fixed palette shared across all three a
       `.playbook-card[data-core-icon="${icon}"] .action-symbol`,
       `.logic-action[data-core-icon="${icon}"] .logic-icon`
     ];
+    if (icon !== "ellipsis") selectors.push(`.explore-categories .category-symbol[data-core-icon="${icon}"]`);
     const matching = rules.filter(([, selector]) => selector.split(",").some(part => part.trim() === selectors[0]));
     assert.equal(matching.length, 1, `${icon} has one canonical palette rule`);
     const [, selector, declarations] = matching[0];

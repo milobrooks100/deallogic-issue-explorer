@@ -1,5 +1,24 @@
 /* Presentation layer: existing issue rules, answers and project storage remain authoritative. */
 (() => {
+  // Keep existing issue colours stable when new issues are inserted in the data.
+  const issueColourOrder = ["customer-change-of-control", "termination-rights-and-material-breaches", "option-holders", "share-ownership-and-transfer-restrictions", "debt-facilities-repayment", "missing-ip-assignment", "threatened-litigation", "key-employee-retention-and-employment-terms", "compliance-gaps-and-personal-data-breaches"];
+  const issuePalette = ['search','wrench','handshake','circle-check','file-pen-line','shield-check','banknote','file-search','lock-keyhole','arrow-down-up','calendar-check','circle-arrow-right','arrow-left-right'];
+  function issueColour(issueId) {
+    const allIds = [...issueColourOrder, ...issues.map(issue => issue.id).filter(id => !issueColourOrder.includes(id))];
+    return issuePalette[allIds.indexOf(issueId) % issuePalette.length];
+  }
+  document.addEventListener('click', event => {
+    if (!event.target.closest('.map-title')) return;
+    selectedId = null;
+    openArea = null;
+    answers = {};
+    renderMap();
+    renderPanel();
+    requestAnimationFrame(() => {
+      const heading = document.querySelector('#panel > .empty-state h3');
+      if (heading) { heading.tabIndex = -1; heading.focus(); }
+    });
+  });
   const paths = {
     grid: '<rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/>',
     map: '<path d="m3 5 6-2 6 2 6-2v16l-6 2-6-2-6 2zM9 3v16M15 5v16"/>',
@@ -177,7 +196,7 @@
       const cards=document.createElement('div');cards.className='explore-categories';
       order.flatMap(category => issues.filter(issue => issue.category === category)).forEach(issue=>{
         const button=document.createElement('button');button.type='button';
-        const mark=document.createElement('span');mark.className='category-symbol';mark.innerHTML=icon('document');
+        const mark=document.createElement('span');mark.className='category-symbol';mark.dataset.coreIcon=issueColour(issue.id);mark.innerHTML=icon('document');
         const label=document.createElement('span');const category=document.createElement('small');category.textContent=areas[issue.category];const title=document.createElement('strong');title.textContent=issue.title;
         label.append(category,title);button.append(mark,label);button.insertAdjacentHTML('beforeend',icon('arrow'));
         button.onclick=()=>{selectedId=issue.id;openArea=issue.category;loadAnswers();renderMap();renderPanel();};cards.append(button);
