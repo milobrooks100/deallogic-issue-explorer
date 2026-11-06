@@ -32,6 +32,38 @@
     ]
   },
   {
+    "id": "termination-rights-and-material-breaches",
+    "title": "Termination Rights and Material Breaches",
+    "category": "commercial-contracts",
+    "summary": "The target may have important contracts affected by breaches or termination rights, such as major customer, critical supply, distribution or key licence agreements. Review actual or suspected breaches, the counterparty’s right to end the contract, and steps to preserve the relationship or manage its loss before completion.",
+    "jurisdiction": {
+      "primary": "England and Wales",
+      "legal_system": "common-law"
+    },
+    "key_questions": [
+      {
+        "id": "contract-termination-issue",
+        "question": "Has a breach or termination risk been identified under a material contract?"
+      },
+      {
+        "id": "contract-termination-type",
+        "question": "What does the issue concern?"
+      },
+      {
+        "id": "contract-termination-stage",
+        "question": "What stage has the matter reached?"
+      },
+      {
+        "id": "contract-termination-impact",
+        "question": "What is the likely impact on the target or deal?"
+      },
+      {
+        "id": "contract-termination-resolution",
+        "question": "Can the issue and its consequences be addressed before completion?"
+      }
+    ]
+  },
+  {
     "id": "option-holders",
     "title": "Option Holders",
     "category": "corporate-and-shares",
