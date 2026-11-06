@@ -84,3 +84,13 @@ account-creation agreement link to this page. After changing its content, run
 `npm run build`, and commit the updated PDF. The build rejects a stale download.
 Account creation requires the agreement checkbox; existing users can sign in
 without selecting it.
+
+### Deal Hub Word briefing
+
+Export briefing downloads a native `.docx` generated in the browser. The report uses
+Inter (embedded under the SIL Open Font License), a risk-ordered overview, issue
+summaries, and actions grouped by Required / Recommended / Consider. Recorded
+questionnaire responses are omitted. Saved notes, sources, custom actions and
+per-action transaction perspectives are preserved. Word export assets load only
+when requested. `dist/vendor/docx.js` is the browser build of docx 9.6.1; its MIT
+license and the font's license are included alongside the assets.
