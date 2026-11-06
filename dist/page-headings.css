@@ -41,7 +41,17 @@
   .hub-header .hub-toolbar { margin-top: 16px; }
 }
 
+/* Stack below the last subtitle line rather than positioning over its text. */
+@media (max-width: 980px) {
+  .intro .transaction-side,
+  .library-view .view-header .transaction-side {
+    position: static;
+    margin: 16px 0 0;
+    justify-content: flex-start;
+    flex-wrap: wrap;
+  }
+}
+
 @media (max-width: 600px) {
-  .intro .transaction-side { margin-top: 16px; }
   :is(.intro, .hub-header, .view-header, .radar-page-heading) h2 { font-size: 29px; }
 }
