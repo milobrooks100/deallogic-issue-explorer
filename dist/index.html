@@ -1090,11 +1090,11 @@
         else if (implementation === optionAnswerOptions["award-treatment-implementation"][1]) opening += " The treatment can be implemented without holder consent.";
         else if (implementation === optionAnswerOptions["award-treatment-implementation"][2]) opening += " All identified consents and approvals are secured.";
         else if (implementation === optionAnswerOptions["award-treatment-implementation"][6]) opening += " Implementation has not yet been assessed.";
-        if (dilution && dilution !== "Unanswered") opening += ` The recorded award proportion is ${dilution.toLowerCase()} of the fully diluted share capital.`;
+        if (dilution && dilution !== "Unanswered") opening += ` The awards represent ${dilution.toLowerCase()} of the fully diluted share capital.`;
         if (tax === optionAnswerOptions["award-tax-payroll-position"][3]) opening += " Tax review indicates that the treatment must change or a material cost must be addressed.";
         else if (tax === optionAnswerOptions["award-tax-payroll-position"][4]) opening += " Tax-advantaged awards remain subject to transaction-specific tax review.";
         else if (tax === optionAnswerOptions["award-tax-payroll-position"][1]) opening += " Tax and payroll review identified no issues.";
-        else if (tax === optionAnswerOptions["award-tax-payroll-position"][2]) opening += " Manageable withholding or reporting is required.";
+        else if (tax === optionAnswerOptions["award-tax-payroll-position"][2]) opening += " Manageable withholding or reporting is required for tax and payroll purposes.";
         else if (tax === optionAnswerOptions["award-tax-payroll-position"][5]) opening += " Tax and payroll review has not been completed; no tax-advantaged awards are known.";
         else if (tax === optionAnswerOptions["award-tax-payroll-position"][6]) opening += " The tax and payroll status is unknown.";
         return opening;
