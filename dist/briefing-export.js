@@ -3,6 +3,14 @@
   const assetBase = new URL('./', document.currentScript?.src || location.href);
   let library;
   let font;
+  let logo;
+  function loadLogo() {
+    if (!logo) logo = fetch(new URL('deallogic-logo.png', assetBase)).then(response => {
+      if (!response.ok) throw new Error('Unable to load the briefing logo.');
+      return response.arrayBuffer();
+    }).then(data => new Uint8Array(data)).catch(error => { logo = null; throw error; });
+    return logo;
+  }
   function loadFont() {
     if (!font) font = fetch(new URL('vendor/fonts/Inter.ttf', assetBase)).then(response => {
       if (!response.ok) throw new Error('Unable to load the briefing font.');
@@ -25,8 +33,8 @@
   const riskColours = ['647067', '38734B', '746B21', 'A85C28', 'A33238', '642C4C'];
   const labels = ['Required', 'Recommended', 'Consider'];
   async function build({ project = {}, issues = [], actions = [], date = new Date() }) {
-    const [d, fontData] = await Promise.all([loadLibrary(), loadFont()]);
-    const { Paragraph, TextRun, Table, TableRow, TableCell, WidthType, Document, Packer, Header, Footer, PageNumber, ExternalHyperlink } = d;
+    const [d, fontData, logoData] = await Promise.all([loadLibrary(), loadFont(), loadLogo()]);
+    const { Paragraph, TextRun, ImageRun, Table, TableRow, TableCell, WidthType, Document, Packer, Header, Footer, PageNumber, ExternalHyperlink } = d;
     const text = (value, options = {}) => new TextRun({ text: String(value ?? ''), ...options });
     const p = (value, style = 'Normal', options = {}) => new Paragraph({ style, children: [text(value)], ...options });
     const heading = (value, level = 2) => p(value, `Heading${level}`);
@@ -87,8 +95,8 @@
         { ...style('Note','Note',19), run:{ font:'Inter',size:19,italics:true,color:'526159' } }
       ] },
       sections: [{ properties: { page: { size: { width:11906, height:16838 }, margin: { top:1134,bottom:1134,left:1134,right:1134,header:480,footer:480 } } },
-        headers: { default: new Header({ children:[p(`DealLogic  ·  ${dealName}`, 'Metadata')] }) },
-        footers: { default: new Footer({ children:[new Paragraph({ alignment:'right', children:[text('Deal Hub Briefing  ·  ',{size:17,color:'526159'}),new TextRun({children:[PageNumber.CURRENT],size:17})] })] }) }, children }]
+        headers: { default: new Header({ children:[new Paragraph({ spacing: { after: 0 }, children: [new ImageRun({ type: 'png', data: logoData, transformation: { width: 119, height: 28 }, altText: { title: 'Deal Logic', description: 'Deal Logic layered mark', name: 'Deal Logic logo' } })] })] }) },
+        footers: { default: new Footer({ children:[new Paragraph({ alignment:'right', children:[text(`Deal Hub Briefing · ${dealName} · `,{size:17,color:'526159'}),new TextRun({children:[PageNumber.CURRENT],size:17})] })] }) }, children }]
     });
     return Packer.toBlob(doc);
   }
