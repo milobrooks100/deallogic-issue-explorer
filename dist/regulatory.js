@@ -19,7 +19,7 @@
         "Unknown"
       ]
     ],
-    "guidance": "Include licences, authorisations, registrations and permits required for the target’s activities. Check the relevant entities, activities and locations. Select No only following a review of the applicable requirements."
+    "guidance": "Check licences, authorisations, registrations and permits for the relevant entities, activities and locations. Select No only after reviewing the requirements."
   },
   "reg-permission-issues": {
     "options": [
@@ -44,7 +44,7 @@
         "Unknown"
       ]
     ],
-    "guidance": "Permission gaps include missing, expired or inadequate permissions, including permissions held by the wrong entity. Compliance issues include breaches of conditions, threatened suspension or revocation, and relevant regulatory investigations or enforcement."
+    "guidance": "Permission gaps include missing, expired or inadequate permissions, or the wrong licence holder. Compliance issues include breached conditions, threatened suspension or revocation, investigations and enforcement."
   },
   "reg-transaction-steps": {
     "options": [
@@ -70,7 +70,7 @@
       ]
     ],
     "multiple": true,
-    "guidance": "Review change-of-control requirements, transfers or new operating permissions, national security screening and merger control. Select Prior approval where consent or clearance is required before proceeding; Mandatory notification where a filing is required separately from approval; and Voluntary clearance where a voluntary filing is being pursued or considered. Include applicable overseas requirements. None identified and Unknown cannot be combined with other selections."
+    "guidance": "Check operating-permission changes, change of control, NSI and merger control, including overseas requirements. Prior approval means clearance before proceeding; Mandatory notification means a separate required filing; Voluntary clearance means an optional filing pursued or considered. None identified and Unknown are exclusive."
   },
   "reg-step-status": {
     "options": [
@@ -95,7 +95,7 @@
         "Unknown"
       ]
     ],
-    "guidance": "All completed means the relevant approvals are effective, required filings have been made and applicable waiting periods and conditions for proceeding have been satisfied. Blocked includes refusal, prohibition or an unmet condition preventing progress. Where several steps apply, select Blocked if any is blocked; otherwise select the least advanced outstanding step. A required post-completion notification can remain outstanding without being overdue; assess its deadline below."
+    "guidance": "All completed means approvals are effective, filings made, and applicable waiting periods and conditions satisfied. Select Blocked for refusal, prohibition or an unmet condition preventing progress; otherwise use the least advanced step. Post-completion filings may not yet be due."
   },
   "reg-impact": {
     "options": [
@@ -120,7 +120,7 @@
         "Unknown"
       ]
     ],
-    "guidance": "Consider restrictions on operating, potential penalties, remediation costs, approval conditions and delays. Fundamental includes an inability to complete lawfully or continue essential operations. Assess outstanding matters and any continuing consequences of resolved issues."
+    "guidance": "Consider operating restrictions, penalties, costs, conditions and delays, including continuing effects of resolved issues. Fundamental means lawful completion or essential operations are threatened."
   },
   "reg-deadlines": {
     "options": [
@@ -145,7 +145,7 @@
         "Unknown"
       ]
     ],
-    "guidance": "Assess operating-permission remedies and transaction steps against their respective deadlines. Distinguish steps required before completion, before the incoming operator starts activities, and after completion. Check regulator timing, responsible parties and dependencies. An expected approval is not an approval already obtained."
+    "guidance": "Check outstanding steps, owners and dependencies against deadlines before completion, before operations start or after completion. Expected approval is not approval obtained."
   }
 };
   const ids = Object.keys(fields);
@@ -188,7 +188,7 @@
   function questionMarkup({id, question}) {
     const field = fields[id];
     const info = `<button class="info" type="button" aria-label="Guidance: ${escape(question)}">i<span class="tooltip" id="${id}-guidance" role="tooltip">${escape(field.guidance)}</span></button>`;
-    if (field.multiple) return `<div class="question"><div class="question-top"><span id="${id}-label">${escape(question)}</span>${info}</div><div class="choice-grid" role="group" aria-labelledby="${id}-label" aria-describedby="${id}-guidance">${field.options.map(([value,label]) => `<label><input type="checkbox" data-reg-step value="${value}" ${(answers[id] || []).includes(value) ? "checked" : ""}> ${escape(label)}</label>`).join("")}</div></div>`;
+    if (field.multiple) return `<div class="question"><div class="question-top"><label id="${id}-label">${escape(question)}</label>${info}</div><div class="choice-grid" role="group" aria-labelledby="${id}-label" aria-describedby="${id}-guidance">${field.options.map(([value,label]) => `<label><input type="checkbox" data-reg-step value="${value}" ${(answers[id] || []).includes(value) ? "checked" : ""}> ${escape(label)}</label>`).join("")}</div></div>`;
     return `<div class="question"><div class="question-top"><label for="${id}">${escape(question)}</label>${info}</div><select id="${id}" aria-describedby="${id}-guidance"><option value="" ${!answers[id] ? "selected" : ""}>Unanswered</option>${field.options.map(([value,label]) => `<option value="${value}" ${answers[id] === value ? "selected" : ""}>${escape(label)}</option>`).join("")}</select></div>`;
   }
   const previousRiskScore = riskScore;
