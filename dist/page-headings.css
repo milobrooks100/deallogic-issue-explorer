@@ -24,7 +24,7 @@
 .intro { padding-right: 0; }
 
 /* One gap from each page subtitle to its first content surface or controls. */
-.intro, .hub-header, .view-header, .radar-page-heading { margin-bottom: 20px; }
+.intro, .hub-header, .view-header, .radar-page-heading { margin-bottom: 16px; }
 .intro ~ .workspace { margin-top: 0; }
 
 /* Match the Deal Hub toolbar buttons across desktop and narrow layouts. */
@@ -38,10 +38,10 @@
 }
 
 @media (max-width: 760px) {
-  .hub-header .hub-toolbar { margin-top: 20px; }
+  .hub-header .hub-toolbar { margin-top: 16px; }
 }
 
 @media (max-width: 600px) {
-  .intro .transaction-side { margin-top: 20px; }
+  .intro .transaction-side { margin-top: 16px; }
   :is(.intro, .hub-header, .view-header, .radar-page-heading) h2 { font-size: 29px; }
 }
