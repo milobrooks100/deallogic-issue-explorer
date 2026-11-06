@@ -18,7 +18,7 @@ Start with Q1 only, with Unanswered as an empty placeholder. No at Q1 ends the r
 
 ## Outputs and deferred work
 
-Completed routes show Summary followed by Key deal implications using the shared Change-of-Control section styling. Incomplete routes retain the shared standby text. Reports export visible questions, current answer labels, the live risk score and the same summary and implications when complete. Recommendations follow the matrix below and can be selected for Deal Hub. Legal notes remain deferred. Buyer/Seller/Balanced does not change factual analysis or risk.
+Completed routes show Summary followed by Key deal implications using the shared Change-of-Control section styling. Incomplete routes retain the shared standby text. Reports export visible questions, current answer labels, the live risk score and the same summary and implications when complete. Recommendations follow the matrix below and can be selected for Deal Hub. Three approved legal notes follow the recommendations on completed routes and appear identically in reports: termination of innominate terms (Hong Kong Fir), affirmation (URE Energy, paragraphs 93–104), and statutory reasonableness of liability restrictions (UCTA sections 3 and 11). Buyer/Seller/Balanced does not change factual analysis or risk.
 
 ## Summary and implication rules
 

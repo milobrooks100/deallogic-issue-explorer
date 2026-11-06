@@ -288,6 +288,46 @@
     return result.sort((a,b)=>rank[a.priority]-rank[b.priority] || tieOrder.indexOf(a.id)-tieOrder.indexOf(b.id)).slice(0,7);
   }
   const actionsMarkup = actions => actions.length ? actions.map(action => `<div class="logic-action" data-action-id="${action.id}"><span class="logic-icon" aria-hidden="true"></span><div><span class="logic-priority" data-level="${action.priority.toLowerCase()}">${action.priority}</span><strong>${escape(action.title)}</strong><span>${escape(action.description)}</span></div></div>`).join("") : `<p>No issue-specific actions are indicated by the recorded answer.</p>`;
+  const legalNotes = [
+  {
+    "title": "When a breach permits termination",
+    "text": "A breach of an “innominate” term permits termination only where its consequences deprive the innocent party of substantially the whole contractual benefit; other breaches may justify damages alone. Assess the seriousness and likely duration of the disruption, alongside any separate express termination right.",
+    "authority": "Hong Kong Fir Shipping v Kawasaki Kisen Kaisha [1962] 2 QB 26.",
+    "sources": [
+      {
+        "label": "Court of Appeal judgment",
+        "url": "https://www.bailii.org/ew/cases/EWCA/Civ/1961/7.html"
+      }
+    ]
+  },
+  {
+    "title": "Continuing performance and affirmation",
+    "text": "A party may lose a termination right by unequivocally choosing to continue the contract with knowledge of the relevant facts and its right to choose. Continued trading does not automatically establish affirmation: investigate what the decision-makers knew and how they acted.",
+    "authority": "URE Energy v Notting Hill Genesis [2025] EWCA Civ 1407, paragraphs 93–104.",
+    "sources": [
+      {
+        "label": "Court of Appeal judgment",
+        "url": "https://caselaw.nationalarchives.gov.uk/ewca/civ/2025/1407"
+      }
+    ]
+  },
+  {
+    "title": "Liability caps are not always enforceable",
+    "text": "Where a party contracts on the other’s written standard business terms, exclusions or restrictions of liability for breach may need to satisfy the statutory reasonableness test. Check whether the Act applies before treating the contract’s liability cap as the maximum exposure.",
+    "authority": "",
+    "sources": [
+      {
+        "label": "Unfair Contract Terms Act 1977, section 3",
+        "url": "https://www.legislation.gov.uk/ukpga/1977/50/section/3/data.html"
+      },
+      {
+        "label": "Section 11",
+        "url": "https://www.legislation.gov.uk/ukpga/1977/50/section/11/data.html"
+      }
+    ]
+  }
+];
+  const notesMarkup = () => legalNotes.map(note => `<div class="logic-note"><strong>${escape(note.title)}:</strong> ${escape(note.text)} ${note.authority ? `<em>${escape(note.authority)}</em> ` : ""}${note.sources.map(source => `<a href="${escape(source.url)}" target="_blank" rel="noopener noreferrer">${escape(source.label)}</a>`).join(" and ")}</div>`).join("");
   const previousRiskScore = riskScore;
   riskScore = function () { return isTermination(current()) ? assessRisk(answers) : previousRiskScore(); };
   const previousRenderLogic = renderLogic;
@@ -305,7 +345,7 @@
       return;
     }
     card.classList.remove("logic-standby");
-    card.innerHTML = `<h3>Apply deal logic</h3><section class="logic-section"><h4>Summary</h4><p class="logic-conclusion">${escape(analysis.summary)}</p></section><section class="logic-section"><h4>Key deal implications</h4><ul>${analysis.implications.map(text => `<li>${escape(text)}</li>`).join("")}</ul></section><section class="logic-section"><div class="logic-section-heading"><h4>Recommended actions</h4><div class="logic-side-picker" aria-label="Transaction side selector"><button type="button" class="active" data-logic-side-toggle>${escape(side)}</button></div></div>${actionsMarkup(chooseActions(answers, side))}</section>`;
+    card.innerHTML = `<h3>Apply deal logic</h3><section class="logic-section"><h4>Summary</h4><p class="logic-conclusion">${escape(analysis.summary)}</p></section><section class="logic-section"><h4>Key deal implications</h4><ul>${analysis.implications.map(text => `<li>${escape(text)}</li>`).join("")}</ul></section><section class="logic-section"><div class="logic-section-heading"><h4>Recommended actions</h4><div class="logic-side-picker" aria-label="Transaction side selector"><button type="button" class="active" data-logic-side-toggle>${escape(side)}</button></div></div>${actionsMarkup(chooseActions(answers, side))}</section><section class="logic-section"><h4>Notes</h4>${notesMarkup()}</section>`;
     document.dispatchEvent(new CustomEvent("termination-rights-logic-rendered"));
   };
   const previousRenderPanel = renderPanel;
@@ -346,7 +386,8 @@
     const analysisLines = analysis ? ["", "SUMMARY", analysis.summary, "", "KEY DEAL IMPLICATIONS", ...analysis.implications.map(text => `- ${text}`)] : [];
     const selected = analysis ? chooseActions(answers, getTransactionSide()) : [];
     const actionLines = analysis ? ["", `RECOMMENDED ACTIONS — ${getTransactionSide()}`, ...(selected.length ? selected.map(action => `- ${action.priority}: ${action.title}\n  ${action.description}`) : ["No issue-specific actions are indicated by the recorded answer."])] : [];
-    const report = ["DEALLOGIC ISSUE REPORT", "", issue.title, `${areas[issue.category]} · ${issue.jurisdiction.primary}`, issue.summary, `Risk score: ${assessRisk(answers)}/5 — ${riskNames[assessRisk(answers) - 1]}`, "", "DILIGENCE ANSWERS", ...lines, ...analysisLines, ...actionLines, "", "NOTE", "Prototype content only. Obtain transaction-specific legal advice."].join("\n");
+    const noteLines = analysis ? ["", "LEGAL NOTES", ...legalNotes.map(note => `${note.title}: ${note.text} ${note.authority}\nSources: ${note.sources.map(source => `${source.label} — ${source.url}`).join("; ")}`)] : [];
+    const report = ["DEALLOGIC ISSUE REPORT", "", issue.title, `${areas[issue.category]} · ${issue.jurisdiction.primary}`, issue.summary, `Risk score: ${assessRisk(answers)}/5 — ${riskNames[assessRisk(answers) - 1]}`, "", "DILIGENCE ANSWERS", ...lines, ...analysisLines, ...actionLines, ...noteLines, "", "NOTE", "Prototype content only. Obtain transaction-specific legal advice."].join("\n");
     const url = URL.createObjectURL(new Blob([report], {type: "text/plain"}));
     const link = document.createElement("a");
     link.href = url;

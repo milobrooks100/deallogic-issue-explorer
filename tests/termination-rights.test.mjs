@@ -11,7 +11,7 @@ function setup() {
   const card = {innerHTML:'', classList:{add(){},remove(){}}};
   const context = vm.createContext({window:{},getTransactionSide:()=>"Balanced",CustomEvent:class{},answers:{}, escapeLogicText: value => String(value), current:()=>issue, riskScore:()=>4, renderPanel(){}, renderLogic(){card.innerHTML='Other issue';}, exportReport(){report='Other export';}, riskNames:["No risk","Low risk","Medium risk","High risk","Very high risk"], areas:{'commercial-contracts':'Material Contracts'}, Blob:class {constructor(parts){report=parts.join('');}}, URL:{createObjectURL:()=> 'blob:test', revokeObjectURL(){}}, document:{dispatchEvent(){},querySelector: selector => selector === '#logic-card' ? card : null, createElement:()=>({click(){}})}});
   vm.runInContext(registry,context);
-  vm.runInContext(source.replace(/\}\)\(\);\s*$/, 'globalThis.testApi = {fields, ids, visibleIds, normalize, chooseActions, assessRisk, buildAnalysis, summaryCopy, implicationCopy}; })();'),context);
+  vm.runInContext(source.replace(/\}\)\(\);\s*$/, 'globalThis.testApi = {fields, ids, visibleIds, normalize, chooseActions, assessRisk, buildAnalysis, summaryCopy, implicationCopy, legalNotes}; })();'),context);
   return {...context.testApi,context,card,report:()=>report};
 }
 test('progressive reveal, early exit and invalid saved data',()=>{
@@ -212,6 +212,24 @@ test('pause and first-day test are explicit library choices in every perspective
     for(const [id,title] of [['TR12','Agree a pause with the counterparty'],['TR13','Test the first day without the contract']]){
       const card=reg.forSide(reg.actionFor(topic.id,'','',id),side);
       assert.equal(card.title,title);assert.ok(card.description);assert.ok(card.icon);
+    }
+  }
+});
+
+test('approved legal notes share completed UI/report gate and secure source links',()=>{
+  const {context,card,report,ids,legalNotes}=setup();
+  context.renderLogic(issue);context.exportReport();
+  assert.doesNotMatch(card.innerHTML,/<h4>Notes/);assert.doesNotMatch(report(),/LEGAL NOTES/);
+  context.answers=responses(ids,['yes','breach','no-notice','manageable','yes']);
+  context.renderLogic(issue);context.exportReport();
+  assert.equal(legalNotes.length,3);
+  assert.equal((card.innerHTML.match(/class="logic-note"/g)||[]).length,3);
+  assert.ok(card.innerHTML.indexOf('<h4>Notes')>card.innerHTML.indexOf('<h4>Recommended actions'));
+  for(const note of legalNotes){
+    assert.ok(card.innerHTML.includes(note.text));assert.ok(report().includes(note.text));
+    for(const source of note.sources){
+      assert.ok(card.innerHTML.includes('href="'+source.url+'" target="_blank" rel="noopener noreferrer"'));
+      assert.ok(report().includes(source.url));
     }
   }
 });
