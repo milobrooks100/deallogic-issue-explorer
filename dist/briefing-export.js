@@ -95,7 +95,7 @@
         { ...style('Note','Note',19), run:{ font:'Inter',size:19,italics:true,color:'526159' } }
       ] },
       sections: [{ properties: { page: { size: { width:11906, height:16838 }, margin: { top:1134,bottom:1134,left:1134,right:1134,header:480,footer:480 } } },
-        headers: { default: new Header({ children:[new Paragraph({ spacing: { after: 0 }, children: [new ImageRun({ type: 'png', data: logoData, transformation: { width: 119, height: 28 }, altText: { title: 'Deal Logic', description: 'Deal Logic layered mark', name: 'Deal Logic logo' } })] })] }) },
+        headers: { default: new Header({ children:[new Paragraph({ spacing: { after: 0 }, children: [new ImageRun({ type: 'png', data: logoData, transformation: { width: 106, height: 28 }, altText: { title: 'Deal Logic', description: 'Deal Logic layered mark', name: 'Deal Logic logo' } })] })] }) },
         footers: { default: new Footer({ children:[new Paragraph({ alignment:'right', children:[text(`Deal Hub Briefing · ${dealName} · `,{size:17,color:'526159'}),new TextRun({children:[PageNumber.CURRENT],size:17})] })] }) }, children }]
     });
     return Packer.toBlob(doc);
