@@ -395,6 +395,135 @@
   ]
 });
 
+  topics.push({
+  "id": "termination-rights-and-material-breaches",
+  "label": "Termination Rights and Material Breaches",
+  "shortLabel": "Termination Rights",
+  "actions": [
+    [
+      "TR01",
+      "Review the contractual position",
+      "Review the contract, correspondence and available remedies to establish the issue and remaining uncertainty.",
+      "search",
+      "Due diligence",
+      {
+        "Buyer": "Review the contract, correspondence and available remedies to establish the breach, termination rights and remaining uncertainty.",
+        "Seller": "Assemble the contract and correspondence, and resolve uncertainties before presenting the position to the buyer."
+      }
+    ],
+    [
+      "TR02",
+      "Manage notices and preserve rights",
+      "Check notice validity, meet response deadlines and preserve the target’s rights, with specialist advice where needed.",
+      "calendar-check",
+      "Due diligence",
+      {
+        "Buyer": "Require confirmation of notice validity, response deadlines and steps preserving the target’s rights, with specialist advice where needed.",
+        "Seller": "Procure timely responses and preserve the target’s rights, avoiding unsupported admissions, waivers or termination steps."
+      }
+    ],
+    [
+      "TR03",
+      "Secure continuity or replacement",
+      "Agree and implement a practical cure, waiver, continuation or replacement, with clear responsibility for costs and delivery.",
+      "wrench",
+      "Due diligence",
+      {
+        "Buyer": "Require an effective cure, waiver, agreed continuation or workable replacement before relying on the contract’s future value.",
+        "Seller": "Negotiate a practical cure, waiver, continuation or replacement while controlling concessions and protecting the commercial relationship."
+      }
+    ],
+    [
+      "TR04",
+      "Verify the resolution",
+      "Verify that the resolution is effective and identify any surviving claims, obligations or continuity needs.",
+      "circle-check",
+      "Due diligence",
+      {
+        "Buyer": "Obtain evidence that the resolution is effective and covers outstanding claims, termination rights and continuity needs.",
+        "Seller": "Assemble evidence of effective resolution and identify any surviving obligations before seeking release from further protection."
+      }
+    ],
+    [
+      "TR05",
+      "Quantify costs and recoveries",
+      "Quantify likely losses, mitigation costs and available recoveries to support proportionate pricing and risk allocation.",
+      "file-search",
+      "Due diligence",
+      {
+        "Buyer": "Quantify lost revenue, replacement costs and potential liabilities, and assess available recoveries before agreeing value and protection.",
+        "Seller": "Substantiate likely losses, mitigation costs and available recoveries to resist speculative deductions or disproportionate protection."
+      }
+    ],
+    [
+      "TR06",
+      "Tailor warranties and disclosure",
+      "Agree accurate contract-status warranties and specific disclosure, addressing identified losses separately.",
+      "shield-check",
+      "SPA drafting",
+      {
+        "Buyer": "Seek tailored contract-status warranties and specific disclosure of breaches, notices and threatened termination, without treating warranties as cover for disclosed losses.",
+        "Seller": "Make fair, specific disclosure and qualify contract warranties to reflect the documented position and agreed liability limitations."
+      }
+    ],
+    [
+      "TR07",
+      "Document outstanding obligations",
+      "Document remedial tasks, milestones, reporting, cooperation and costs, with proportionate controls on material decisions and exceptions for urgent steps.",
+      "file-pen-line",
+      "SPA drafting",
+      {
+        "Buyer": "Require enforceable remedial duties, progress reporting and controls on material settlements or contract changes, with appropriate urgent-action exceptions.",
+        "Seller": "Limit remedial duties to defined tasks and reasonable endeavours, with cooperation requirements, cost limits and flexibility for urgent steps."
+      }
+    ],
+    [
+      "TR08",
+      "Set completion conditions",
+      "Agree objective conditions for essential continuity or resolution, with a realistic longstop date and proportionate rights if conditions fail.",
+      "circle-check",
+      "Closing condition",
+      {
+        "Buyer": "Make completion conditional on objective continuity or resolution milestones, with a longstop date and clear rights if conditions fail.",
+        "Seller": "Resist unnecessary conditionality; limit agreed conditions to material, measurable outcomes, with realistic deadlines and tightly defined withdrawal rights."
+      }
+    ],
+    [
+      "TR09",
+      "Allocate identified losses",
+      "Agree a targeted indemnity for identified losses, with negotiated limits, claims procedures and security only where justified.",
+      "banknote",
+      "SPA drafting",
+      {
+        "Buyer": "Seek a specific indemnity for identified exposure, with suitable claim periods and escrow or retention where recovery risk justifies it.",
+        "Seller": "Resist blanket indemnities; limit any agreed cover by scope, cap, duration, claims control and credits for recoveries or price adjustments."
+      }
+    ],
+    [
+      "TR10",
+      "Reflect exposure in the price",
+      "Reflect evidenced loss of value or exposure in the price or contingent payments, avoiding double recovery.",
+      "arrow-down-up",
+      "SPA drafting",
+      {
+        "Buyer": "Seek a price reduction or contingent payment structure reflecting lost value or unresolved exposure, without duplicating other recovery.",
+        "Seller": "Resist speculative deductions and use evidence-based adjustments or contingent payments, crediting mitigation and other agreed protection."
+      }
+    ],
+    [
+      "TR11",
+      "Reassess the transaction",
+      "Reassess transaction viability and agree whether resolution, revised terms, restructuring or a negotiated exit is appropriate.",
+      "arrow-left-right",
+      "Signing",
+      {
+        "Buyer": "Reassess whether to proceed, restructure or negotiate an exit where the contract issue undermines the acquisition rationale.",
+        "Seller": "Assess whether resolution, revised terms or restructuring can preserve the sale, and establish alternatives if the deal cannot proceed."
+      }
+    ]
+  ]
+});
+
   const coreActionIcons = Object.freeze({
     "Further diligence": "search",
     "Rectification": "wrench",

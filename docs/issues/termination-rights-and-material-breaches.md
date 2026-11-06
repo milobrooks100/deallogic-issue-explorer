@@ -18,7 +18,7 @@ Start with Q1 only, with Unanswered as an empty placeholder. No at Q1 ends the r
 
 ## Outputs and deferred work
 
-Completed routes show Summary followed by Key deal implications using the shared Change-of-Control section styling. Incomplete routes retain the shared standby text. Reports export visible questions, current answer labels, the live risk score and the same summary and implications when complete. Recommendations, legal notes, action registry entries and Hub capture remain deferred. Buyer/Seller/Balanced does not change factual analysis or risk.
+Completed routes show Summary followed by Key deal implications using the shared Change-of-Control section styling. Incomplete routes retain the shared standby text. Reports export visible questions, current answer labels, the live risk score and the same summary and implications when complete. Recommendations follow the matrix below and can be selected for Deal Hub. Legal notes remain deferred. Buyer/Seller/Balanced does not change factual analysis or risk.
 
 ## Summary and implication rules
 
@@ -56,9 +56,25 @@ Only Fundamental impact reaches 5. Reductions never erase a protected minimum, i
 
 Worked examples: suspected breach, no notice, minimal impact, Yes resolution = 2; confirmed breach, breach notice, manageable impact, Yes = 4; confirmed breach, no notice, manageable impact, Already addressed = 2; termination notice or ended contract, minimal impact, Already addressed = 4; Fundamental impact with any resolution = 5.
 
-## Agreed variants for the proposed action matrix
+## Action matrix
 
-These replace the wording of an existing recommendation, keeping its identity and place in the seven-card selection. They do not add a twelfth action family. The recommendation engine for this issue is not yet implemented.
+The eleven families are registered with Buyer, Seller and Balanced copy. The library shows all eleven; completed assessments select at most seven. No at Q1 or incomplete routes generate no actions. Required ranks ahead of Recommended, then Consider. Ties use TR02, TR11, TR01, TR03, TR04, TR08, TR07, TR06, TR05, TR09, TR10. Omitted lower-priority options remain available in the library. An identified exposure means Q1 Yes or a breach notice, termination notice or ended contract; unresolved means Q5 is not Already addressed. Serious means Significant or Fundamental impact.
+
+| ID | Trigger and priority |
+|---|---|
+| TR01 | Always Recommended on active routes; Required for suspected/unknown existence or unknown type, stage or impact. |
+| TR02 | Required for unresolved notices or ended contracts; after termination review surviving obligations and claim deadlines. |
+| TR03 | Recommended for identified unresolved exposure; Required for serious impact, termination notice or ended contract. |
+| TR04 | Already addressed: Buyer Required, otherwise Recommended; Required for all if serious or type, stage or impact is unknown. |
+| TR05 | Recommended for any impact except Minimal. |
+| TR06 | Identified: Buyer Recommended, Seller/Balanced Required; otherwise Buyer Consider, Seller/Balanced Recommended. |
+| TR07 | Recommended for identified unresolved exposure. |
+| TR08 | Serious unresolved impact: Buyer Required, Seller Consider, Balanced Recommended. Otherwise unresolved termination notice/ended with Manageable or Unknown impact: Buyer Recommended, others Consider. |
+| TR09 | Identified serious unresolved exposure: Buyer/Balanced Recommended, Seller Consider. Identified Manageable exposure with Partly/No/Unknown resolution: all Consider. |
+| TR10 | Identified serious impact: Recommended; identified Manageable impact with Partly/No resolution: Consider. |
+| TR11 | Fundamental impact: Required, including reported resolution. |
+
+The following variants replace the wording of an existing recommendation, keeping its identity, priority and place in the selection.
 
 | Family / variant | Perspective and trigger (all conditions must hold) | Card instruction |
 | --- | --- | --- |
@@ -72,4 +88,4 @@ Both techniques are recommended tactics. Preserve the higher priority of the und
 
 The completed summary and implications are included in branch preview deployments alongside the questionnaire and live risk assessment.
 
-Build and runtime checks cover the script and storage boundary. Focused tests cover the agreed examples, starting scores, adjustments, protected minimums, conditional remediation reductions, live/report score parity and delegation to other issues. All 12,348 combinations of current answers, unanswered and invalid values verify integer bounds, the exclusive 5 trigger, floors and hidden-answer exclusion. Existing questionnaire tests cover progressive reveal, early exit and normalization. Shared reset and persistence use the established implementation; browser interaction was not rechecked for this scoring-only change. Analysis checks also exercise all 12,348 combinations for completion gates, exact canonical prose coverage, hidden-answer exclusion, fixed implication membership, uniqueness, severity precedence and the three-bullet cap. Focused tests cover all-Unknown/suspected responses, reported resolution with Fundamental impact, completed/incomplete rendering and live/report parity. Action, Hub and snapshot scenarios remain deferred with that functionality.
+Build and runtime checks cover the script and storage boundary. Focused tests cover the agreed examples, starting scores, adjustments, protected minimums, conditional remediation reductions, live/report score parity and delegation to other issues. All 12,348 combinations of current answers, unanswered and invalid values verify integer bounds, the exclusive 5 trigger, floors and hidden-answer exclusion. Existing questionnaire tests cover progressive reveal, early exit and normalization. Shared reset and persistence use the established implementation; browser interaction was not rechecked for this scoring-only change. Analysis checks also exercise all 12,348 combinations for completion gates, exact canonical prose coverage, hidden-answer exclusion, fixed implication membership, uniqueness, severity precedence and the three-bullet cap. Focused tests cover all-Unknown/suspected responses, reported resolution with Fundamental impact, completed/incomplete rendering and live/report parity. Action checks cover completed answer combinations on all three sides, retention of every Required action, priority order, reachability, the seven-card cap, conditional wording and live/report parity.

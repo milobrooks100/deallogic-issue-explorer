@@ -241,6 +241,53 @@
     else implications.push(implicationCopy.addressed);
     return {summary, implications};
   }
+  const tieOrder = ['TR02','TR11','TR01','TR03','TR04','TR08','TR07','TR06','TR05','TR09','TR10'];
+  function chooseActions(state, perspective) {
+    if (!visibleIds(state).every(id => valid(id,state[id]))) return [];
+    const [exist,type,stage,impact,resolution] = ids.map(id => state[id]);
+    if (exist === 'no') return [];
+    const side = ['Buyer','Seller'].includes(perspective) ? perspective : 'Balanced';
+    const buyer = side === 'Buyer', seller = side === 'Seller';
+    const notice = ['breach-notice','termination-notice'].includes(stage);
+    const ended = stage === 'ended', threatened = ended || stage === 'termination-notice';
+    const identified = exist === 'yes' || notice || ended;
+    const open = resolution !== 'addressed', serious = ['significant','fundamental'].includes(impact);
+    const outstanding = ['partly','no'].includes(resolution);
+    const req='Required', rec='Recommended', opt='Consider';
+    const result=[];
+    const registry=window.DealLogicActionRegistry;
+    function add(id,priority,title,description) {
+      const action=registry.forSide(registry.actionFor(issueId,'','',id),side);
+      result.push({...action,priority,title:title||action.title,description:description||action.description});
+    }
+    const drill = !seller && exist==='yes' && type!=='unknown' && threatened && (impact==='unknown'||resolution==='unknown');
+    add('TR01',exist!=='yes'||[type,stage,impact].includes('unknown')?req:rec,
+      drill && 'Test the first day without the contract',drill && (ended
+        ? 'Ask the business owner what actually stopped, who was affected and how the fallback performed; identify any remaining gaps.'
+        : 'Ask the business owner what would stop on day one, who would be affected and whether the fallback would work in time.'));
+    if (open && (notice||ended)) add('TR02',req,ended && 'Review the termination and surviving obligations',ended && 'Check termination validity, surviving obligations and claim deadlines, and preserve evidence of the parties’ performance.');
+    if (identified && open) {
+      const pause=!buyer && notice && serious && outstanding;
+      const title=pause?'Agree a pause with the counterparty':ended?'Secure replacement or reinstatement':null;
+      const description=pause?'If the contract is still live, seek written agreement on which steps the counterparty will pause, until when, and what each party must do meanwhile.'
+        :ended?({Buyer:'Require evidence of effective reinstatement or a workable replacement before relying on future contract value.',Seller:'Negotiate reinstatement or replacement while controlling costs and concessions.',Balanced:'Agree an effective reinstatement or replacement and allocate responsibility for delivery and costs.'})[side]:null;
+      add('TR03',serious||threatened?req:rec,title,description);
+    }
+    if (!open) add('TR04',buyer||serious||[type,stage,impact].includes('unknown')?req:rec,null,serious && 'Verify the resolution and reconcile the continuing impact before treating the exposure as closed.');
+    if (impact!=='minimal') add('TR05',rec);
+    add('TR06',identified?(buyer?rec:req):(buyer?opt:rec));
+    if (identified && open) add('TR07',rec);
+    if (open && serious) add('TR08',buyer?req:seller?opt:rec);
+    else if (open && threatened && ['manageable','unknown'].includes(impact)) add('TR08',buyer?rec:opt);
+    if (identified && open && serious) add('TR09',seller?opt:rec);
+    else if (identified && impact==='manageable' && (outstanding||resolution==='unknown')) add('TR09',opt);
+    if (identified && serious) add('TR10',rec);
+    else if (identified && impact==='manageable' && outstanding) add('TR10',opt);
+    if (impact==='fundamental') add('TR11',req);
+    const rank={Required:0,Recommended:1,Consider:2};
+    return result.sort((a,b)=>rank[a.priority]-rank[b.priority] || tieOrder.indexOf(a.id)-tieOrder.indexOf(b.id)).slice(0,7);
+  }
+  const actionsMarkup = actions => actions.length ? actions.map(action => `<div class="logic-action" data-action-id="${action.id}"><span class="logic-icon" aria-hidden="true"></span><div><span class="logic-priority" data-level="${action.priority.toLowerCase()}">${action.priority}</span><strong>${escape(action.title)}</strong><span>${escape(action.description)}</span></div></div>`).join("") : `<p>No issue-specific actions are indicated by the recorded answer.</p>`;
   const previousRiskScore = riskScore;
   riskScore = function () { return isTermination(current()) ? assessRisk(answers) : previousRiskScore(); };
   const previousRenderLogic = renderLogic;
@@ -250,13 +297,16 @@
     const card = document.querySelector("#logic-card");
     card.classList.add("coc-deal-logic");
     const analysis = buildAnalysis(answers);
+    const side = getTransactionSide();
     if (!analysis) {
       card.classList.add("logic-standby");
       card.innerHTML = '<h3>Apply deal logic</h3><p>Answer all relevant questions to generate your deal analysis.</p>';
+      document.dispatchEvent(new CustomEvent("termination-rights-logic-rendered"));
       return;
     }
     card.classList.remove("logic-standby");
-    card.innerHTML = `<h3>Apply deal logic</h3><section class="logic-section"><h4>Summary</h4><p class="logic-conclusion">${escape(analysis.summary)}</p></section><section class="logic-section"><h4>Key deal implications</h4><ul>${analysis.implications.map(text => `<li>${escape(text)}</li>`).join("")}</ul></section>`;
+    card.innerHTML = `<h3>Apply deal logic</h3><section class="logic-section"><h4>Summary</h4><p class="logic-conclusion">${escape(analysis.summary)}</p></section><section class="logic-section"><h4>Key deal implications</h4><ul>${analysis.implications.map(text => `<li>${escape(text)}</li>`).join("")}</ul></section><section class="logic-section"><div class="logic-section-heading"><h4>Recommended actions</h4><div class="logic-side-picker" aria-label="Transaction side selector"><button type="button" class="active" data-logic-side-toggle>${escape(side)}</button></div></div>${actionsMarkup(chooseActions(answers, side))}</section>`;
+    document.dispatchEvent(new CustomEvent("termination-rights-logic-rendered"));
   };
   const previousRenderPanel = renderPanel;
   renderPanel = function () {
@@ -294,7 +344,9 @@
     const lines = issue.key_questions.filter(question => visible.includes(question.id)).map(({id, question}) => `- ${question}\n  Response: ${fields[id].options.find(([value]) => value === answers[id])?.[1] || "Unanswered"}`);
     const analysis = buildAnalysis(answers);
     const analysisLines = analysis ? ["", "SUMMARY", analysis.summary, "", "KEY DEAL IMPLICATIONS", ...analysis.implications.map(text => `- ${text}`)] : [];
-    const report = ["DEALLOGIC ISSUE REPORT", "", issue.title, `${areas[issue.category]} · ${issue.jurisdiction.primary}`, issue.summary, `Risk score: ${assessRisk(answers)}/5 — ${riskNames[assessRisk(answers) - 1]}`, "", "DILIGENCE ANSWERS", ...lines, ...analysisLines, "", "NOTE", "Recommended actions are not yet configured. Prototype content only. Obtain transaction-specific legal advice."].join("\n");
+    const selected = analysis ? chooseActions(answers, getTransactionSide()) : [];
+    const actionLines = analysis ? ["", `RECOMMENDED ACTIONS — ${getTransactionSide()}`, ...(selected.length ? selected.map(action => `- ${action.priority}: ${action.title}\n  ${action.description}`) : ["No issue-specific actions are indicated by the recorded answer."])] : [];
+    const report = ["DEALLOGIC ISSUE REPORT", "", issue.title, `${areas[issue.category]} · ${issue.jurisdiction.primary}`, issue.summary, `Risk score: ${assessRisk(answers)}/5 — ${riskNames[assessRisk(answers) - 1]}`, "", "DILIGENCE ANSWERS", ...lines, ...analysisLines, ...actionLines, "", "NOTE", "Prototype content only. Obtain transaction-specific legal advice."].join("\n");
     const url = URL.createObjectURL(new Blob([report], {type: "text/plain"}));
     const link = document.createElement("a");
     link.href = url;

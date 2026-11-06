@@ -5,11 +5,13 @@ import test from 'node:test';
 const source = await readFile(new URL('../dist/termination-rights.js', import.meta.url), 'utf8');
 const issues = JSON.parse(await readFile(new URL('../dist/issues.json', import.meta.url), 'utf8'));
 const issue = issues.find(i => i.id === 'termination-rights-and-material-breaches');
+const registry = await readFile(new URL("../dist/action-registry.js",import.meta.url),"utf8");
 function setup() {
   let report;
   const card = {innerHTML:'', classList:{add(){},remove(){}}};
-  const context = vm.createContext({answers:{}, escapeLogicText: value => String(value), current:()=>issue, riskScore:()=>4, renderPanel(){}, renderLogic(){card.innerHTML='Other issue';}, exportReport(){report='Other export';}, riskNames:["No risk","Low risk","Medium risk","High risk","Very high risk"], areas:{'commercial-contracts':'Material Contracts'}, Blob:class {constructor(parts){report=parts.join('');}}, URL:{createObjectURL:()=> 'blob:test', revokeObjectURL(){}}, document:{querySelector: selector => selector === '#logic-card' ? card : null, createElement:()=>({click(){}})}});
-  vm.runInContext(source.replace(/\}\)\(\);\s*$/, 'globalThis.testApi = {fields, ids, visibleIds, normalize, assessRisk, buildAnalysis, summaryCopy, implicationCopy}; })();'),context);
+  const context = vm.createContext({window:{},getTransactionSide:()=>"Balanced",CustomEvent:class{},answers:{}, escapeLogicText: value => String(value), current:()=>issue, riskScore:()=>4, renderPanel(){}, renderLogic(){card.innerHTML='Other issue';}, exportReport(){report='Other export';}, riskNames:["No risk","Low risk","Medium risk","High risk","Very high risk"], areas:{'commercial-contracts':'Material Contracts'}, Blob:class {constructor(parts){report=parts.join('');}}, URL:{createObjectURL:()=> 'blob:test', revokeObjectURL(){}}, document:{dispatchEvent(){},querySelector: selector => selector === '#logic-card' ? card : null, createElement:()=>({click(){}})}});
+  vm.runInContext(registry,context);
+  vm.runInContext(source.replace(/\}\)\(\);\s*$/, 'globalThis.testApi = {fields, ids, visibleIds, normalize, chooseActions, assessRisk, buildAnalysis, summaryCopy, implicationCopy}; })();'),context);
   return {...context.testApi,context,card,report:()=>report};
 }
 test('progressive reveal, early exit and invalid saved data',()=>{
@@ -148,4 +150,55 @@ test('all answer combinations produce reachable factual prose and at most three 
   visit([]);
   assert.equal(completeCount,3558);
   for(const theme of themes)assert.equal(covered[theme].size,Object.keys(summaryCopy[theme]).length);
+});
+
+test('all completed routes and sides keep required actions and respect the seven-card limit',()=>{
+  const {chooseActions,ids,fields}=setup();
+  const sides=['Buyer','Seller','Balanced'], rank=['Required','Recommended','Consider'];
+  const catalogue=new Set();
+  function visit(values) {
+    if(values.length<5) {
+      for(const [v] of fields[ids[values.length]].options) visit([...values,v]);
+      return;
+    }
+    const [exist,type,stage,impact,res]=values;
+    const state=responses(ids,values);
+    for(const side of sides) {
+      const list=Array.from(chooseActions(state,side)), titles=list.map(x=>x.id);
+      assert.ok(list.length<=7); assert.equal(new Set(titles).size,list.length);
+      if(exist==='no'){assert.equal(list.length,0);continue;}
+      const serious=['significant','fundamental'].includes(impact), notice=['breach-notice','termination-notice','ended'].includes(stage);
+      const identified=exist==='yes'||notice;
+      const required=new Set();
+      if(exist!=='yes'||[type,stage,impact].includes('unknown'))required.add('TR01');
+      if(notice && res!=='addressed')required.add('TR02');
+      if(identified && res!=='addressed' && (serious||['termination-notice','ended'].includes(stage)))required.add('TR03');
+      if(res==='addressed' && (side==='Buyer'||serious||[type,stage,impact].includes('unknown')))required.add('TR04');
+      if(identified && side!=='Buyer')required.add('TR06');
+      if(serious && res!=='addressed' && side==='Buyer')required.add('TR08');
+      if(impact==='fundamental')required.add('TR11');
+      assert.deepEqual(new Set(list.filter(a=>a.priority==='Required').map(a=>a.id)),required);
+      let prev=-1;
+      for(const a of list){catalogue.add(a.id);const r=rank.indexOf(a.priority);assert.ok(r>=prev&&r>=0);prev=r;}
+    }
+  }
+  visit([]);assert.equal(catalogue.size,11);
+  assert.equal(chooseActions(responses(ids,['yes','both']),'Buyer').length,0);
+});
+test('continuity variants keep stable action identity and appear in the report',()=>{
+  const {chooseActions,ids,context,card,report}=setup();
+  const live=responses(ids,['yes','both','termination-notice','significant','partly']);
+  const get=(state,side,id)=>chooseActions(state,side).find(a=>a.id===id);
+  assert.match(get(live,'Seller','TR03').title,/pause/);
+  assert.doesNotMatch(get(live,'Buyer','TR03').title,/pause/);
+  const lost=responses(ids,['yes','breach','ended','unknown','unknown']);
+  assert.match(get(lost,'Buyer','TR01').description,/actually stopped/);
+  assert.doesNotMatch(get(lost,'Seller','TR01').description,/actually stopped/);
+  assert.match(get(lost,'Balanced','TR03').title,/reinstatement/);
+  assert.deepEqual(Array.from(chooseActions(live,'Balanced'),a=>a.id),['TR02','TR03','TR06','TR01','TR08','TR07','TR05']);
+  context.answers=live;context.renderLogic(issue);context.exportReport();
+  for(const a of chooseActions(live,'Balanced')){
+    assert.ok(card.innerHTML.includes('data-action-id="'+a.id+'"'));
+    assert.ok(card.innerHTML.includes(a.description));assert.ok(report().includes(a.description));
+  }
 });

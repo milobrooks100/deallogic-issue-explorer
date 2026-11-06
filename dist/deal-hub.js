@@ -52,7 +52,7 @@
     const issue = currentIssue();
     if (!issue) return [];
     const card = document.querySelector("#logic-card");
-    if (["customer-change-of-control", "missing-ip-assignment", "option-holders", "threatened-litigation", "debt-facilities-repayment", "share-ownership-and-transfer-restrictions", "key-employee-retention-and-employment-terms", "compliance-gaps-and-personal-data-breaches"].includes(issue.id) && card?.querySelector(".logic-section-heading")) {
+    if (["customer-change-of-control", "missing-ip-assignment", "option-holders", "threatened-litigation", "debt-facilities-repayment", "share-ownership-and-transfer-restrictions", "key-employee-retention-and-employment-terms", "termination-rights-and-material-breaches", "compliance-gaps-and-personal-data-breaches"].includes(issue.id) && card?.querySelector(".logic-section-heading")) {
       return [...card.querySelectorAll(".logic-action")].map(row => ({
         issueId: issue.id, side: getTransactionSide(),
         actionId: stableActionIdFor(issue.id,row.querySelector("strong")?.textContent.trim(),row.querySelector("span:last-child")?.textContent.trim(),row.dataset.actionId),
@@ -176,7 +176,7 @@
       if (hasEquivalentAction(item)) continue;
       state.actions.push({id:uid(),sourceKey:key,stableActionId:item.actionId||"",issueId:item.issueId,side:item.side,priority:item.priority,
         title:item.title,instruction:item.instruction,originalTitle:item.title,originalInstruction:item.instruction,
-        status:statuses[0],dealPhase:["share-ownership-and-transfer-restrictions", "key-employee-retention-and-employment-terms", "compliance-gaps-and-personal-data-breaches", "debt-facilities-repayment", "threatened-litigation", "option-holders", "missing-ip-assignment", "customer-change-of-control"].includes(item.issueId) ? libraryPhase(window.DealLogicActionRegistry.actionFor(item.issueId,"","",item.actionId)?.phase) : phaseFor(item.title,item.instruction),
+        status:statuses[0],dealPhase:["share-ownership-and-transfer-restrictions", "key-employee-retention-and-employment-terms", "termination-rights-and-material-breaches", "compliance-gaps-and-personal-data-breaches", "debt-facilities-repayment", "threatened-litigation", "option-holders", "missing-ip-assignment", "customer-change-of-control"].includes(item.issueId) ? libraryPhase(window.DealLogicActionRegistry.actionFor(item.issueId,"","",item.actionId)?.phase) : phaseFor(item.title,item.instruction),
         urgency:"Medium",notes:"",createdAt:new Date().toISOString(),manual:false});
       added++;
     }
@@ -338,7 +338,7 @@
   const refreshIssuePicks = () => {
     // Keep deliberate selections, but refresh their side, priority and snapshot.
     const issue = currentIssue();
-    if (!["share-ownership-and-transfer-restrictions", "key-employee-retention-and-employment-terms", "compliance-gaps-and-personal-data-breaches", "debt-facilities-repayment", "threatened-litigation", "option-holders", "missing-ip-assignment", "customer-change-of-control"].includes(issue?.id)) return;
+    if (!["share-ownership-and-transfer-restrictions", "key-employee-retention-and-employment-terms", "termination-rights-and-material-breaches", "compliance-gaps-and-personal-data-breaches", "debt-facilities-repayment", "threatened-litigation", "option-holders", "missing-ip-assignment", "customer-change-of-control"].includes(issue?.id)) return;
     const latest = new Map(available().map(item => [actionKey(item.issueId,item.side,item.title,item.instruction,item.actionId), item]));
     for (const [key, item] of picks) {
       if (item.issueId !== issue.id) continue;
@@ -366,6 +366,10 @@
   document.addEventListener("share-ownership-logic-rendered", refreshIssuePicks);
   document.addEventListener("employees-logic-rendered", refreshIssuePicks);
   document.addEventListener("debt-facilities-logic-rendered", () => {
+    refreshIssuePicks();
+    if (issueById(currentIssue()?.id)) renderHub();
+  });
+  document.addEventListener("termination-rights-logic-rendered", () => {
     refreshIssuePicks();
     if (issueById(currentIssue()?.id)) renderHub();
   });
