@@ -26,17 +26,26 @@ test('Missing IP canonical copy has nine perspective variants and two neutral re
  for(const action of r.byTopic.get(issue.id).actions){const copy=['Buyer','Seller','Balanced'].map(side=>r.forSide(action,side).description);assert.equal(new Set(copy).size,['R02','R07'].includes(action.id)?1:3,action.id);for(const text of copy){assert.equal((text.match(/[.!?]/g)||[]).length,1);assert.ok(text.split(/\s+/).length<=32,text);}}
  assert.doesNotMatch(source,/retroactive|secondary evidence of equitable title|const ipActionRegistry/);
 });
-test('all 5184 answer and perspective permutations retain the existing profile priorities and rewrite rule within nine cards',()=>{
- const {state,api}=harness(),entries=Object.entries(fields);let count=0,max=0;const profiles=new Set();
+test('all 5184 permutations retain core protections, relevant additions and at most eight actions',()=>{
+ const {state,api}=harness(),entries=Object.entries(fields);let count=0,max=0,active=0,total=0;const profiles=new Set();
  const visit=i=>{if(i<entries.length){const[id,options]=entries[i];for(const value of options){state.answers[id]=value;visit(i+1);}return;}
-  for(const side of ['Buyer','Seller','Balanced']){count++;assert.equal(Boolean(api.missingIpAnswersComplete()),true);const profile=api.missingIpProfile(),actions=api.missingIpActions(profile,side);max=Math.max(max,actions.length);assert.ok(actions.length<=9);assert.equal(new Set(actions.map(a=>a.id)).size,actions.length);
+  for(const side of ['Buyer','Seller','Balanced']){count++;assert.equal(Boolean(api.missingIpAnswersComplete()),true);const profile=api.missingIpProfile(),actions=api.missingIpActions(profile,side);max=Math.max(max,actions.length);assert.ok(actions.length<=8);assert.equal(new Set(actions.map(a=>a.id)).size,actions.length);
    if(state.answers['ip-assignment-gap']==='No'||state.answers['ip-ownership-evidence']==='Yes'){assert.equal(actions.length,0);continue;}
-   profiles.add(profile);const expected=Array.from(api.ipProfileActions[profile][side],pair=>Array.from(pair));
-   if(side==='Buyer'){const idx=expected.findIndex(([,id])=>id==='R07');if(state.answers['ip-redesign-difficulty']==='Hard'){if(idx>=0)expected.splice(idx,1);}else if(idx<0)expected.push(['Consider','R07']);}
-   assert.deepEqual(Array.from(actions,a=>[a.priority,a.id]).sort((a,b)=>a[1].localeCompare(b[1])),expected.sort((a,b)=>a[1].localeCompare(b[1])));
+   profiles.add(profile);active++;total+=actions.length;
+   const ids=Array.from(actions,a=>a.id);
+   for(const id of ['R02','R05','R06'])assert.ok(ids.includes(id),`${profile}/${side} missing ${id}`);
+   for(const [priority,id] of api.ipProfileActions[profile][side]){
+     if(['R07','R10','R11'].includes(id))continue;
+     assert.equal(actions.find(a=>a.id===id)?.priority,priority);
+   }
+   const hard=state.answers['ip-redesign-difficulty']==='Hard';
+   assert.equal(ids.includes('R07'),!hard);
+   if(state.answers['ip-owner-claim']==='Yes')assert.ok(ids.includes('R04')&&ids.includes('R08'));
+   if(state.answers['ip-owner-claim']!=='Yes'&&state.answers['ip-owner-relationship']==='Unreachable')assert.ok(!ids.includes('R03')&&!ids.includes('R01'));
+   if(ids.includes('R10'))assert.ok(hard&&state.answers['ip-owner-claim']==='Yes'&&state.answers['ip-importance']!=='Low importance');
    for(const a of actions){const r=state.window.DealLogicActionRegistry;assert.equal(a.description,r.forSide(r.actionFor(issue.id,'','',a.id),side).description);}
   }
- };visit(0);assert.equal(count,5184);assert.equal(max,6);assert.equal(profiles.size,6);
+ };visit(0);assert.equal(count,5184);assert.equal(max,8);assert.ok(total/active>=5.5&&total/active<=6.8,`average ${total/active}`);console.log(`Missing IP unresolved average: ${(total/active).toFixed(2)}; maximum: ${max}`);assert.equal(profiles.size,6);
 });
 test('incomplete or hidden responses cannot generate stale Missing IP advice',()=>{
  const app=harness();app.state.answers={...blocked,'ip-importance':'Unanswered'};assert.equal(Boolean(app.api.missingIpAnswersComplete()),false);app.state.renderLogic(issue);assert.match(app.card.innerHTML,/Answer all relevant questions/);assert.equal(app.api.missingIpActions('profile5','Buyer').length,0);assert.equal(app.events.at(-1),'missing-ip-logic-rendered');
@@ -55,5 +64,19 @@ test('Seller Missing IP Hub capture uses canonical phases and preserves manually
  const picks=new Map(Array.from(actions,a=>[a.id,{issueId:issue.id,actionId:a.id,side:'Seller',priority:a.priority,title:a.title,instruction:a.description}]));
  const hub=await readFile(new URL('../dist/deal-hub.js',import.meta.url),'utf8'),commit=hub.slice(hub.indexOf('  function commitPicks()'),hub.indexOf('  const libraryPhase'));
  vm.runInNewContext(commit+'commitPicks();',{state:saved,picks,picking:true,window:state.window,actionKey:(...v)=>v.join('|'),issueById:()=>issue,hasEquivalentAction:item=>saved.actions.some(a=>a.stableActionId===item.actionId),uid:()=> 'new',statuses:['To Review'],libraryPhase:p=>p,phaseFor:()=> 'wrong',save(){},decorateRecommendations(){},renderHub(){},toast(){},CustomEvent:class{},document:{dispatchEvent(){}}});
- assert.equal(saved.actions.length,3);assert.equal(saved.actions[0],edited);assert.equal(edited.instruction,'Keep my advice');for(const a of saved.actions.slice(1)){const canonical=actions.find(x=>x.id===a.stableActionId);assert.equal(a.instruction,canonical.description);assert.equal(a.dealPhase,canonical.phase);assert.equal(a.priority,canonical.priority);}
+ assert.equal(saved.actions.length,actions.length);assert.equal(saved.actions[0],edited);assert.equal(edited.instruction,'Keep my advice');for(const a of saved.actions.slice(1)){const canonical=actions.find(x=>x.id===a.stableActionId);assert.equal(a.instruction,canonical.description);assert.equal(a.dealPhase,canonical.phase);assert.equal(a.priority,canonical.priority);}
+});
+
+test('screenshot scenario has seven useful actions and routine cases avoid financial padding',()=>{
+ const {state,api}=harness();
+ state.answers={...blocked,'ip-redesign-difficulty':'Manageable'};
+ for(const side of ['Buyer','Seller','Balanced']){
+   const actions=api.missingIpActions(api.missingIpProfile(),side),ids=Array.from(actions,a=>a.id);
+   assert.equal(actions.length,7);
+   assert.deepEqual([...ids].sort(),['R02','R04','R05','R06','R07','R08','R09']);
+ }
+ state.answers={...blocked,'ip-importance':'Low importance','ip-redesign-difficulty':'Hard','ip-owner-relationship':'Reachable and cooperative','ip-owner-claim':'No'};
+ const ids=Array.from(api.missingIpActions(api.missingIpProfile(),'Balanced'),a=>a.id);
+ assert.equal(ids.length,5);
+ for(const id of ['R04','R07','R08','R09','R10','R11'])assert.ok(!ids.includes(id));
 });

@@ -609,27 +609,27 @@
           Balanced: [["Required", "R01"]]
         },
         profile2: {
-          Buyer: [["Required", "R01"], ["Recommended", "R02"], ["Consider", "R07"]],
+          Buyer: [["Required", "R01"], ["Recommended", "R02"]],
           Seller: [["Required", "R01"], ["Recommended", "R03"]],
           Balanced: [["Required", "R01"], ["Recommended", "R02"]]
         },
         profile3: {
-          Buyer: [["Required", "R04"], ["Recommended", "R02"], ["Consider", "R07"]],
+          Buyer: [["Required", "R04"], ["Recommended", "R02"]],
           Seller: [["Required", "R05"], ["Recommended", "R02"]],
-          Balanced: [["Required", "R04"], ["Required", "R05"], ["Consider", "R07"]]
+          Balanced: [["Required", "R04"], ["Required", "R05"]]
         },
         profile4: {
-          Buyer: [["Required", "R06"], ["Recommended", "R02"], ["Consider", "R07"]],
+          Buyer: [["Required", "R06"], ["Recommended", "R02"]],
           Seller: [["Required", "R05"], ["Recommended", "R02"]],
-          Balanced: [["Required", "R05"], ["Required", "R06"], ["Consider", "R07"]]
+          Balanced: [["Required", "R05"], ["Required", "R06"]]
         },
         profile5: {
-          Buyer: [["Required", "R08"], ["Required", "R04"], ["Recommended", "R09"], ["Consider", "R07"], ["Consider", "R10"], ["Consider", "R11"]],
+          Buyer: [["Required", "R08"], ["Required", "R04"], ["Recommended", "R09"]],
           Seller: [["Required", "R05"], ["Required", "R08"], ["Recommended", "R09"]],
           Balanced: [["Required", "R08"], ["Required", "R04"], ["Recommended", "R09"]]
         },
         activeClaimFallback: {
-          Buyer: [["Required", "R08"], ["Required", "R04"], ["Recommended", "R09"], ["Consider", "R07"]],
+          Buyer: [["Required", "R08"], ["Required", "R04"], ["Recommended", "R09"]],
           Seller: [["Required", "R05"], ["Required", "R08"], ["Recommended", "R09"]],
           Balanced: [["Required", "R08"], ["Required", "R04"], ["Recommended", "R09"]]
         }
@@ -664,18 +664,27 @@
       const missingIpActions = (profile, side) => {
         side = ["Buyer", "Seller", "Balanced"].includes(side) ? side : "Balanced";
         if (!missingIpAnswersComplete() || answers["ip-assignment-gap"] === "No" || answers["ip-ownership-evidence"] === "Yes") return [];
-        const configuredActions = ipProfileActions[profile][side] || [];
-        let selectedActions = configuredActions;
-        if (side === "Buyer") {
-          const includeRewritePlan = ["Easy", "Manageable", "Unknown"].includes(answers["ip-redesign-difficulty"]);
-          const withoutRewritePlan = configuredActions.filter(([, id]) => id !== "R07");
-          const configuredRewritePlan = configuredActions.find(([, id]) => id === "R07");
-          selectedActions = includeRewritePlan
-            ? [...withoutRewritePlan, configuredRewritePlan || ["Consider", "R07"]]
-            : withoutRewritePlan;
-        }
+        // Keep each profile's core protections, then add distinct diligence and
+        // implementation steps. Optional alternatives depend on the actual facts.
+        const selectedActions = [...ipProfileActions[profile][side]];
+        const add = (priority, id) => { if (!selectedActions.some(([, existing]) => existing === id)) selectedActions.push([priority, id]); };
+        const importance = answers["ip-importance"], difficulty = answers["ip-redesign-difficulty"], owner = answers["ip-owner-relationship"];
+        const material = importance !== "Low importance";
+        const activeClaim = answers["ip-owner-claim"] === "Yes";
+        const cooperative = owner === "Reachable and cooperative";
+        const hostile = ["Reachable and uncooperative", "Unreachable"].includes(owner);
+        add("Recommended", "R02");
+        add(side === "Seller" ? "Required" : "Recommended", "R05");
+        add(profile === "profile4" && side !== "Seller" ? "Required" : "Consider", "R06");
+        if (!activeClaim && owner !== "Unknown" && owner !== "Unreachable") add(cooperative ? "Recommended" : "Consider", "R03");
+        if (!activeClaim && cooperative) add("Required", "R01");
+        if (activeClaim) add(side === "Seller" ? "Consider" : "Required", "R04");
+        if (difficulty !== "Hard") add("Consider", "R07");
+        if (material && (hostile || profile === "profile4")) add("Consider", "R09");
+        if (material && difficulty === "Hard") add("Consider", "R11");
+        if (activeClaim && material && difficulty === "Hard" && hostile) add("Consider", "R10");
         const registry = window.DealLogicActionRegistry;
-        return selectedActions.map(([priority, id]) => ({ ...registry.forSide(registry.actionFor("missing-ip-assignment", "", "", id), side), priority }));
+        return selectedActions.sort((a, b) => ["Required", "Recommended", "Consider"].indexOf(a[0]) - ["Required", "Recommended", "Consider"].indexOf(b[0])).map(([priority, id]) => ({ ...registry.forSide(registry.actionFor("missing-ip-assignment", "", "", id), side), priority }));
       };
       const ipActionMarkup = (profile, side) => missingIpActions(profile, side).map(action =>
         `<div class="logic-action" data-action-id="${action.id}"><span class="logic-icon" aria-hidden="true"></span><div><span class="logic-priority" data-level="${action.priority.toLowerCase()}">${action.priority}</span><strong>${escapeLogicText(action.title)}</strong><span>${escapeLogicText(action.description)}</span></div></div>`

@@ -30,22 +30,23 @@ Nine actions have separate Buyer, Seller and Balanced sentences. Two factual/tec
 
 Actions by Issue reuses the existing visible Buyer/Seller/Balanced toggle group and displays the complete eleven-action catalogue. The live analysis, report and Hub capture use the same selected canonical instructions. No profile-specific second sentence is appended to R01; its one-sentence canonical wording covers a completion condition for critical IP.
 
-## Existing profile matrix and limits
+## Profile rules and eight action limit
 
-Existing priorities and selection remain unchanged:
+All unresolved gaps receive R02 chain-of-title diligence, R05 specific disclosure and R06 warranty review. R02 is Recommended throughout. R05 is Required for Sellers and Recommended otherwise unless the core profile already requires it. R06 is Required for Buyer/Balanced uncertainty profiles and otherwise Consider; unknown-defect indemnity is optional and must not duplicate protection for identified losses.
 
-| Profile | Buyer | Seller | Balanced |
-| --- | --- | --- | --- |
-| Cooperative owner, no asserted claim, routine importance/replacement | Required R01; Recommended R02 | Required R01; Recommended R03 | Required R01 |
-| Cooperative owner, highly important and hard to replace, no asserted claim | Required R01; Recommended R02; conditional Consider R07 | Required R01; Recommended R03 | Required R01; Recommended R02 |
-| Uncooperative/unreachable owner, no claim | Required R04; Recommended R02; conditional Consider R07 | Required R05; Recommended R02 | Required R04 and R05; Consider R07 |
-| Unknown owner or claim position | Required R06; Recommended R02; conditional Consider R07 | Required R05; Recommended R02 | Required R05 and R06; Consider R07 |
-| Active claim, material/unknown importance and hard/unknown replacement | Required R08 and R04; Recommended R09; conditional Consider R07, plus Consider R10 and R11 | Required R05 and R08; Recommended R09 | Required R08 and R04; Recommended R09 |
-| Other active claim | Required R08 and R04; Recommended R09; conditional Consider R07 | Required R05 and R08; Recommended R09 | Required R08 and R04; Recommended R09 |
+The original six profile core protections and their perspective priorities remain. Optional alternatives now follow the actual answers for all three perspectives:
 
-For Buyer, R07 appears as Consider when replacement is Easy, Manageable or Unknown, and is omitted when Hard, preserving the existing rule and order. Actual active-claim profiles take precedence over uncertainty, then uncooperative/unreachable status, then the critical cooperative case. Every triggered step is retained; at most six cards occur, below the nine-card maximum, so consolidation is unnecessary.
+- R03 owner engagement appears only where there is no asserted claim and the owner is reachable; Recommended if cooperative, Consider if uncooperative. It is omitted for unreachable/unknown owners and active claims, where settlement is addressed by R08.
+- R01 assignment appears for cooperative owners without an asserted claim. Active claims use R08 settlement, release and transfer rather than a duplicate assignment card.
+- Active claims receive R04 specific protection: Required for Buyer/Balanced and Consider for Seller. Existing profile core priorities take precedence.
+- R07 replacement feasibility appears as Consider for Easy, Manageable or Unknown replacement, across all perspectives. Hard replacement is not presented as a ready fallback.
+- R09 price treatment appears as Consider for material or unknown importance with hostile/unreachable owners or uncertain owner/claim position; active-claim profiles retain their existing Recommended label. The canonical instruction excludes duplicate economic protection.
+- R11 reassessment appears as Consider only where importance is Medium, High or Unknown and replacement is Hard.
+- R10 structure review appears as Consider only where an asserted claim, material/unknown importance, Hard replacement and an uncooperative/unreachable owner coincide.
 
-Required is a transaction recommendation under the recorded facts and selected perspective, not a statement that every protection is legally mandated.
+Actions remain distinct, retain stable IDs and canonical perspective copy, and are deduplicated before display. No truncation, consolidation or arbitrary padding is used. Exhaustive enumeration yields a maximum of eight and a mean of 6.02 actions across unresolved answer/perspective combinations. Lower-risk scenarios can have fewer; confirmed no gap or sufficient ownership/usage evidence still yields no remediation actions. Incomplete answers remain gated. The eight-card limit overrides the general nine-card convention for this issue.
+
+Required is a transaction recommendation under the recorded facts and selected perspective, not a statement that every protection is legally mandated. No risk formula, legal notes, questionnaire wording or saved-answer values change.
 
 ## Integration and authority
 
@@ -62,8 +63,4 @@ Existing copyright ownership and assignment notes remain unchanged. The instruct
 
 ## Validation
 
-Five focused tests pass. Exhaustive coverage of 5,184 answer/perspective combinations verifies all six profiles, existing priorities/rewrite selection, canonical copy, unique IDs and a maximum of six live actions. Additional checks cover incomplete/stale answers, early exits, all-profile report/UI parity, invalid-side fallback and Seller Hub saving with preserved manual edits and canonical phases.
-
-Browser checks confirmed active-claim live analysis, all eleven catalogue actions, the three perspective controls and matching Seller instructions in the catalogue and live recommendations. Shared registry icons and styling remain in use.
-
-Runtime and whitespace checks pass. Full suite: 150 pass; one pre-existing `core-action-colours.test.mjs` failure expects obsolete positional CSS.
+Exhaustive coverage of 5,184 answer/perspective combinations verifies all six profiles, original core priorities, replacement relevance, canonical copy, unique IDs, early exits, a maximum of eight actions and a 6.02 mean for unresolved gaps. Focused tests cover the supplied high-importance/manageable-replacement/uncooperative-owner/active-claim scenario, no unnecessary financial protection for routine cooperative cases, incomplete/stale answers, all-profile report/UI parity, invalid-side fallback and Seller Hub saving with preserved manual edits and canonical phases.
