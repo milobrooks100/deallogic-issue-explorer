@@ -451,5 +451,41 @@
         "question": "Can all necessary remedial steps be completed before completion?"
       }
     ]
+  },
+  {
+    "id": "regulatory-licences-and-transaction-approvals",
+    "title": "Regulatory Licences and Transaction Approvals",
+    "category": "regulatory",
+    "summary": "Review whether the target holds and complies with the regulatory permissions it needs to operate, and whether the proposed transaction requires regulatory approval, notification or clearance. Identify outstanding issues and their effect on business continuity and completion.",
+    "jurisdiction": {
+      "primary": "England and Wales",
+      "legal_system": "common-law"
+    },
+    "key_questions": [
+      {
+        "id": "reg-permissions",
+        "question": "Does the target require regulatory permissions to operate?"
+      },
+      {
+        "id": "reg-permission-issues",
+        "question": "Have any issues been identified with the target’s regulatory permissions?"
+      },
+      {
+        "id": "reg-transaction-steps",
+        "question": "What regulatory steps does the transaction involve? (select all that apply)"
+      },
+      {
+        "id": "reg-step-status",
+        "question": "What is the status of those transaction steps?"
+      },
+      {
+        "id": "reg-impact",
+        "question": "What is the likely impact on the target or deal?"
+      },
+      {
+        "id": "reg-deadlines",
+        "question": "Can all outstanding steps be completed by the applicable deadlines?"
+      }
+    ]
   }
 ]

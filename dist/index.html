@@ -63,7 +63,7 @@
     <main><section class="intro"><h2>Deal Map</h2><p>Start with a deal area, open an issue, then record what the diligence tells you. The risk score and protections respond as the picture becomes clearer.</p></section><section class="workspace"><aside class="map"><h3><span class="map-title-wrap"><button type="button" class="map-title" aria-describedby="deal-map-guidance">Deal areas</button><span class="map-guidance" id="deal-map-guidance" role="tooltip">Open an area, then select the issue to explore.</span></span></h3><div class="map-branches" id="mind-map"></div></aside><section class="panel" id="panel"><div class="empty-state">Select a deal area to begin.</div></section></section></main>
     <footer>Prototype content only — it is not legal advice and must be reviewed and tailored for each transaction and jurisdiction. <a class="privacy-footer-link" href="./privacy.html">View privacy notice here.</a> <a class="privacy-footer-link" href="./terms.html">See terms of use.</a></footer>
     <script>
-      const areas={"commercial-contracts":"Material Contracts","intellectual-property":"Intellectual Property","corporate-and-shares":"Shares","litigation-and-disputes":"Disputes","finance-and-banking":"Finance","employees":"Employment","data-protection":"Data Protection"},order=Object.keys(areas).sort((a,b)=>areas[a].localeCompare(areas[b]));
+      const areas={"commercial-contracts":"Material Contracts","intellectual-property":"Intellectual Property","corporate-and-shares":"Shares","litigation-and-disputes":"Disputes","finance-and-banking":"Finance","employees":"Employment","data-protection":"Data Protection","regulatory":"Regulatory"},order=Object.keys(areas).sort((a,b)=>areas[a].localeCompare(areas[b]));
       const dealProjectStoreKey="deallogic:deal-projects:v1";
       const parseStored=(value,fallback)=>{try{return JSON.parse(value)||fallback}catch{return fallback}};
       const makeDealId=()=>crypto.randomUUID?crypto.randomUUID():`${Date.now()}-${Math.random().toString(36).slice(2)}`;
@@ -1762,6 +1762,7 @@
     <script src="./employees.js"></script>
     <script src="./data-protection.js"></script>
     <script src="./termination-rights.js"></script>
+    <script src="./regulatory.js"></script>
     <script src="./action-playbooks.js"></script>
     <script src="./onboarding.js"></script>
     <script type="module" src="./account.js"></script>

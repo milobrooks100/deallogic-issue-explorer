@@ -4,7 +4,7 @@ import test from "node:test";
 
 const issues = JSON.parse(await readFile(new URL("../dist/issues.json", import.meta.url), "utf8"));
 const index = await readFile(new URL("../dist/index.html", import.meta.url), "utf8");
-const expectedIds = ["termination-rights-and-material-breaches", "customer-change-of-control", "option-holders", "debt-facilities-repayment", "missing-ip-assignment", "threatened-litigation", "share-ownership-and-transfer-restrictions", "key-employee-retention-and-employment-terms", "compliance-gaps-and-personal-data-breaches"];
+const expectedIds = ["regulatory-licences-and-transaction-approvals", "termination-rights-and-material-breaches", "customer-change-of-control", "option-holders", "debt-facilities-repayment", "missing-ip-assignment", "threatened-litigation", "share-ownership-and-transfer-restrictions", "key-employee-retention-and-employment-terms", "compliance-gaps-and-personal-data-breaches"];
 
 test("every shipped issue contains only fields read by the current app", () => {
   assert.deepEqual(issues.map(issue => issue.id).sort(), expectedIds.sort());
