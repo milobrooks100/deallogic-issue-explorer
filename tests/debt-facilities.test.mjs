@@ -23,7 +23,7 @@ const context = vm.createContext({ window:{},exportReport(){report="Other issue"
   dispatchEvent: event => { events.push(event.type); }
 } });
 vm.runInContext(registrySource,context);
-vm.runInContext(source.replace(/\}\)\(\);\s*$/, "globalThis.__debtTest = { options, debtSummary, debtImplications, debtActions, ids, visibleIds, debtAnswersComplete }; })();"), context);
+vm.runInContext(source.replace(/\}\)\(\);\s*$/, "globalThis.__debtTest = { options, debtSummary, debtImplications, debtActions, ids, visibleIds, debtAnswersComplete, normalizeAnswers }; })();"), context);
 const score = answers => { context.answers = answers; return context.riskScore(); };
 const questions = answers => { context.answers = answers; context.renderPanel(); return markup; };
 const summary = answers => { context.answers = answers; return context.__debtTest.debtSummary(); };
@@ -42,45 +42,45 @@ test("debt questions have distinct answer keys", () => {
 test("follow-up questions match the repayment or consent route", () => {
   assert.match(questions({}), /id="debt-obligations"/);
   assert.doesNotMatch(markup, /id="debt-payoff"/);
-  const base = { "debt-obligations": "Yes — finance obligations or security exist" };
-  assert.match(questions({ ...base, "debt-transaction-effect": "Repayment or cancellation required" }), /id="debt-payoff"/);
+  const base = { "debt-obligations": "Yes" };
+  assert.match(questions({ ...base, "debt-transaction-effect": "Repayment or cancellation" }), /id="debt-payoff"/);
   assert.doesNotMatch(markup, /id="debt-consent"/);
-  assert.match(questions({ ...base, "debt-transaction-effect": "Lender consent or waiver required to continue" }), /id="debt-consent"/);
+  assert.match(questions({ ...base, "debt-transaction-effect": "Consent or waiver" }), /id="debt-consent"/);
   assert.doesNotMatch(markup, /id="debt-payoff"/);
 });
 
 test("confirmed absence and unreviewed debt have different risk", () => {
-  assert.equal(score({ "debt-obligations": "No — confirmed from finance documents and charge records" }), 1);
-  assert.equal(score({ "debt-obligations": "Not yet checked" }), 2);
+  assert.equal(score({ "debt-obligations": "No — confirmed" }), 1);
+  assert.equal(score({ "debt-obligations": "Not checked" }), 2);
 });
 
 test("unconfirmed payoff, funding gap and unresolved releases escalate risk", () => {
-  const base = { "debt-obligations": "Yes — finance obligations or security exist", "debt-transaction-effect": "Repayment or cancellation required" };
-  assert.equal(score({ ...base, "debt-payoff": "No — no written payoff obtained" }), 4);
-  assert.equal(score({ ...base, "debt-funding": "No — shortfall or timing gap" }), 5);
-  assert.equal(score({ ...base, "debt-releases": "No — required releases are unresolved" }), 5);
+  const base = { "debt-obligations": "Yes", "debt-transaction-effect": "Repayment or cancellation" };
+  assert.equal(score({ ...base, "debt-payoff": "No written confirmation" }), 4);
+  assert.equal(score({ ...base, "debt-funding": "Shortfall or timing gap" }), 5);
+  assert.equal(score({ ...base, "debt-releases": "Unresolved" }), 5);
 });
 
 test("a declined lender consent is a critical completion risk", () => {
-  assert.equal(score({ "debt-obligations": "Yes — finance obligations or security exist", "debt-transaction-effect": "Lender consent or waiver required to continue", "debt-consent": "No — lender has declined or required terms are unmet" }), 5);
+  assert.equal(score({ "debt-obligations": "Yes", "debt-transaction-effect": "Consent or waiver", "debt-consent": "Declined or conditions unmet" }), 5);
 });
 
 test("a documented and funded payoff with agreed releases reduces risk", () => {
   assert.equal(score({
-    "debt-obligations": "Yes — finance obligations or security exist",
-    "debt-transaction-effect": "Repayment or cancellation required",
-    "debt-payoff": "Yes — current written payoff covers all amounts and release conditions",
-    "debt-funding": "Yes — sufficient committed funds and agreed funds flow",
-    "debt-releases": "Yes — all required releases are agreed for completion",
-    "debt-completion-sequence": "Yes — all required steps are coordinated for completion"
+    "debt-obligations": "Yes",
+    "debt-transaction-effect": "Repayment or cancellation",
+    "debt-payoff": "Yes — fully confirmed",
+    "debt-funding": "Yes",
+    "debt-releases": "All agreed",
+    "debt-completion-sequence": "Yes"
   }), 2);
 });
 
 test("summary turns an unsought consent into a complete sentence", () => {
   const text = summary({
-    "debt-obligations": "Yes — finance obligations or security exist",
-    "debt-transaction-effect": "Lender consent or waiver required to continue",
-    "debt-consent": "Not yet sought"
+    "debt-obligations": "Yes",
+    "debt-transaction-effect": "Consent or waiver",
+    "debt-consent": "Not sought"
   });
   assert.match(text, /The required lender consent or waiver has not yet been sought\./);
   assert.match(text, /completion sequence remains unconfirmed\./);
@@ -108,11 +108,11 @@ test("every valid answer combination produces readable summary sentences", () =>
 });
 
 test("debt implications change with the transaction route and open completion risks", () => {
-  const base = { "debt-obligations": "Yes — finance obligations or security exist" };
-  assert.deepEqual(implications({ "debt-obligations": "No — confirmed from finance documents and charge records" }), ["No debt-specific completion step is currently indicated."]);
-  assert.match(implications({ ...base, "debt-transaction-effect": "Repayment or cancellation required", "debt-funding": "No — shortfall or timing gap" }).join(" "), /funding shortfall/);
-  assert.match(implications({ ...base, "debt-transaction-effect": "Lender consent or waiver required to continue", "debt-consent": "Not yet sought" }).join(" "), /must be sought/);
-  const both = implications({ ...base, "debt-transaction-effect": "Both repayment and lender consent or waiver required", "debt-consent": "No — lender has declined or required terms are unmet", "debt-funding": "No — shortfall or timing gap", "debt-releases": "No — required releases are unresolved" });
+  const base = { "debt-obligations": "Yes" };
+  assert.deepEqual(implications({ "debt-obligations": "No — confirmed" }), ["No debt-specific completion step is currently indicated."]);
+  assert.match(implications({ ...base, "debt-transaction-effect": "Repayment or cancellation", "debt-funding": "Shortfall or timing gap" }).join(" "), /funding shortfall/);
+  assert.match(implications({ ...base, "debt-transaction-effect": "Consent or waiver", "debt-consent": "Not sought" }).join(" "), /must be sought/);
+  const both = implications({ ...base, "debt-transaction-effect": "Both repayment and consent or waiver", "debt-consent": "Declined or conditions unmet", "debt-funding": "Shortfall or timing gap", "debt-releases": "Unresolved" });
   assert.equal(both.length, 3);
   assert.match(both[0], /lender's refusal/);
   assert.match(both[1], /funding shortfall/);
@@ -143,8 +143,8 @@ test("all answer combinations produce one to three complete implications", () =>
 
 test("only the approved fourteen action descriptions are used", () => {
   assert.equal(context.window.DealLogicActionRegistry.byTopic.get(issue.id).actions.length, 14);
-  assert.deepEqual(actions({ "debt-obligations": "No — confirmed from finance documents and charge records" }), []);
-  assert.deepEqual(actions({ "debt-obligations": "Not yet checked" }).map(action => action.id), ["D01"]);
+  assert.deepEqual(actions({ "debt-obligations": "No — confirmed" }), []);
+  assert.deepEqual(actions({ "debt-obligations": "Not checked" }).map(action => action.id), ["D01"]);
 });
 
 test("Action Library contains the same fourteen Debt Facilities actions", () => {
@@ -160,19 +160,19 @@ test("Action Library contains the same fourteen Debt Facilities actions", () => 
 });
 
 test("repayment and consent routes select different transaction protections", () => {
-  const base = { "debt-obligations": "Yes — finance obligations or security exist" };
-  const repayment = actions({ ...base, "debt-transaction-effect": "Repayment or cancellation required", "debt-releases": "No target-group security or guarantees to release — confirmed" }, "Balanced", false);
+  const base = { "debt-obligations": "Yes" };
+  const repayment = actions({ ...base, "debt-transaction-effect": "Repayment or cancellation", "debt-releases": "None required — confirmed" }, "Balanced", false);
   assert.ok(repayment.some(action => action.id === "D02"));
   assert.ok(repayment.some(action => action.id === "D03"));
   assert.ok(repayment.some(action => action.id === "D09"));
   assert.ok(!repayment.some(action => action.id === "D04" || action.id === "D08"));
-  const consent = actions({ ...base, "debt-transaction-effect": "Lender consent or waiver required to continue", "debt-consent": "Not yet sought" });
+  const consent = actions({ ...base, "debt-transaction-effect": "Consent or waiver", "debt-consent": "Not sought" });
   assert.ok(consent.some(action => action.id === "D04"));
   assert.ok(!consent.some(action => ["D02", "D03", "D07", "D08", "D09"].includes(action.id)));
 });
 
 test("buyer, seller and balanced priorities differ where the SPA protection is negotiable", () => {
-  const facts = { "debt-obligations": "Yes — finance obligations or security exist", "debt-transaction-effect": "Lender consent or waiver required to continue", "debt-consent": "Not yet sought" };
+  const facts = { "debt-obligations": "Yes", "debt-transaction-effect": "Consent or waiver", "debt-consent": "Not sought" };
   const priority = (selectedSide, id) => actions(facts, selectedSide).find(action => action.id === id)?.priority;
   assert.equal(priority("Buyer", "D10"), "Required");
   assert.equal(priority("Seller", "D10"), "Consider");
@@ -183,13 +183,13 @@ test("buyer, seller and balanced priorities differ where the SPA protection is n
 
 test("a combined blocked route keeps essential protections within the nine-card cap", () => {
   const facts = {
-    "debt-obligations": "Yes — finance obligations or security exist",
-    "debt-transaction-effect": "Both repayment and lender consent or waiver required",
-    "debt-payoff": "No — no written payoff obtained",
-    "debt-consent": "No — lender has declined or required terms are unmet",
-    "debt-funding": "No — shortfall or timing gap",
-    "debt-releases": "No — required releases are unresolved",
-    "debt-completion-sequence": "No — a completion dependency is unresolved"
+    "debt-obligations": "Yes",
+    "debt-transaction-effect": "Both repayment and consent or waiver",
+    "debt-payoff": "No written confirmation",
+    "debt-consent": "Declined or conditions unmet",
+    "debt-funding": "Shortfall or timing gap",
+    "debt-releases": "Unresolved",
+    "debt-completion-sequence": "Unresolved dependency"
   };
   const buyer = actions(facts, "Buyer");
   assert.equal(buyer.length, 9);
@@ -199,7 +199,7 @@ test("a combined blocked route keeps essential protections within the nine-card 
 });
 
 test("APA action appears with an asset-sale qualification and no sale-type selector", () => {
-  context.answers = { "debt-obligations": "Yes — finance obligations or security exist", "debt-transaction-effect": "None — no repayment, consent or waiver required" };
+  context.answers = { "debt-obligations": "Yes", "debt-transaction-effect": "None" };
   side = "Seller";
   context.renderLogic(issue);
   assert.match(logicCard.innerHTML, /data-action-id="D12"/);
@@ -211,21 +211,21 @@ test("APA action appears with an asset-sale qualification and no sale-type selec
 
 test("deal logic waits for all visible answers on each question route", () => {
   const render = answers => { context.answers = answers; context.renderLogic(issue); return logicCard.classList.contains("logic-standby"); };
-  const base = { "debt-obligations": "Yes — finance obligations or security exist" };
+  const base = { "debt-obligations": "Yes" };
   events.length = 0;
   assert.equal(render({}), true);
   assert.match(logicCard.innerHTML, /Answer all relevant questions to generate your deal analysis/);
   assert.equal(render(base), true);
   assert.equal(events.at(-1),"debt-facilities-logic-rendered");
   events.length=0;
-  assert.equal(render({ "debt-obligations": "Not yet checked" }), false);
+  assert.equal(render({ "debt-obligations": "Not checked" }), false);
   assert.deepEqual(events, ["debt-facilities-logic-rendered"]);
-  assert.equal(render({ ...base, "debt-transaction-effect": "Unclear — documents or transaction analysis incomplete" }), false);
-  assert.equal(render({ ...base, "debt-transaction-effect": "Repayment or cancellation required" }), true);
-  assert.equal(render({ ...base, "debt-transaction-effect": "Repayment or cancellation required", "debt-payoff": "Not yet requested", "debt-funding": "Not yet assessed", "debt-releases": "Not yet mapped", "debt-completion-sequence": "Not yet agreed" }), false);
-  assert.equal(render({ ...base, "debt-transaction-effect": "Lender consent or waiver required to continue", "debt-consent": "Not yet sought" }), true);
-  assert.equal(render({ ...base, "debt-transaction-effect": "Lender consent or waiver required to continue", "debt-consent": "Not yet sought", "debt-completion-sequence": "Not yet agreed" }), false);
-  assert.equal(render({ ...base, "debt-transaction-effect": "Both repayment and lender consent or waiver required", "debt-payoff": "Not yet requested", "debt-consent": "Not yet sought", "debt-funding": "Not yet assessed", "debt-releases": "Not yet mapped", "debt-completion-sequence": "Not yet agreed" }), false);
+  assert.equal(render({ ...base, "debt-transaction-effect": "Unclear" }), false);
+  assert.equal(render({ ...base, "debt-transaction-effect": "Repayment or cancellation" }), true);
+  assert.equal(render({ ...base, "debt-transaction-effect": "Repayment or cancellation", "debt-payoff": "Not requested", "debt-funding": "Not assessed", "debt-releases": "Not assessed", "debt-completion-sequence": "Not agreed" }), false);
+  assert.equal(render({ ...base, "debt-transaction-effect": "Consent or waiver", "debt-consent": "Not sought" }), true);
+  assert.equal(render({ ...base, "debt-transaction-effect": "Consent or waiver", "debt-consent": "Not sought", "debt-completion-sequence": "Not agreed" }), false);
+  assert.equal(render({ ...base, "debt-transaction-effect": "Both repayment and consent or waiver", "debt-payoff": "Not requested", "debt-consent": "Not sought", "debt-funding": "Not assessed", "debt-releases": "Not assessed", "debt-completion-sequence": "Not agreed" }), false);
   assert.ok(events.includes("debt-facilities-logic-rendered"));
 });
 
@@ -289,4 +289,86 @@ test('saving combined debt cards preserves component priorities, phases and Sell
  assert.equal(state.actions.length,2);assert.equal(state.actions[0],edited);assert.equal(edited.instruction,'Keep my manual text');
  const saved=state.actions[1];assert.equal(saved.stableActionId,'D12');assert.equal(saved.priority,'Required');assert.equal(saved.side,'Seller');assert.equal(saved.dealPhase,'SPA drafting');
  assert.equal(saved.instruction,components.find(a=>a.id==='D12').description);
+});
+
+const previousOptions = {
+  "debt-obligations": [
+    "Unanswered",
+    "No — confirmed from finance documents and charge records",
+    "Yes — finance obligations or security exist",
+    "Possibly — records are incomplete",
+    "Not yet checked"
+  ],
+  "debt-transaction-effect": [
+    "Unanswered",
+    "None — no repayment, consent or waiver required",
+    "Repayment or cancellation required",
+    "Lender consent or waiver required to continue",
+    "Both repayment and lender consent or waiver required",
+    "Unclear — documents or transaction analysis incomplete"
+  ],
+  "debt-payoff": [
+    "Unanswered",
+    "Yes — current written payoff covers all amounts and release conditions",
+    "Partly — figures or conditions remain open",
+    "No — no written payoff obtained",
+    "Not yet requested"
+  ],
+  "debt-consent": [
+    "Unanswered",
+    "Yes — written consent or waiver is effective",
+    "Agreed in principle, but not signed",
+    "No — lender has declined or required terms are unmet",
+    "Not yet sought"
+  ],
+  "debt-funding": [
+    "Unanswered",
+    "Yes — sufficient committed funds and agreed funds flow",
+    "Expected, but funding or funds flow is not final",
+    "No — shortfall or timing gap",
+    "Not yet assessed"
+  ],
+  "debt-releases": [
+    "Unanswered",
+    "No target-group security or guarantees to release — confirmed",
+    "Yes — all required releases are agreed for completion",
+    "Partly — some releases remain outstanding",
+    "No — required releases are unresolved",
+    "Not yet mapped"
+  ],
+  "debt-completion-sequence": [
+    "Unanswered",
+    "Yes — all required steps are coordinated for completion",
+    "Partly — steps agreed in principle",
+    "No — a completion dependency is unresolved",
+    "Not yet agreed"
+  ]
+};
+
+test("saved finance answers migrate without changing risk or actions", () => {
+  const { ids, options, normalizeAnswers } = context.__debtTest;
+  for (const id of ids) {
+    for (const [position, value] of previousOptions[id].entries()) {
+      const ready = Object.fromEntries(ids.map((key, index) => [key, options[key][index === 0 ? 2 : index === 1 ? 4 : 1]]));
+      const current = { ...ready, [id]: options[id][position] };
+      const historical = { ...ready, [id]: value };
+      assert.equal(score(historical), score(current));
+      for (const selectedSide of ["Buyer", "Seller", "Balanced"]) {
+        assert.equal(JSON.stringify(actions(historical, selectedSide)), JSON.stringify(actions(current, selectedSide)));
+        assert.equal(JSON.stringify(context.window.DealLogicDebtActions(historical, selectedSide)), JSON.stringify(context.window.DealLogicDebtActions(current, selectedSide)));
+      }
+      context.answers = historical;
+      normalizeAnswers();
+      assert.equal(context.answers[id], options[id][position]);
+      context.exportReport();
+      assert.ok(!report.includes("Response: " + value + "\n") || value === options[id][position] || !context.__debtTest.visibleIds().includes(id));
+    }
+  }
+});
+
+test("unassessed releases have an accurate summary and closing implication", () => {
+  const { ids, options } = context.__debtTest;
+  const responses = Object.fromEntries(ids.map((id, index) => [id, options[id][index === 0 ? 2 : index === 1 ? 2 : index === 5 ? 5 : 1]]));
+  assert.match(summary(responses), /releases have not yet been assessed/);
+  assert.ok(implications(responses).some(text => text.includes("other credit support")));
 });

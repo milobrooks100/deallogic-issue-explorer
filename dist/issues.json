@@ -147,11 +147,11 @@
     "key_questions": [
       {
         "id": "debt-obligations",
-        "question": "Does any target-group company have outstanding borrowing, guarantees or security under a finance arrangement?"
+        "question": "Does the target have any borrowing, guarantee or security arrangements?"
       },
       {
         "id": "debt-transaction-effect",
-        "question": "What does the proposed transaction require under the finance documents?"
+        "question": "What lender steps does the transaction require?"
       },
       {
         "id": "debt-payoff",
@@ -159,19 +159,19 @@
       },
       {
         "id": "debt-consent",
-        "question": "Has the required lender consent or waiver been obtained in writing?"
+        "question": "What is the status of the required lender consent or waiver?"
       },
       {
         "id": "debt-funding",
-        "question": "Are sufficient funds available under an agreed completion funds flow?"
+        "question": "Are repayment funds committed and the completion funds flow agreed?"
       },
       {
         "id": "debt-releases",
-        "question": "Are all target-group security, guarantees and other credit support identified, with releases agreed for completion?"
+        "question": "Are all required target-group security and guarantee releases agreed for completion?"
       },
       {
         "id": "debt-completion-sequence",
-        "question": "Are all required lender steps sequenced with completion?"
+        "question": "Are all required lender steps coordinated for completion?"
       }
     ],
     "notes": "Transaction triggers: Check the precise change-of-control, mandatory prepayment, cancellation and default wording against the agreed transaction structure; repayment alone may not address every consent or notice requirement.\n\nRegister updates: Check the required post-completion filings separately from the contractual release. A Companies House MR04 records satisfaction on the public register; filing it does not remove the charge entry."

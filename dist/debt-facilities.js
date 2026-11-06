@@ -4,27 +4,133 @@
   const escapeLogicText = value => String(value || "").replace(/[&<>'"]/g, character => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", "'": "&#39;", '"': "&quot;" }[character]));
   const ids = ["debt-obligations", "debt-transaction-effect", "debt-payoff", "debt-consent", "debt-funding", "debt-releases", "debt-completion-sequence"];
   const options = {
-    "debt-obligations": ["Unanswered", "No — confirmed from finance documents and charge records", "Yes — finance obligations or security exist", "Possibly — records are incomplete", "Not yet checked"],
-    "debt-transaction-effect": ["Unanswered", "None — no repayment, consent or waiver required", "Repayment or cancellation required", "Lender consent or waiver required to continue", "Both repayment and lender consent or waiver required", "Unclear — documents or transaction analysis incomplete"],
-    "debt-payoff": ["Unanswered", "Yes — current written payoff covers all amounts and release conditions", "Partly — figures or conditions remain open", "No — no written payoff obtained", "Not yet requested"],
-    "debt-consent": ["Unanswered", "Yes — written consent or waiver is effective", "Agreed in principle, but not signed", "No — lender has declined or required terms are unmet", "Not yet sought"],
-    "debt-funding": ["Unanswered", "Yes — sufficient committed funds and agreed funds flow", "Expected, but funding or funds flow is not final", "No — shortfall or timing gap", "Not yet assessed"],
-    "debt-releases": ["Unanswered", "No target-group security or guarantees to release — confirmed", "Yes — all required releases are agreed for completion", "Partly — some releases remain outstanding", "No — required releases are unresolved", "Not yet mapped"],
-    "debt-completion-sequence": ["Unanswered", "Yes — all required steps are coordinated for completion", "Partly — steps agreed in principle", "No — a completion dependency is unresolved", "Not yet agreed"]
+    "debt-obligations": [
+      "Unanswered",
+      "No — confirmed",
+      "Yes",
+      "Possibly — incomplete records",
+      "Not checked"
+    ],
+    "debt-transaction-effect": [
+      "Unanswered",
+      "None",
+      "Repayment or cancellation",
+      "Consent or waiver",
+      "Both repayment and consent or waiver",
+      "Unclear"
+    ],
+    "debt-payoff": [
+      "Unanswered",
+      "Yes — fully confirmed",
+      "Partly confirmed",
+      "No written confirmation",
+      "Not requested"
+    ],
+    "debt-consent": [
+      "Unanswered",
+      "Written and effective",
+      "Agreed — not signed",
+      "Declined or conditions unmet",
+      "Not sought"
+    ],
+    "debt-funding": [
+      "Unanswered",
+      "Yes",
+      "Expected — not final",
+      "Shortfall or timing gap",
+      "Not assessed"
+    ],
+    "debt-releases": [
+      "Unanswered",
+      "None required — confirmed",
+      "All agreed",
+      "Some outstanding",
+      "Unresolved",
+      "Not assessed"
+    ],
+    "debt-completion-sequence": [
+      "Unanswered",
+      "Yes",
+      "Agreed in principle",
+      "Unresolved dependency",
+      "Not agreed"
+    ]
+  };
+  // Historical display labels are retained only to migrate saved answers.
+  const previousAnswers = {
+    "debt-obligations": {
+      "No — confirmed from finance documents and charge records": 1,
+      "Yes — finance obligations or security exist": 2,
+      "Possibly — records are incomplete": 3,
+      "Not yet checked": 4
+    },
+    "debt-transaction-effect": {
+      "None — no repayment, consent or waiver required": 1,
+      "Repayment or cancellation required": 2,
+      "Lender consent or waiver required to continue": 3,
+      "Both repayment and lender consent or waiver required": 4,
+      "Unclear — documents or transaction analysis incomplete": 5
+    },
+    "debt-payoff": {
+      "Yes — current written payoff covers all amounts and release conditions": 1,
+      "Partly — figures or conditions remain open": 2,
+      "No — no written payoff obtained": 3,
+      "Not yet requested": 4
+    },
+    "debt-consent": {
+      "Yes — written consent or waiver is effective": 1,
+      "Agreed in principle, but not signed": 2,
+      "No — lender has declined or required terms are unmet": 3,
+      "Not yet sought": 4
+    },
+    "debt-funding": {
+      "Yes — sufficient committed funds and agreed funds flow": 1,
+      "Expected, but funding or funds flow is not final": 2,
+      "No — shortfall or timing gap": 3,
+      "Not yet assessed": 4
+    },
+    "debt-releases": {
+      "No target-group security or guarantees to release — confirmed": 1,
+      "Yes — all required releases are agreed for completion": 2,
+      "Partly — some releases remain outstanding": 3,
+      "No — required releases are unresolved": 4,
+      "Not yet mapped": 5
+    },
+    "debt-completion-sequence": {
+      "Yes — all required steps are coordinated for completion": 1,
+      "Partly — steps agreed in principle": 2,
+      "No — a completion dependency is unresolved": 3,
+      "Not yet agreed": 4
+    }
+  };
+  const currentAnswer = (id, responses) => {
+    const value = responses[id] || "Unanswered";
+    const position = previousAnswers[id]?.[value];
+    return position === undefined ? value : options[id][position];
+  };
+  const normalizeAnswers = () => {
+    let changed = false;
+    ids.forEach(id => {
+      if (answers[id] && answers[id] !== currentAnswer(id, answers)) {
+        answers[id] = currentAnswer(id, answers);
+        changed = true;
+      }
+    });
+    if (changed) DealLogicStorage.setItem(storedKey(), JSON.stringify(answers));
   };
   const guidance = {
-    "debt-obligations": "Check facility and security documents, guarantees, hedging documents and Companies House charge records for each target-group company.",
+    "debt-obligations": "Check facility and security documents, guarantees, hedging documents and Companies House charge records for the target and each group company. Select No — confirmed only after checking these records.",
     "debt-transaction-effect": "Read the change-of-control, mandatory prepayment, cancellation, default and consent terms against the proposed transaction.",
     "debt-payoff": "Obtain the lender's current written figure, including principal, interest, fees, break costs and any hedging close-out, plus the release conditions.",
     "debt-consent": "Confirm that a signed lender consent or waiver covers the transaction and is effective before the relevant deadline.",
     "debt-funding": "Check that committed completion funds cover the full payoff and can reach the lender when required.",
-    "debt-releases": "Map each target-group charge, guarantee and other credit support to an agreed release. Record any post-completion register update separately.",
+    "debt-releases": "Map each target-group charge, guarantee and other credit support to an agreed release. Include other credit support. Some outstanding means part of the required release package is agreed; Unresolved means the required releases remain unresolved. Select Not assessed if the release requirements have not been reviewed. Record any post-completion register update separately.",
     "debt-completion-sequence": "Check the agreed funds flow, payment instructions, release delivery and any escrow or undertaking so no step depends on an unsecured promise."
   };
   const repaymentRequired = effect => effect === options["debt-transaction-effect"][2] || effect === options["debt-transaction-effect"][4];
   const consentRequired = effect => effect === options["debt-transaction-effect"][3] || effect === options["debt-transaction-effect"][4];
   const isDebt = () => current()?.id === issueId;
-  const answer = id => answers[id] || "Unanswered";
+  const answer = id => currentAnswer(id, answers);
   const isKnown = value => value !== "Unanswered";
   const visibleIds = () => {
     const existence = answer(ids[0]);
@@ -43,7 +149,7 @@
   const debtRiskScore = () => {
     const existence = answer(ids[0]);
     if (existence === options[ids[0]][1]) return 1;
-    if (existence === "Not yet checked") return 2;
+    if (existence === options[ids[0]][4]) return 2;
     if (!isKnown(existence)) return 1;
     const possible = existence === options[ids[0]][3];
     const effect = answer(ids[1]);
@@ -96,8 +202,8 @@
   const summaryCopy = {
     "debt-obligations": [null,
       "No relevant target-group borrowing, guarantee or security has been identified after reviewing the finance documents and charge records.",
-      "The target group has outstanding finance obligations or security.",
-      "The target group may have finance obligations or security, but the records are incomplete.",
+      "The target has borrowing, guarantee or security arrangements.",
+      "The target may have borrowing, guarantee or security arrangements, but the records are incomplete.",
       "The target group's finance obligations and security have not yet been checked."],
     "debt-transaction-effect": [null,
       "The finance documents do not require repayment, lender consent or a waiver for this transaction.",
@@ -125,7 +231,7 @@
       "All required target-group releases are agreed for completion.",
       "Some target-group releases remain outstanding.",
       "The required target-group releases remain unresolved.",
-      "The target-group security and guarantee perimeter has not yet been mapped."],
+      "The required target-group releases have not yet been assessed."],
     "debt-completion-sequence": [null,
       "All required lender steps are coordinated for completion.",
       "The completion steps are agreed in principle but are not final.",
@@ -199,7 +305,7 @@
       const releases = answer(ids[5]);
       const releasesOpen = ![options[ids[5]][1], options[ids[5]][2]].includes(releases);
       if (releasesOpen && sequenceOpen) implications.push("The release package and completion sequence remain open, creating a closing gap.");
-      else if (releasesOpen) implications.push("Target-group security or guarantees may remain unless the release package is agreed and delivered.");
+      else if (releasesOpen) implications.push("Target-group security, guarantees or other credit support may remain unless the required releases are agreed and delivered.");
       else if (sequenceOpen) implications.push("Repayment and release steps need a final agreed completion sequence.");
     } else if (sequenceOpen) {
       implications.push("The lender consent or waiver must be effective on the agreed transaction timetable.");
@@ -211,7 +317,7 @@
   const actionOrder = ["D06", "D04", "D07", "D08", "D09", "D02", "D03", "D10", "D11", "D14", "D01", "D12", "D05", "D13"];
   const debtActions = (side = getTransactionSide(), consolidate = true, responses = answers) => {
     side = ["Buyer", "Seller", "Balanced"].includes(side) ? side : "Balanced";
-    const answer = id => responses[id] || "Unanswered";
+    const answer = id => currentAnswer(id, responses);
     const copy = (buyer, seller, balanced) => ({ Buyer: buyer, Seller: seller, Balanced: balanced }[side]);
     const selected = new Map();
     const add = (id, buyer, seller, balanced) => {
@@ -307,6 +413,7 @@
 
   const previousRenderPanel = renderPanel;
   renderPanel = function () {
+    if (isDebt()) normalizeAnswers();
     previousRenderPanel();
     if (!isDebt()) return;
     const card = document.querySelector(".content-grid > .card");
