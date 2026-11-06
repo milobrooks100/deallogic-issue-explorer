@@ -191,8 +191,44 @@
     if (field.multiple) return `<div class="question"><div class="question-top"><label id="${id}-label">${escape(question)}</label>${info}</div><div class="choice-grid" role="group" aria-labelledby="${id}-label" aria-describedby="${id}-guidance">${field.options.map(([value,label]) => `<label><input type="checkbox" data-reg-step value="${value}" ${(answers[id] || []).includes(value) ? "checked" : ""}> ${escape(label)}</label>`).join("")}</div></div>`;
     return `<div class="question"><div class="question-top"><label for="${id}">${escape(question)}</label>${info}</div><select id="${id}" aria-describedby="${id}-guidance"><option value="" ${!answers[id] ? "selected" : ""}>Unanswered</option>${field.options.map(([value,label]) => `<option value="${value}" ${answers[id] === value ? "selected" : ""}>${escape(label)}</option>`).join("")}</select></div>`;
   }
+  // Draft rules: adjustments cannot erase protected minimums.
+  function assessRisk(state) {
+    const visible = visibleIds(state);
+    const active = id => visible.includes(id) && valid(id, state[id]) ? state[id] : undefined;
+    const [permissions, issues, steps = [], status, impact, deadlines] = ids.map(active);
+    let score = 1, floor = 1;
+    const minimum = n => { floor = Math.max(floor, n); };
+    if (["gaps", "compliance", "both"].includes(issues)) {
+      score = 3;
+      minimum(issues === "compliance" ? 2 : 3);
+    }
+    if (steps.some(step => ["approval", "notification", "voluntary"].includes(step))) {
+      score = Math.max(score, 2);
+      minimum(2);
+    }
+    if (status === "not-started") {
+      score += 1;
+      if (steps.some(step => ["approval", "notification"].includes(step))) minimum(3);
+    }
+    if (status === "blocked") { score += 1; minimum(4); }
+    if (impact === "minimal") score -= 1;
+    if (impact === "significant") minimum(4);
+    if (impact === "fundamental") minimum(5);
+    if (deadlines === "partly") minimum(3);
+    if (deadlines === "no") {
+      score += 1;
+      minimum(steps.includes("approval") || ["gaps", "both"].includes(issues) ? 4 : 3);
+    }
+    // A forecast earns no reduction. Completed steps need a fully assessed,
+    // consistent record; a current permission gap retains its protected floor.
+    const known = visible.every(id => valid(id, state[id])
+      && (Array.isArray(state[id]) ? !state[id].includes("unknown") : state[id] !== "unknown"));
+    const stepsAddressed = steps[0] === "none" || status === "completed";
+    if (deadlines === "completed" && known && stepsAddressed) score -= 1;
+    return Math.max(floor, Math.min(4, Math.max(1, score)));
+  }
   const previousRiskScore = riskScore;
-  riskScore = function () { return isRegulatory(current()) ? 1 : previousRiskScore(); };
+  riskScore = function () { return isRegulatory(current()) ? assessRisk(answers) : previousRiskScore(); };
   const previousRenderLogic = renderLogic;
   renderLogic = function (issue) {
     if (!isRegulatory(issue)) return previousRenderLogic(issue);
@@ -218,8 +254,6 @@
     previousRenderPanel();
     const issue = current();
     if (!isRegulatory(issue)) return;
-    const riskHint = document.querySelector(".risk-label span");
-    if (riskHint) riskHint.textContent = "Assessment to be added";
     const card = document.querySelector(".content-grid > .card");
     if (!card) return;
     card.replaceChildren(card.querySelector("h3"));
@@ -251,7 +285,7 @@
       const labels = fields[id].options.filter(([key]) => selected.includes(key)).map(([,label]) => label);
       return `- ${question}\n  Response: ${labels.join("; ") || "Unanswered"}`;
     });
-    const report = ["DEALLOGIC ISSUE REPORT", "", issue.title, `${areas[issue.category]} · ${issue.jurisdiction.primary}`, issue.summary, "Risk assessment: not yet configured.", "", "DILIGENCE ANSWERS", ...lines, "", "NOTE", "Prototype content only. Obtain transaction-specific legal advice."].join("\n");
+    const report = ["DEALLOGIC ISSUE REPORT", "", issue.title, `${areas[issue.category]} · ${issue.jurisdiction.primary}`, issue.summary, `Risk score: ${assessRisk(answers)}/5 — ${riskNames[assessRisk(answers) - 1]}`, "", "DILIGENCE ANSWERS", ...lines, "", "NOTE", "Prototype content only. Obtain transaction-specific legal advice."].join("\n");
     const url = URL.createObjectURL(new Blob([report], {type: "text/plain"}));
     const link = document.createElement("a"); link.href = url; link.download = `${issue.id}-report.txt`; link.click(); URL.revokeObjectURL(url);
   };

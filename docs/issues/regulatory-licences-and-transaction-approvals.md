@@ -2,7 +2,7 @@
 
 ## Identity and scope
 
-Area Regulatory (`regulatory`); issue `regulatory-licences-and-transaction-approvals`. UK-target share and business acquisitions, with sector, territorial and applicable overseas requirements established through transaction-specific review. This stage implements the agreed questionnaire only. Use Threatened Litigation's existing issue header, subtitle, risk track, facts card, tooltip/select styling, progressive reveal, reset and standby panel. Substantive risk assessment, summaries, implications, actions and legal notes are deferred at the user's express request; no litigation rules or advice are copied.
+Area Regulatory (`regulatory`); issue `regulatory-licences-and-transaction-approvals`. UK-target share and business acquisitions, with sector, territorial and applicable overseas requirements established through transaction-specific review. This stage implements the agreed questionnaire and draft risk assessment for user review. Use Threatened Litigation's existing issue header, subtitle, risk track, facts card, tooltip/select styling, progressive reveal, reset and standby panel. Summaries, implications, actions and legal notes remain deferred; no litigation rules or advice are copied.
 
 Introduction: Review whether the target holds and complies with the regulatory permissions it needs to operate, and whether the proposed transaction requires regulatory approval, notification or clearance. Identify outstanding issues and their effect on business continuity and completion.
 
@@ -33,7 +33,35 @@ Before completion: Answer all relevant questions to generate your deal analysis.
 
 After completion: Your responses have been recorded. Deal analysis will be added next.
 
-The existing risk badge stays at its initial 1/5 · No risk on every route, including Blocked and Fundamental. The accompanying hint says Assessment to be added. This is a questionnaire-stage placeholder, not an assessment of the recorded facts. Reports explicitly say Risk assessment: not yet configured, and export only visible questions and selected labels. No derived analysis, actions, legal notes or Hub snapshots are generated in this stage; perspective has no effect on factual answers. Required/Recommended/Consider, action registry integration and Hub component identity are inapplicable until the action stage.
+The risk badge and report use the same `assessRisk` function. The initial score is 1/5. Only visible, valid answers contribute; changing upstream answers removes irrelevant inputs. No derived summary, implications, actions, legal notes or Hub snapshots are generated yet.
+
+## Draft risk decision matrix — pending user review
+
+Start at 1. Apply in this order; adjustments cap at 4 before applying the highest protected minimum. Only Fundamental impact sets 5. Unknown and unanswered answers are neutral; all Unknown returns 1, following the existing app convention, and does not establish regulatory safety.
+
+| Order / question | Answer | Operation |
+| --- | --- | --- |
+| Q1 | Any | No adjustment; determines permission-question visibility |
+| Q2 | None identified / Unknown | Neutral |
+| Q2 | Permission gaps | Set 3; minimum 3 |
+| Q2 | Compliance issues | Set 3; minimum 2 |
+| Q2 | Both | Set 3; minimum 3; no duplicate points |
+| Q3 | Prior approval / Mandatory notification / Voluntary clearance | Raise to at least 2; minimum 2, once regardless of selection count |
+| Q3 | None identified / Unknown | Neutral |
+| Q4 | All completed / In progress / Unknown | Neutral |
+| Q4 | Not started | +1; minimum 3 if approval or mandatory notification is selected |
+| Q4 | Blocked | +1; minimum 4 |
+| Q5 | Minimal | −1 |
+| Q5 | Manageable / Unknown | Neutral |
+| Q5 | Significant / Fundamental | Minimum 4 / 5 |
+| Q6 | Already completed | −1 only if all visible questions have known, valid answers and Q3 None identified or Q4 All completed |
+| Q6 | Yes / Unknown | Neutral; forecast is not achieved remediation |
+| Q6 | Partly | Minimum 3 |
+| Q6 | No | +1; minimum 4 if prior approval or permission gaps/Both; otherwise minimum 3 |
+
+An Already completed response cannot override Blocked, a current permission gap, or Significant/Fundamental impact. Where Q2 still records a permission gap, its Medium minimum remains until the underlying answer is updated after verification. All completed transaction steps retain Low while identified steps remain on record. The clean early exits return 1 and exclude downstream responses. Perspective never affects risk.
+
+Worked examples: approval/in progress/Manageable/Yes → 2; approval/not started/Minimal/Yes → 3; approval/Blocked/Minimal/Already completed → 4; permission gaps/no transaction steps/Minimal/Already completed → 3; compliance issues/no transaction steps/Manageable/Already completed → 2; same with Unknown impact → 3; Significant → 4; Fundamental → 5.
 
 ## Research basis
 
@@ -46,8 +74,8 @@ Reviewed 6 November 2026 before agreeing this questionnaire:
 
 ## Integration and verification
 
-Regulatory is in the alphabetical Deal Map areas and the common issue tiles. The dedicated script loads after the existing issue adapters, delegates other issues unchanged, and uses the current active-deal storage adapter and shared reset. Runtime checks cover script loading and the storage boundary. Focused tests cover early exits, uncertainty, compatible/exclusive selections, hidden/invalid responses, report parity and non-delegation of risk/advice. Build and all 182 repository tests pass.
+Regulatory is in the alphabetical Deal Map areas and the common issue tiles. The dedicated script loads after the existing issue adapters, delegates other issues unchanged, and uses the current active-deal storage adapter and shared reset. Runtime checks cover script loading and the storage boundary. Focused tests cover early exits, uncertainty, compatible/exclusive selections, hidden/invalid responses, report parity and non-delegation of risk/advice. Build and all 184 repository tests pass, including draft scoring examples, exhaustive answer combinations, protected minimums, hidden-answer exclusion and UI/report scoring parity.
 
-Browser verification at the existing narrow viewport confirmed the tile, introduction, progressive questions, compatible checkbox selections, completed-stage message and persistence across refresh/reopening. Full account sync, two-deal switching, all themes and desktop-width visual review have not been rechecked. Substantive material/remediated risk scenarios, perspective actions and Hub snapshots are deferred rather than claimed as verified.
+Browser verification at the existing narrow viewport confirmed the tile, introduction, progressive questions, compatible checkbox selections, completed-stage message and persistence across refresh/reopening. Full account sync, two-deal switching, all themes and desktop-width visual review have not been rechecked. Draft risk rules are covered by automated tests; perspective actions and Hub snapshots remain deferred.
 
 Regulatory tooltips were shortened after questionnaire review, retaining the distinctions and completion qualifications above. Q3 uses the shared question label and choice-grid answer labels, matching Data Protection and the other facts questions.
