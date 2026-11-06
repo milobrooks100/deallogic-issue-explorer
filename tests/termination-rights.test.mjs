@@ -202,3 +202,16 @@ test('continuity variants keep stable action identity and appear in the report',
     assert.ok(card.innerHTML.includes(a.description));assert.ok(report().includes(a.description));
   }
 });
+
+test('pause and first-day test are explicit library choices in every perspective',()=>{
+  const {context}=setup();
+  const reg=context.window.DealLogicActionRegistry;
+  const topic=reg.byTopic.get('termination-rights-and-material-breaches');
+  assert.equal(topic.actions.length,13);
+  for(const side of ['Buyer','Seller','Balanced']){
+    for(const [id,title] of [['TR12','Agree a pause with the counterparty'],['TR13','Test the first day without the contract']]){
+      const card=reg.forSide(reg.actionFor(topic.id,'','',id),side);
+      assert.equal(card.title,title);assert.ok(card.description);assert.ok(card.icon);
+    }
+  }
+});

@@ -524,6 +524,16 @@
   ]
 });
 
+  // Explicit catalogue choices alongside the answer-driven TR01/TR03 variants.
+  topics.find(topic => topic.id === "termination-rights-and-material-breaches").actions.push(
+    ["TR12", "Agree a pause with the counterparty",
+      "If the contract is still live, seek written agreement on which steps the counterparty will pause, until when, and what each party must do meanwhile.",
+      "handshake", "Due diligence"],
+    ["TR13", "Test the first day without the contract",
+      "Ask the business owner what would stop on day one, who would be affected and whether the fallback would work in time; use actual disruption if already ended.",
+      "search", "Due diligence"]
+  );
+
   const coreActionIcons = Object.freeze({
     "Further diligence": "search",
     "Rectification": "wrench",
