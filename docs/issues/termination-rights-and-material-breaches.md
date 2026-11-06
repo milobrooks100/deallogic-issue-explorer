@@ -56,6 +56,18 @@ Only Fundamental impact reaches 5. Reductions never erase a protected minimum, i
 
 Worked examples: suspected breach, no notice, minimal impact, Yes resolution = 2; confirmed breach, breach notice, manageable impact, Yes = 4; confirmed breach, no notice, manageable impact, Already addressed = 2; termination notice or ended contract, minimal impact, Already addressed = 4; Fundamental impact with any resolution = 5.
 
+## Agreed variants for the proposed action matrix
+
+These replace the wording of an existing recommendation, keeping its identity and place in the seven-card selection. They do not add a twelfth action family. The recommendation engine for this issue is not yet implemented.
+
+| Family / variant | Perspective and trigger (all conditions must hold) | Card instruction |
+| --- | --- | --- |
+| TR03 — Agree a pause with the counterparty | Seller or Balanced; breach notice or termination notice received; impact Significant or Fundamental; resolution Partly or No | If the contract is still live, seek written agreement on which steps the counterparty will pause, until when, and what each party must do meanwhile. |
+| TR01 — Test the first day without the contract | Buyer or Balanced; issue identified (Yes), type known, termination notice received or contract ended; impact Unknown or resolution Unknown | Ask the business owner what would stop on day one, which customers or operations would be affected, and whether the fallback would work in time. |
+| TR01 — same variant after the contract has ended | Same rule, with Contract ended | Ask the business owner what actually stopped, who was affected and how the fallback performed; identify any remaining gaps. |
+
+Both techniques are recommended tactics. Preserve the higher priority of the underlying diligence or continuity action when the matrix requires it; asking for a pause does not require obtaining one. A request alone does not suspend deadlines: retain TR02 for any live notice response. Do not recommend a pause for an ended contract. Where existence or type is unclear, retain the ordinary contractual diligence wording. Q5 Unknown is a prompt to test readiness, not evidence that a replacement has failed. The other perspectives keep their original instruction.
+
 ## Verification
 
 The completed summary and implications are included in branch preview deployments alongside the questionnaire and live risk assessment.
