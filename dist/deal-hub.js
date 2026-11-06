@@ -24,6 +24,8 @@
     return project.hub;
   }
   let state=activeHub();
+  let shareControl;
+  const exportSnapshot = () => { const project=activeDealProject();return {project:{id:project.id,name:project.name,side:project.side},issues:state.issues,actions:state.actions}; };
   let view = "summary", filter = "All issues", search = "", picking = false, creatingProject = false;
   const picks = new Map();
   const save = () => {const store=getDealProjects(),project=store.projects.find(item=>item.id===store.activeProjectId)||store.projects[0];project.hub=state;saveDealProjects(store);};
@@ -239,9 +241,11 @@
     });
   }
   function renderHub() {
+    shareControl?.destroy();
     const items=filteredActions();
     const issueOptions=state.issues.map(issue=>`<option value="${esc(issue.id)}" ${filter===issue.id?"selected":""}>${esc(issue.title)}</option>`).join("");
-    hub.innerHTML=`<div class="hub-header"><div><h2>Deal Hub</h2><p>Build a deal-specific briefing and action plan from saved issues and recommendations.</p></div><div class="hub-toolbar"><button class="primary" data-new-action>＋ Custom action</button><div class="hub-export"><button data-export-csv>Export table</button><button data-export-doc>Export briefing (.docx)</button></div></div></div><form class="hub-new-action screen-hidden" data-new-action-form><h3>Add custom action</h3><div class="hub-editor-grid"><label>Title<input name="title" maxlength="120" required></label><label>Related issue<select name="issueId"><option value="custom-actions">General deal action</option>${state.issues.filter(issue=>issue.id!=="custom-actions").map(issue=>`<option value="${esc(issue.id)}">${esc(issue.title)}</option>`).join("")}</select></label><label>Deal phase<select name="dealPhase">${options(phases,"Due Diligence")}</select></label></div><label>Action details<textarea name="instruction" maxlength="10000" required></textarea></label><div><button class="hub-button primary">Add action</button> <button class="hub-button" type="button" data-cancel-new-action>Cancel</button></div></form><div class="hub-tabs" role="tablist" aria-label="Deal Hub views">${[["summary","Summary"],["board","Task board"],["table","Table"],["projects","Deal settings"]].map(([name,label])=>`<button role="tab" aria-selected="${view===name}" class="${view===name?"active":""}" data-hub-view="${name}">${label}</button>`).join("")}</div>${view!=="projects"?`<div class="hub-filter-row"><label>Issue <select data-filter-issue><option>All issues</option>${issueOptions}</select></label><input data-hub-search type="search" maxlength="200" placeholder="Search actions" value="${esc(search)}" aria-label="Search Deal Hub actions"><span class="hub-meta">${state.issues.length} open issues · ${state.actions.length} actions · saved in this browser</span></div>`:""}<div class="hub-content"></div>`;
+    hub.innerHTML=`<div class="hub-header"><div><h2>Deal Hub</h2><p>Build a deal-specific briefing and action plan from saved issues and recommendations.</p></div><div class="hub-toolbar"><button class="primary" data-new-action>＋ Custom action</button><div class="hub-export"><button data-export-csv>Export table</button><button data-export-doc>Export briefing (.docx)</button><div class="hub-share" data-hub-share></div></div></div></div><form class="hub-new-action screen-hidden" data-new-action-form><h3>Add custom action</h3><div class="hub-editor-grid"><label>Title<input name="title" maxlength="120" required></label><label>Related issue<select name="issueId"><option value="custom-actions">General deal action</option>${state.issues.filter(issue=>issue.id!=="custom-actions").map(issue=>`<option value="${esc(issue.id)}">${esc(issue.title)}</option>`).join("")}</select></label><label>Deal phase<select name="dealPhase">${options(phases,"Due Diligence")}</select></label></div><label>Action details<textarea name="instruction" maxlength="10000" required></textarea></label><div><button class="hub-button primary">Add action</button> <button class="hub-button" type="button" data-cancel-new-action>Cancel</button></div></form><div class="hub-tabs" role="tablist" aria-label="Deal Hub views">${[["summary","Summary"],["board","Task board"],["table","Table"],["projects","Deal settings"]].map(([name,label])=>`<button role="tab" aria-selected="${view===name}" class="${view===name?"active":""}" data-hub-view="${name}">${label}</button>`).join("")}</div>${view!=="projects"?`<div class="hub-filter-row"><label>Issue <select data-filter-issue><option>All issues</option>${issueOptions}</select></label><input data-hub-search type="search" maxlength="200" placeholder="Search actions" value="${esc(search)}" aria-label="Search Deal Hub actions"><span class="hub-meta">${state.issues.length} open issues · ${state.actions.length} actions · saved in this browser</span></div>`:""}<div class="hub-content"></div>`;
+    shareControl=window.DealLogicSharing.mount(hub.querySelector("[data-hub-share]"),{getSnapshot:exportSnapshot,download});
     const content=hub.querySelector(".hub-content");
     if (!state.issues.length && !state.actions.length && view!=="projects") {
       content.innerHTML='<div class="hub-empty"><h3>Your Deal Hub is ready</h3><p>Open a legal issue, use the pin beside Recommended Actions, and select the actions to bring here. You can also create a custom action.</p><button class="hub-button primary" data-go-map>Explore Deal Map</button></div>';
@@ -262,11 +266,8 @@
     const blob=new Blob([body],{type:mime}); const url=URL.createObjectURL(blob); const link=document.createElement("a");
     link.href=url;link.download=name;document.body.append(link);link.click();link.remove();setTimeout(()=>URL.revokeObjectURL(url),1000);
   }
-  const csvCell=value=>`"${String(value??"").replaceAll('"','""')}"`;
   function exportCsv() {
-    const rows=[["Issue","Risk","Source document","Clause / finding","Document link","Action","Recommendation","Transaction side","Action label","Deal phase","Priority","Status","Notes"]];
-    state.actions.forEach(action=>{const issue=issueById(action.issueId);rows.push([issue?.title,issue?.risk,issue?.sourceDocument,issue?.sourceClause,issue?.sourceUrl,action.title,action.instruction,action.side,action.priority,action.dealPhase,action.urgency,action.status,action.notes]);});
-    download("deal-hub-actions.csv","text/csv;charset=utf-8","\uFEFF"+rows.map(row=>row.map(csvCell).join(",")).join("\r\n"));
+    download("deal-hub-actions.csv","text/csv;charset=utf-8",window.DealLogicSharing.csvBlob(exportSnapshot()));
   }
   async function exportDoc() {
     const button=hub.querySelector('[data-export-doc]');

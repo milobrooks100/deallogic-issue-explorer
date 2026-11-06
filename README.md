@@ -94,3 +94,19 @@ questionnaire responses are omitted. Saved notes, sources, custom actions and
 per-action transaction perspectives are preserved. Word export assets load only
 when requested. `dist/vendor/docx.js` is the browser build of docx 9.6.1; its MIT
 license and the font's license are included alongside the assets.
+
+### Sharing a Hub file
+
+The Share pill expands into Briefing (.docx) and Action table (.csv), matching the
+Deal Map perspective selector. Files are prepared locally before selection so the
+native share call runs directly from a click/tap (including iOS user activation).
+The selected file, deal-specific suggested subject and message are passed to the
+device share sheet. Receiving apps may ignore the suggested title or message.
+
+File capability is checked for the actual selected file: PC/iOS browsers and
+share targets differ, especially for DOCX. Unsupported or failed file sharing
+shows Download file and Open email with an encoded, prefilled subject and body;
+the user must attach the downloaded file. A cancelled share sheet does not trigger
+fallback downloads or email. No email is sent automatically. Browser checks use
+mocked native sharing; final verification on physical iOS and Windows devices is
+still needed for their installed email apps.
