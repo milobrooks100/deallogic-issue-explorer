@@ -2,9 +2,9 @@
 
 ## Scope and existing questionnaire
 
-Disputes / `threatened-litigation`, for the existing England and Wales M&A issue. This revision changes action instructions and integration, preserving the six current questions, answer migration, progressive reveal, risk rules and priority modifiers in `dist/index.html`. Questions cover threat, stage/deadlines, merits, impact, recoveries and resolution; no new facts or transaction-type selector is introduced.
+Disputes / `threatened-litigation`, for the existing England and Wales M&A issue. The six approved concise questions and answers are canonical in `dist/index.html` and mirrored in `dist/issues.json`. Answer order, progressive reveal, risk rules, action instructions and priority modifiers remain unchanged. Exact historical labels migrate to the same answer positions, alongside earlier prefix migrations. Questions cover threat, stage/deadlines, merits, impact, recoveries and resolution; no new facts or transaction-type selector is introduced.
 
-Untouched and incomplete relevant answers retain standby. No threat or a fully performed resolution produces no active actions; Not yet checked completes the gateway with a Required factual review. Hidden follow-up answers are excluded from early-exit summaries and reports. The current risk scale and factual summary/implication rules otherwise remain unchanged.
+Untouched and incomplete relevant answers retain standby. No threat or a fully performed resolution produces no active actions; Not checked completes the gateway with a Required factual review. Hidden follow-up answers are excluded from early-exit summaries and reports. Summaries reflect the concise labels without assuming unrecorded facts. Unavailable or insufficient protection has a distinct deal implication from undecided recovery. Definitions remain in the information tooltips. The resolution question retains six choices to preserve all existing resolution states.
 
 ## Canonical action copy
 
@@ -61,3 +61,7 @@ This is a negotiation-copy revision; existing limitation and disclosure notes re
 - Combined Seller Hub capture preserves component priorities, phases and existing edited actions.
 - Browser checks confirmed the fourteen-action library, all three toggle controls, Seller-specific catalogue wording and matching nine-card Seller live analysis.
 - Runtime validation and diff whitespace checks pass. Full suite: 140 pass; one existing unrelated `core-action-colours.test.mjs` failure expects obsolete positional CSS.
+
+## Concise-answer validation
+
+All 45,000 completed answer/perspective combinations were compared against the previous version: identical recommended action objects and risk scores. Every previous answer migrates to its original position; regression coverage checks preserved risk and recommendations and distinguishes unavailable protection from pending recovery.

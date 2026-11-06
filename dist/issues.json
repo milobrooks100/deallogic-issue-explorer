@@ -224,27 +224,27 @@
     "key_questions": [
       {
         "id": "litigation-threat-exists",
-        "question": "Has the target received, or is it aware of, a credible threat of legal action?"
+        "question": "Is there a credible threat of legal action against the target?"
       },
       {
         "id": "litigation-stage-deadlines",
-        "question": "What stage has the matter reached and are the relevant procedural deadlines understood?"
+        "question": "What stage has the matter reached?"
       },
       {
         "id": "litigation-merits",
-        "question": "Has the claim and the target's available defences been assessed?"
+        "question": "What is the assessment of the claim and defences?"
       },
       {
         "id": "litigation-impact",
-        "question": "What is the likely impact on the target and the transaction?"
+        "question": "What is the likely impact on the target and deal?"
       },
       {
         "id": "litigation-risk-transfer",
-        "question": "Is the target's exposure reduced by insurance, indemnities, limitations or contribution rights?"
+        "question": "What is the status of insurance or other protection against the claim?"
       },
       {
         "id": "litigation-resolution",
-        "question": "Can the matter be fully and durably resolved before completion?"
+        "question": "Can the matter be fully resolved before completion?"
       }
     ],
     "recommended_actions": [

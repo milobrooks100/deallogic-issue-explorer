@@ -24,12 +24,54 @@ test("shipped litigation questions match the current interface", () => {
 });
 
 const expectedOptions = {
-  "litigation-threat-exists": ["Unanswered", "No", "Yes", "Possibly", "Not yet checked"],
-  "litigation-stage-deadlines": ["Unanswered", "Informal allegation or demand only", "Formal pre-action correspondence or letter before claim received", "Court, tribunal or arbitration proceedings commenced", "Hearing or significant deadline falls before or close to completion", "Stage or deadlines are unclear"],
-  "litigation-merits": ["Unanswered", "Reviewed — claim appears weak and the target has strong defences", "Reviewed — merits and defences are finely balanced", "Reviewed — claim appears credible and the target has material adverse exposure", "Partly reviewed — preliminary assessment only or material evidence is missing", "Not yet assessed"],
-  "litigation-impact": ["Unanswered", "Minimal", "Manageable — meaningful exposure but absorbable", "Material — could materially affect price, operations, a key asset or completion", "Fundamental — could undermine the transaction and target's business entirely", "Not yet quantified or assessed"],
-  "litigation-risk-transfer": ["Unanswered", "Yes — cover or recovery is confirmed, required notices and approvals are satisfied", "Potentially — notice has been given, but coverage or recovery remains undecided", "Potentially — cover or recovery may exist, but notice, consent or other steps remain outstanding", "No — cover or recovery is unavailable, denied or insufficient", "Not reviewed or unknown"],
-  "litigation-resolution": ["Unanswered", "Already resolved — binding settlement, withdrawal or full release completed", "Resolution documents are signed, but final steps remain outstanding", "A credible resolution route is likely before completion, but it is not yet binding", "Resolution is possible, but timing or terms are uncertain", "Resolution before completion is unlikely or no viable route has been identified", "Not assessed"]
+  "litigation-threat-exists": [
+    "Unanswered",
+    "No",
+    "Yes",
+    "Possibly",
+    "Not checked"
+  ],
+  "litigation-stage-deadlines": [
+    "Unanswered",
+    "Informal demand or allegation",
+    "Pre-action correspondence",
+    "Proceedings started",
+    "Hearing or deadline occurs before or near completion",
+    "Unknown"
+  ],
+  "litigation-merits": [
+    "Unanswered",
+    "Strong defence",
+    "Finely balanced",
+    "Material exposure",
+    "Partly assessed",
+    "Not assessed"
+  ],
+  "litigation-impact": [
+    "Unanswered",
+    "Minimal",
+    "Manageable",
+    "Material",
+    "Fundamental",
+    "Not assessed"
+  ],
+  "litigation-risk-transfer": [
+    "Unanswered",
+    "Protection confirmed",
+    "Possible protection — notified and decision pending",
+    "Possible protection — required steps outstanding",
+    "Protection unavailable or insufficient",
+    "Unknown"
+  ],
+  "litigation-resolution": [
+    "Unanswered",
+    "Already resolved",
+    "Resolution signed — steps outstanding",
+    "Likely — not binding",
+    "Possible — uncertain",
+    "Unlikely",
+    "Not assessed"
+  ]
 };
 
 function sourceBetween(start, end) {
@@ -89,7 +131,7 @@ test("shortened choices drive the summary, risk and recommendations", () => {
   assert.equal(state.litigation.litigationAnswerComplete(), true);
   assert.equal(state.litigation.litigationRiskScore(), 5);
   const summary = state.litigation.litigationSummary();
-  assert.match(summary, /A hearing or significant deadline/);
+  assert.match(summary, /A hearing or deadline/);
   assert.match(summary, /Cover or recovery is unavailable/);
   assert.ok(!summary.includes("Urgent relief"));
   assert.ok(state.litigation.litigationActions(issue, "Buyer", false).some(action => action.id === "specific-litigation-indemnity"));
@@ -229,4 +271,80 @@ test('combined litigation Hub capture retains Seller components and priorities w
  const app={state:saved,picks,picking:true,window:state.window,actionKey:(...v)=>v.join('|'),issueById:()=>({id:issue.id}),hasEquivalentAction:item=>saved.actions.some(a=>a.stableActionId===item.actionId),uid:()=> 'new',statuses:['To Review'],libraryPhase:p=>p,phaseFor:()=> 'wrong',save(){},decorateRecommendations(){},renderHub(){},toast(){},CustomEvent:class{},document:{dispatchEvent(){}}};
  vm.runInNewContext(commit+'commitPicks();',app);assert.equal(saved.actions.length,components.length);assert.equal(saved.actions[0],edited);assert.equal(edited.instruction,'Keep my advice');
  for(const action of saved.actions.slice(1)){const original=components.find(a=>a.id===action.stableActionId);assert.equal(action.side,'Seller');assert.equal(action.instruction,original.description);assert.equal(action.priority,original.priority);assert.equal(action.dealPhase,original.phase);}
+});
+
+const previousOptions = {
+  "litigation-threat-exists": [
+    "Unanswered",
+    "No",
+    "Yes",
+    "Possibly",
+    "Not yet checked"
+  ],
+  "litigation-stage-deadlines": [
+    "Unanswered",
+    "Informal allegation or demand only",
+    "Formal pre-action correspondence or letter before claim received",
+    "Court, tribunal or arbitration proceedings commenced",
+    "Hearing or significant deadline falls before or close to completion",
+    "Stage or deadlines are unclear"
+  ],
+  "litigation-merits": [
+    "Unanswered",
+    "Reviewed — claim appears weak and the target has strong defences",
+    "Reviewed — merits and defences are finely balanced",
+    "Reviewed — claim appears credible and the target has material adverse exposure",
+    "Partly reviewed — preliminary assessment only or material evidence is missing",
+    "Not yet assessed"
+  ],
+  "litigation-impact": [
+    "Unanswered",
+    "Minimal",
+    "Manageable — meaningful exposure but absorbable",
+    "Material — could materially affect price, operations, a key asset or completion",
+    "Fundamental — could undermine the transaction and target's business entirely",
+    "Not yet quantified or assessed"
+  ],
+  "litigation-risk-transfer": [
+    "Unanswered",
+    "Yes — cover or recovery is confirmed, required notices and approvals are satisfied",
+    "Potentially — notice has been given, but coverage or recovery remains undecided",
+    "Potentially — cover or recovery may exist, but notice, consent or other steps remain outstanding",
+    "No — cover or recovery is unavailable, denied or insufficient",
+    "Not reviewed or unknown"
+  ],
+  "litigation-resolution": [
+    "Unanswered",
+    "Already resolved — binding settlement, withdrawal or full release completed",
+    "Resolution documents are signed, but final steps remain outstanding",
+    "A credible resolution route is likely before completion, but it is not yet binding",
+    "Resolution is possible, but timing or terms are uncertain",
+    "Resolution before completion is unlikely or no viable route has been identified",
+    "Not assessed"
+  ]
+};
+
+test("every previous answer migrates without changing its meaning or actions", () => {
+  const state = litigationHarness();
+  for (const [id, options] of Object.entries(previousOptions)) {
+    for (const [position, value] of options.entries()) {
+      setChoices(state, [2, 4, 3, 3, 4, 5]);
+      state.answers[id] = expectedOptions[id][position];
+      const risk = state.litigation.litigationRiskScore();
+      const actions = ["Buyer", "Seller", "Balanced"].map(side => JSON.stringify(state.litigation.litigationActions(issue, side)));
+      state.answers[id] = value;
+      state.litigation.litigationNormalizeAnswers();
+      assert.equal(state.answers[id], expectedOptions[id][position]);
+      assert.equal(state.litigation.litigationRiskScore(), risk);
+      assert.deepEqual(["Buyer", "Seller", "Balanced"].map(side => JSON.stringify(state.litigation.litigationActions(issue, side))), actions);
+    }
+  }
+});
+
+test("unavailable protection is distinguished from an undecided recovery", () => {
+  const state = litigationHarness();
+  setChoices(state, [2, 1, 1, 1, 4, 4]);
+  assert.ok(state.litigation.litigationImplications().some(text => text.includes("does not sufficiently cover")));
+  state.answers["litigation-risk-transfer"] = expectedOptions["litigation-risk-transfer"][2];
+  assert.ok(state.litigation.litigationImplications().some(text => text.includes("net exposure remains uncertain")));
 });

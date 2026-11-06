@@ -1045,12 +1045,12 @@
     <script>
       const isThreatenedLitigation = (issue) => issue?.id === "threatened-litigation";
       const litigationQuestions = [
-        "Has the target received, or is it aware of, a credible threat of legal action?",
-        "What stage has the matter reached and are the relevant procedural deadlines understood?",
-        "Has the claim and the target's available defences been assessed?",
-        "What is the likely impact on the target and the transaction?",
-        "Is the target's exposure reduced by insurance, indemnities, limitations or contribution rights?",
-        "Can the matter be fully and durably resolved before completion?"
+        "Is there a credible threat of legal action against the target?",
+        "What stage has the matter reached?",
+        "What is the assessment of the claim and defences?",
+        "What is the likely impact on the target and deal?",
+        "What is the status of insurance or other protection against the claim?",
+        "Can the matter be fully resolved before completion?"
       ];
       const litigationQuestionIds = [
         "litigation-threat-exists",
@@ -1066,47 +1066,47 @@
           "No",
           "Yes",
           "Possibly",
-          "Not yet checked"
+          "Not checked"
         ],
         "litigation-stage-deadlines": [
           "Unanswered",
-          "Informal allegation or demand only",
-          "Formal pre-action correspondence or letter before claim received",
-          "Court, tribunal or arbitration proceedings commenced",
-          "Hearing or significant deadline falls before or close to completion",
-          "Stage or deadlines are unclear"
+          "Informal demand or allegation",
+          "Pre-action correspondence",
+          "Proceedings started",
+          "Hearing or deadline occurs before or near completion",
+          "Unknown"
         ],
         "litigation-merits": [
           "Unanswered",
-          "Reviewed — claim appears weak and the target has strong defences",
-          "Reviewed — merits and defences are finely balanced",
-          "Reviewed — claim appears credible and the target has material adverse exposure",
-          "Partly reviewed — preliminary assessment only or material evidence is missing",
-          "Not yet assessed"
+          "Strong defence",
+          "Finely balanced",
+          "Material exposure",
+          "Partly assessed",
+          "Not assessed"
         ],
         "litigation-impact": [
           "Unanswered",
           "Minimal",
-          "Manageable — meaningful exposure but absorbable",
-          "Material — could materially affect price, operations, a key asset or completion",
-          "Fundamental — could undermine the transaction and target's business entirely",
-          "Not yet quantified or assessed"
+          "Manageable",
+          "Material",
+          "Fundamental",
+          "Not assessed"
         ],
         "litigation-risk-transfer": [
           "Unanswered",
-          "Yes — cover or recovery is confirmed, required notices and approvals are satisfied",
-          "Potentially — notice has been given, but coverage or recovery remains undecided",
-          "Potentially — cover or recovery may exist, but notice, consent or other steps remain outstanding",
-          "No — cover or recovery is unavailable, denied or insufficient",
-          "Not reviewed or unknown"
+          "Protection confirmed",
+          "Possible protection — notified and decision pending",
+          "Possible protection — required steps outstanding",
+          "Protection unavailable or insufficient",
+          "Unknown"
         ],
         "litigation-resolution": [
           "Unanswered",
-          "Already resolved — binding settlement, withdrawal or full release completed",
-          "Resolution documents are signed, but final steps remain outstanding",
-          "A credible resolution route is likely before completion, but it is not yet binding",
-          "Resolution is possible, but timing or terms are uncertain",
-          "Resolution before completion is unlikely or no viable route has been identified",
+          "Already resolved",
+          "Resolution signed — steps outstanding",
+          "Likely — not binding",
+          "Possible — uncertain",
+          "Unlikely",
           "Not assessed"
         ]
       };
@@ -1120,13 +1120,54 @@
         "litigation-risk-transfer": [["Yes — recovery is confirmed", 1], ["Potentially — timely notice", 2], ["Potentially — cover or recovery may exist", 3], ["No — cover or recovery is unavailable", 4]],
         "litigation-resolution": [["Already resolved —", 1], ["Resolution documents are signed", 2], ["Resolution is possible", 4]]
       };
+      const litigationPreviousAnswers = {
+        "litigation-threat-exists": {
+          "Not yet checked": 4
+        },
+        "litigation-stage-deadlines": {
+          "Informal allegation or demand only": 1,
+          "Formal pre-action correspondence or letter before claim received": 2,
+          "Court, tribunal or arbitration proceedings commenced": 3,
+          "Hearing or significant deadline falls before or close to completion": 4,
+          "Stage or deadlines are unclear": 5
+        },
+        "litigation-merits": {
+          "Reviewed — claim appears weak and the target has strong defences": 1,
+          "Reviewed — merits and defences are finely balanced": 2,
+          "Reviewed — claim appears credible and the target has material adverse exposure": 3,
+          "Partly reviewed — preliminary assessment only or material evidence is missing": 4,
+          "Not yet assessed": 5
+        },
+        "litigation-impact": {
+          "Manageable — meaningful exposure but absorbable": 2,
+          "Material — could materially affect price, operations, a key asset or completion": 3,
+          "Fundamental — could undermine the transaction and target's business entirely": 4,
+          "Not yet quantified or assessed": 5
+        },
+        "litigation-risk-transfer": {
+          "Yes — cover or recovery is confirmed, required notices and approvals are satisfied": 1,
+          "Potentially — notice has been given, but coverage or recovery remains undecided": 2,
+          "Potentially — cover or recovery may exist, but notice, consent or other steps remain outstanding": 3,
+          "No — cover or recovery is unavailable, denied or insufficient": 4,
+          "Not reviewed or unknown": 5
+        },
+        "litigation-resolution": {
+          "Already resolved — binding settlement, withdrawal or full release completed": 1,
+          "Resolution documents are signed, but final steps remain outstanding": 2,
+          "A credible resolution route is likely before completion, but it is not yet binding": 3,
+          "Resolution is possible, but timing or terms are uncertain": 4,
+          "Resolution before completion is unlikely or no viable route has been identified": 5
+        }
+      };
       const litigationNormalizeAnswers = () => {
         let changed = false;
         litigationQuestionIds.forEach((id) => {
           const value = answers[id];
           if (!value || litigationAnswerOptions[id].includes(value)) return;
           const match = litigationLegacyPrefixes[id].find(([prefix]) => value.startsWith(prefix));
-          if (match) answers[id] = litigationAnswerOptions[id][match[1]];
+          const previousIndex = litigationPreviousAnswers[id][value];
+          if (previousIndex !== undefined) answers[id] = litigationAnswerOptions[id][previousIndex];
+          else if (match) answers[id] = litigationAnswerOptions[id][match[1]];
           else delete answers[id];
           changed = true;
         });
@@ -1135,9 +1176,9 @@
       const litigationGuidance = {
         "litigation-threat-exists": "Review the disputes register, material correspondence, board papers and adviser enquiries. Record the potential claimant, alleged legal basis, remedy demanded and relevant source documents.",
         "litigation-stage-deadlines": "Identify any pre-action protocol, response date, limitation issue, hearing, evidence-preservation step or other deadline that could affect signing, completion or the target's defence.",
-        "litigation-merits": "Record only the broad merits category reached through appropriately privileged legal review. Do not reproduce privileged advice or counsel's detailed reasoning in the answer.",
-        "litigation-impact": "Consider damages, claimant and defence costs, business interruption, injunctions, licences, key contracts, management time, regulatory consequences and reputational effects.",
-        "litigation-risk-transfer": "Review applicable policies, notifications, insurer approvals, contractual indemnities, liability limitations and contribution rights. Confirm whether they reduce only financial exposure or also address the threatened remedy.",
+        "litigation-merits": "Record only the broad merits category reached through appropriately privileged legal review. Strong defence means the legal assessment favours the target; Finely balanced means neither position clearly prevails; Material exposure means a credible claim presents material adverse exposure. Partly assessed includes preliminary review or missing material evidence. Do not reproduce privileged advice or counsel's detailed reasoning in the answer.",
+        "litigation-impact": "Consider damages, claimant and defence costs, business interruption, injunctions, licences, key contracts, management time, regulatory consequences and reputational effects. Manageable means meaningful but absorbable exposure; Material means an effect on price, operations, a key asset or completion; Fundamental means the deal and target business could be undermined entirely.",
+        "litigation-risk-transfer": "Review applicable policies, notifications, insurer approvals, contractual indemnities, liability limitations and contribution rights. Protection confirmed means cover or recovery is confirmed and required notices and approvals are satisfied. Distinguish a notified claim awaiting a decision from protection requiring further notice, consent or other steps. Unavailable or insufficient includes denied cover. Confirm whether protection reduces only financial exposure or also addresses the threatened remedy.",
         "litigation-resolution": "Check whether settlement, withdrawal, dismissal or release documentation is binding, sufficiently comprehensive and capable of being fully performed before completion."
       };
       const litigationInfoButton = (id) => `<button class="info" type="button" aria-label="Guidance for this question">i<span class="tooltip">${litigationGuidance[id]}</span></button>`;
@@ -1263,11 +1304,11 @@
       };
       const litigationSummaryCopy = {
         "litigation-threat-exists": ["", "No credible threat of legal action has been reported.", "A credible threat of legal action has been reported.", "A credible threat of legal action may exist and requires confirmation.", "The target's dispute position has not yet been checked."],
-        "litigation-stage-deadlines": ["", "The matter is at the informal allegation or demand stage.", "Formal pre-action correspondence or a letter before claim has been received.", "Court, tribunal or arbitration proceedings have commenced.", "A hearing or significant deadline falls before or close to completion.", "The stage or relevant procedural deadlines are unclear."],
-        "litigation-merits": ["", "The claim appears weak and the target has strong defences.", "The merits and defences are finely balanced.", "The claim appears credible and the target has material adverse exposure.", "Only a preliminary assessment has been made or material evidence is missing.", "The claim and available defences have not yet been assessed."],
+        "litigation-stage-deadlines": ["", "The matter is at the informal allegation or demand stage.", "Formal pre-action correspondence or a letter before claim has been received.", "Court, tribunal or arbitration proceedings have commenced.", "A hearing or deadline occurs before or near completion.", "The stage of the matter is unknown."],
+        "litigation-merits": ["", "The target is assessed as having a strong defence.", "The merits and defences are finely balanced.", "The assessed claim presents material exposure for the target.", "Only a preliminary assessment has been made or material evidence is missing.", "The claim and available defences have not yet been assessed."],
         "litigation-impact": ["", "The likely impact is minimal.", "The exposure is meaningful but appears absorbable.", "The claim could materially affect price, operations, a key asset or completion.", "The claim could undermine the transaction and the target's business entirely.", "The likely impact has not yet been quantified or assessed."],
-        "litigation-risk-transfer": ["", "Cover or recovery is confirmed, and required notices and approvals have been satisfied.", "Notice has been given, but coverage or recovery remains undecided.", "Cover or recovery may exist, but notice, consent or other steps remain outstanding.", "Cover or recovery is unavailable, denied or insufficient.", "Insurance and other recovery rights have not been reviewed or remain unknown."],
-        "litigation-resolution": ["", "The matter is resolved through a binding settlement, withdrawal or full release.", "Resolution documents are signed, but final steps remain outstanding.", "A credible resolution route is likely before completion, but it is not yet binding.", "Resolution is possible, but timing or terms are uncertain.", "Resolution before completion is unlikely or no viable route has been identified.", "The prospect of resolution before completion has not been assessed."]
+        "litigation-risk-transfer": ["", "Cover or recovery is confirmed, and required notices and approvals have been satisfied.", "Notice has been given, but coverage or recovery remains undecided.", "Cover or recovery may exist, but notice, consent or other steps remain outstanding.", "Cover or recovery is unavailable, denied or insufficient.", "The status of insurance or other protection is unknown."],
+        "litigation-resolution": ["", "The matter is resolved through a binding settlement, withdrawal or full release.", "Resolution documents are signed, but final steps remain outstanding.", "A credible resolution route is likely before completion, but it is not yet binding.", "Resolution is possible, but timing or terms are uncertain.", "Full resolution before completion is unlikely.", "The prospect of resolution before completion has not been assessed."]
       };
       const litigationSummary = () => ([2, 3].includes(litigationAnswerIndex(litigationQuestionIds[0])) ? litigationQuestionIds : litigationQuestionIds.slice(0, 1))
         .map((id) => litigationSummaryCopy[id]?.[litigationAnswerIndex(id)] || "")
@@ -1280,7 +1321,8 @@
         if (threat === 4) return ["The disputes register, relevant correspondence and adviser position should be reviewed before the transaction risk allocation is settled."];
         if ([3, 4].includes(stage)) implications.push("The dispute timetable and procedural obligations should be integrated into the signing and completion plan.");
         if (merits === 3 || [3, 4].includes(impact)) implications.push("The claim may affect value, completion certainty or the target's ability to operate and requires deal-specific protection.");
-        if (transfer !== 1) implications.push("The net exposure remains uncertain until insurance and other recovery rights are confirmed and preserved.");
+        if (transfer === 4) implications.push("The deal must account for exposure that insurance or other protection does not sufficiently cover.");
+        else if (transfer !== 1) implications.push("The net exposure remains uncertain until insurance and other recovery rights are confirmed and preserved.");
         if (resolution !== 1) implications.push("The parties must decide whether resolution is a completion dependency or whether the remaining risk will be allocated contractually and economically.");
         return implications.slice(0, 4);
       };
