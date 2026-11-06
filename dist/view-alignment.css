@@ -3,10 +3,6 @@ main:has(.project-rail) {
   align-content: start;
 }
 
-.view-header {
-  margin-bottom: 26px;
-}
-
 .view-header h2 {
   margin: 0;
   color: var(--ink);

@@ -21,8 +21,11 @@
   line-height: 1.65;
 }
 
-.intro { padding-right: 0; margin-bottom: 26px; }
-.hub-header, .view-header, .radar-page-heading { margin-bottom: 26px; }
+.intro { padding-right: 0; }
+
+/* One gap from each page subtitle to its first content surface or controls. */
+.intro, .hub-header, .view-header, .radar-page-heading { margin-bottom: 20px; }
+.intro ~ .workspace { margin-top: 0; }
 
 /* Match the Deal Hub toolbar buttons across desktop and narrow layouts. */
 .transaction-side-options button,
@@ -34,10 +37,11 @@
   font: 500 11px Inter, sans-serif;
 }
 
-@media (max-width: 980px) {
-  .hub-header, .view-header, .radar-page-heading { margin-bottom: 20px; }
+@media (max-width: 760px) {
+  .hub-header .hub-toolbar { margin-top: 20px; }
 }
 
 @media (max-width: 600px) {
+  .intro .transaction-side { margin-top: 20px; }
   :is(.intro, .hub-header, .view-header, .radar-page-heading) h2 { font-size: 29px; }
 }
