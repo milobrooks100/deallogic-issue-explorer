@@ -75,27 +75,27 @@
     "key_questions": [
       {
         "id": "option-rights-exist",
-        "question": "Are there any outstanding options, warrants or other rights to acquire shares?"
+        "question": "Are any options, warrants or other share acquisition rights outstanding?"
       },
       {
         "id": "award-register-reconciliation",
-        "question": "Does the award register reconcile with the fully diluted cap table and supporting documents?"
+        "question": "Does the award register match the fully diluted cap table and supporting documents?"
       },
       {
         "id": "award-transaction-treatment",
-        "question": "How will the outstanding awards be treated in the transaction? (select all that apply)"
+        "question": "How will outstanding awards be treated? (select all that apply)"
       },
       {
         "id": "award-treatment-implementation",
-        "question": "Can the proposed treatment be validly implemented by completion?"
+        "question": "Can the treatment be validly implemented by completion?"
       },
       {
         "id": "award-dilution-percentage",
-        "question": "What proportion of the fully diluted share capital is represented by the outstanding awards?"
+        "question": "What percentage of the fully diluted share capital do the outstanding awards represent?"
       },
       {
         "id": "award-tax-payroll-position",
-        "question": "What is the tax and payroll position for the proposed treatment?"
+        "question": "What is the tax and payroll status of the treatment?"
       }
     ]
   },

@@ -7,20 +7,20 @@ const registry=await readFile(new URL('../dist/action-registry.js',import.meta.u
 const issue=JSON.parse(await readFile(new URL('../dist/issues.json',import.meta.url),'utf8')).find(i=>i.id==='option-holders');
 const between=(a,b)=>index.slice(index.indexOf(a),index.indexOf(b,index.indexOf(a)));
 const fields={
- 'option-rights-exist':['No — confirmed against the relevant records','Yes','Possibly — the records are incomplete or inconsistent','Not yet checked'],
- 'award-register-reconciliation':['Yes — fully reconciled','Broadly — only minor discrepancies remain','No — material discrepancies or undocumented awards exist','Not yet reconciled'],
- 'award-treatment-implementation':['Yes — no holder consent is required','Yes — all required consents and approvals are secured','Probably — documents or consents remain outstanding','Unclear — the governing documents conflict or are incomplete','No — it cannot currently be implemented by completion','Not yet assessed'],
- 'award-dilution-percentage':['1% or less','More than 1% up to 5%','More than 5% up to 10%','More than 10%','Not yet calculated'],
- 'award-tax-payroll-position':['Reviewed — no material tax or payroll issue','Reviewed — manageable withholding or reporting is required','Reviewed — treatment must change or a material cost arises','Not reviewed — tax-advantaged awards are present','Not reviewed — no tax-advantaged awards are known','Tax status is unknown']
+ 'option-rights-exist':['No','Yes','Possibly','Not checked'],
+ 'award-register-reconciliation':['Fully reconciled','Minor discrepancies','Material discrepancies or undocumented awards','Not reconciled'],
+ 'award-treatment-implementation':['Yes — no holder consent needed','Yes — consents and approvals secured','Probably — documents or consents outstanding','Unclear — conflicting or incomplete documents','No','Not assessed'],
+ 'award-dilution-percentage':['Up to 1%','Over 1% to 5%','Over 5% to 10%','Over 10%','Not calculated'],
+ 'award-tax-payroll-position':['Reviewed — no issues','Reviewed — manageable withholding or reporting required','Reviewed — treatment must change or a material cost arises','Not reviewed — tax-advantaged awards present','Not reviewed — no known tax-advantaged awards','Unknown']
 };
-const treatmentChoices=['Exercise and sell','Cancel or release for cash','Rollover or replace','Lapse without payment','Another documented treatment'];
-const treatments=Array.from({length:31},(_,i)=>treatmentChoices.filter((_,j)=>(i+1)&(1<<j))).concat([['Treatment not yet decided']]);
+const treatmentChoices=['Exercise and sell','Cancel or release for cash','Rollover or replace','Lapse without payment','Other documented treatment'];
+const treatments=Array.from({length:31},(_,i)=>treatmentChoices.filter((_,j)=>(i+1)&(1<<j))).concat([['Not decided']]);
 const blocked=Object.fromEntries(Object.entries(fields).map(([id,options])=>[id,options[id==='option-rights-exist'?1:id==='award-register-reconciliation'?2:id==='award-treatment-implementation'?4:id==='award-dilution-percentage'?3:2]]));blocked['award-transaction-treatment']=['Exercise and sell'];
 function harness(){
  let report='',side='Balanced';const events=[],card={innerHTML:'',classList:{add(){},remove(){}}};
  const state=vm.createContext({window:{},answers:{},current:()=>issue,isOptionHolders:i=>i?.id===issue.id,renderLogic(){},exportReport(){},getTransactionSide:()=>side,escapeLogicText:s=>s,riskScore:()=>4,areas:{shares:'Shares'},riskNames:['No risk','Low risk','Medium risk','High risk','Very high risk'],CustomEvent:class{constructor(type){this.type=type}},Blob:class{constructor(parts){report=parts.join('')}},URL:{createObjectURL:()=>'',revokeObjectURL(){}},document:{querySelector:s=>s==='#logic-card'?card:null,createElement:()=>({click(){}}),dispatchEvent:e=>events.push(e.type)}});
  vm.runInContext(registry,state);
- vm.runInContext(between('const optionHolderQuestions =','const riskScoreBeforeOptionHolders =')+between('const exportReportBeforeOptionHolders =','    </script>')+'\nglobalThis.api={optionHolderActions,optionHolderActionMarkup,optionHolderAnswersComplete};',state);
+ vm.runInContext(between('const optionHolderQuestions =','const riskScoreBeforeOptionHolders =')+between('const exportReportBeforeOptionHolders =','    </script>')+'\nglobalThis.api={optionHolderActions,optionHolderActionMarkup,optionHolderAnswersComplete,normalizeOptionAnswers,optionAnswerOptions};',state);
  return {state,api:state.api,card,events,report:()=>report,side:v=>{side=v}};
 }
 test('Option Holders shares canonical concise perspective copy and two neutral factual reviews',()=>{
@@ -40,7 +40,7 @@ test('all 138240 completed substantive permutations keep triggered steps within 
   for(const side of ['Buyer','Seller','Balanced']){
    count++;const actions=api.optionHolderActions(side);max=Math.max(max,actions.size);assert.ok(actions.size<=9);assert.equal(api.optionHolderAnswersComplete(),true);
    const treatment=state.answers['award-transaction-treatment'];assert.equal(actions.has('OH03'),true);
-   if(!treatment.includes('Treatment not yet decided')){assert.ok(actions.has('OH04'));assert.ok(actions.has('OH06'));}
+   if(!treatment.includes('Not decided')){assert.ok(actions.has('OH04'));assert.ok(actions.has('OH06'));}
    if(state.answers['award-treatment-implementation']===fields['award-treatment-implementation'][4]){assert.ok(actions.has('OH05'));assert.ok(actions.has('OH08'));assert.ok(actions.has('OH10'));if([2,3,4].includes(fields['award-dilution-percentage'].indexOf(state.answers['award-dilution-percentage'])))assert.ok(actions.has('OH11'));}
    if(state.answers['award-tax-payroll-position']===fields['award-tax-payroll-position'][2]){assert.ok(actions.has('OH07'));assert.ok(actions.has('OH10'));}
    if(state.answers['award-register-reconciliation']===fields['award-register-reconciliation'][2])assert.ok(actions.has('OH01'));
@@ -55,7 +55,7 @@ test('blocked profiles retain all nine steps with existing perspective prioritie
  for(const [id,expected] of [['OH08',['Required','Recommended','Required']],['OH10',['Required','Consider','Recommended']],['OH11',['Recommended','Required','Recommended']]])assert.deepEqual(['Buyer','Seller','Balanced'].map(side=>api.optionHolderActions(side).get(id)),expected);
  state.answers={'option-rights-exist':fields['option-rights-exist'][0]};assert.equal(api.optionHolderActions('Buyer').size,0);assert.equal(api.optionHolderAnswersComplete(),true);
  state.answers={};assert.equal(api.optionHolderAnswersComplete(),false);
- state.answers={'option-rights-exist':'Not yet checked'};assert.equal(api.optionHolderAnswersComplete(),false);
+ state.answers={'option-rights-exist':'Not checked'};assert.equal(api.optionHolderAnswersComplete(),false);
 });
 test('reports and live actions use the same selected copy, titles and priorities and exclude hidden answers',()=>{
  const app=harness(),r=app.state.window.DealLogicActionRegistry;app.state.answers={...blocked};
@@ -72,4 +72,69 @@ test('Seller Option Holder Hub saves use canonical phase and preserve existing m
  const source=await readFile(new URL('../dist/deal-hub.js',import.meta.url),'utf8');const commit=source.slice(source.indexOf('  function commitPicks()'),source.indexOf('  const libraryPhase'));
  vm.runInNewContext(commit+'commitPicks();',{state:saved,picks,picking:true,window:state.window,actionKey:(...v)=>v.join('|'),issueById:()=>issue,hasEquivalentAction:item=>saved.actions.some(a=>a.stableActionId===item.actionId),uid:()=> 'new',statuses:['To Review'],libraryPhase:p=>p,phaseFor:()=> 'wrong',save(){},decorateRecommendations(){},renderHub(){},toast(){},CustomEvent:class{},document:{dispatchEvent(){}}});
  assert.equal(saved.actions.length,9);assert.equal(saved.actions[0],edited);assert.equal(edited.instruction,'Keep my advice');for(const a of saved.actions.slice(1)){const canonical=r.forSide(r.actionFor(issue.id,'','',a.stableActionId),'Seller');assert.equal(a.instruction,canonical.description);assert.equal(a.dealPhase,canonical.phase);assert.equal(a.priority,api.optionHolderActions('Seller').get(a.stableActionId));}
+});
+
+const previousOptions = {
+  "option-rights-exist": [
+    "Unanswered",
+    "No — confirmed against the relevant records",
+    "Yes",
+    "Possibly — the records are incomplete or inconsistent",
+    "Not yet checked"
+  ],
+  "award-register-reconciliation": [
+    "Unanswered",
+    "Yes — fully reconciled",
+    "Broadly — only minor discrepancies remain",
+    "No — material discrepancies or undocumented awards exist",
+    "Not yet reconciled"
+  ],
+  "award-treatment-implementation": [
+    "Unanswered",
+    "Yes — no holder consent is required",
+    "Yes — all required consents and approvals are secured",
+    "Probably — documents or consents remain outstanding",
+    "Unclear — the governing documents conflict or are incomplete",
+    "No — it cannot currently be implemented by completion",
+    "Not yet assessed"
+  ],
+  "award-dilution-percentage": [
+    "Unanswered",
+    "1% or less",
+    "More than 1% up to 5%",
+    "More than 5% up to 10%",
+    "More than 10%",
+    "Not yet calculated"
+  ],
+  "award-tax-payroll-position": [
+    "Unanswered",
+    "Reviewed — no material tax or payroll issue",
+    "Reviewed — manageable withholding or reporting is required",
+    "Reviewed — treatment must change or a material cost arises",
+    "Not reviewed — tax-advantaged awards are present",
+    "Not reviewed — no tax-advantaged awards are known",
+    "Tax status is unknown"
+  ],
+  "award-transaction-treatment": [
+    "Exercise and sell",
+    "Cancel or release for cash",
+    "Rollover or replace",
+    "Lapse without payment",
+    "Another documented treatment",
+    "Treatment not yet decided"
+  ]
+};
+
+test('every historical option answer migrates without changing recommendations',()=>{
+ const {state,api}=harness();let writes=0;
+ state.DealLogicStorage={setItem(){writes++}};state.storedKey=()=> 'options-test';
+ for(const [id,values] of Object.entries(previousOptions))for(const [position,value]of values.entries()){
+  state.answers={...blocked,[id]:id==='award-transaction-treatment'?[api.optionAnswerOptions[id][position]]:api.optionAnswerOptions[id][position]};
+  const expected=['Buyer','Seller','Balanced'].map(side=>JSON.stringify([...api.optionHolderActions(side)]));
+  state.answers[id]=id==='award-transaction-treatment'?[value]:value;
+  api.normalizeOptionAnswers();
+  assert.equal(JSON.stringify(state.answers[id]),JSON.stringify(id==='award-transaction-treatment'?[api.optionAnswerOptions[id][position]]:api.optionAnswerOptions[id][position]));
+  assert.deepEqual(['Buyer','Seller','Balanced'].map(side=>JSON.stringify([...api.optionHolderActions(side)])),expected);
+ }
+ assert.ok(writes>0);
 });

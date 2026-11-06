@@ -758,53 +758,161 @@
     <script>
       const isOptionHolders = (issue) => issue?.id === "option-holders";
       const optionHolderQuestions = [
-        "Are there any outstanding options, warrants or other rights to acquire shares?",
-        "Does the award register reconcile with the fully diluted cap table and supporting documents?",
-        "How will the outstanding awards be treated in the transaction? (select all that apply)",
-        "Can the proposed treatment be validly implemented by completion?",
-        "What proportion of the fully diluted share capital is represented by the outstanding awards?",
-        "What is the tax and payroll position for the proposed treatment?"
-      ];
+  "Are any options, warrants or other share acquisition rights outstanding?",
+  "Does the award register match the fully diluted cap table and supporting documents?",
+  "How will outstanding awards be treated? (select all that apply)",
+  "Can the treatment be validly implemented by completion?",
+  "What percentage of the fully diluted share capital do the outstanding awards represent?",
+  "What is the tax and payroll status of the treatment?"
+];
+      const optionAnswerOptions = {
+  "option-rights-exist": [
+    "Unanswered",
+    "No",
+    "Yes",
+    "Possibly",
+    "Not checked"
+  ],
+  "award-register-reconciliation": [
+    "Unanswered",
+    "Fully reconciled",
+    "Minor discrepancies",
+    "Material discrepancies or undocumented awards",
+    "Not reconciled"
+  ],
+  "award-treatment-implementation": [
+    "Unanswered",
+    "Yes — no holder consent needed",
+    "Yes — consents and approvals secured",
+    "Probably — documents or consents outstanding",
+    "Unclear — conflicting or incomplete documents",
+    "No",
+    "Not assessed"
+  ],
+  "award-dilution-percentage": [
+    "Unanswered",
+    "Up to 1%",
+    "Over 1% to 5%",
+    "Over 5% to 10%",
+    "Over 10%",
+    "Not calculated"
+  ],
+  "award-tax-payroll-position": [
+    "Unanswered",
+    "Reviewed — no issues",
+    "Reviewed — manageable withholding or reporting required",
+    "Reviewed — treatment must change or a material cost arises",
+    "Not reviewed — tax-advantaged awards present",
+    "Not reviewed — no known tax-advantaged awards",
+    "Unknown"
+  ],
+  "award-transaction-treatment": [
+    "Exercise and sell",
+    "Cancel or release for cash",
+    "Rollover or replace",
+    "Lapse without payment",
+    "Other documented treatment",
+    "Not decided"
+  ]
+};
+      // Historical labels are retained only for migrating existing saved answers.
+      const optionPreviousAnswers = {
+  "option-rights-exist": {
+    "No — confirmed against the relevant records": 1,
+    "Possibly — the records are incomplete or inconsistent": 3,
+    "Not yet checked": 4
+  },
+  "award-register-reconciliation": {
+    "Yes — fully reconciled": 1,
+    "Broadly — only minor discrepancies remain": 2,
+    "No — material discrepancies or undocumented awards exist": 3,
+    "Not yet reconciled": 4
+  },
+  "award-treatment-implementation": {
+    "Yes — no holder consent is required": 1,
+    "Yes — all required consents and approvals are secured": 2,
+    "Probably — documents or consents remain outstanding": 3,
+    "Unclear — the governing documents conflict or are incomplete": 4,
+    "No — it cannot currently be implemented by completion": 5,
+    "Not yet assessed": 6
+  },
+  "award-dilution-percentage": {
+    "1% or less": 1,
+    "More than 1% up to 5%": 2,
+    "More than 5% up to 10%": 3,
+    "More than 10%": 4,
+    "Not yet calculated": 5
+  },
+  "award-tax-payroll-position": {
+    "Reviewed — no material tax or payroll issue": 1,
+    "Reviewed — manageable withholding or reporting is required": 2,
+    "Not reviewed — tax-advantaged awards are present": 4,
+    "Not reviewed — no tax-advantaged awards are known": 5,
+    "Tax status is unknown": 6
+  },
+  "award-transaction-treatment": {
+    "Another documented treatment": 4,
+    "Treatment not yet decided": 5
+  }
+};
+      const optionAnswer = (id) => {
+        const convert = value => {
+          const position = optionPreviousAnswers[id]?.[value];
+          return position === undefined ? value : optionAnswerOptions[id][position];
+        };
+        const value = answers[id];
+        return Array.isArray(value) ? value.map(convert) : convert(value);
+      };
+      const normalizeOptionAnswers = () => {
+        let changed = false;
+        Object.keys(optionAnswerOptions).forEach(id => {
+          if (answers[id] !== undefined && JSON.stringify(answers[id]) !== JSON.stringify(optionAnswer(id))) {
+            answers[id] = optionAnswer(id);
+            changed = true;
+          }
+        });
+        if (changed) DealLogicStorage.setItem(storedKey(), JSON.stringify(answers));
+      };
       const riskScoreBeforeOptionHolders = riskScore;
       riskScore = function () {
         if (!isOptionHolders(current())) return riskScoreBeforeOptionHolders();
 
-        const existence = answers["option-rights-exist"] || "Unanswered";
-        if (existence === "No — confirmed against the relevant records") return 1;
-        if (existence === "Not yet checked") return 2;
+        const existence = optionAnswer("option-rights-exist") || "Unanswered";
+        if (existence === optionAnswerOptions["option-rights-exist"][1]) return 1;
+        if (existence === optionAnswerOptions["option-rights-exist"][4]) return 2;
         if (existence === "Unanswered") return 1;
 
-        let score = existence === "Possibly — the records are incomplete or inconsistent" ? 2 : 3;
-        const reconciliation = answers["award-register-reconciliation"];
-        if (reconciliation === "No — material discrepancies or undocumented awards exist") score = Math.max(score, 4);
-        if (reconciliation === "Not yet reconciled") score = Math.max(score, 3);
+        let score = existence === optionAnswerOptions["option-rights-exist"][3] ? 2 : 3;
+        const reconciliation = optionAnswer("award-register-reconciliation");
+        if (reconciliation === optionAnswerOptions["award-register-reconciliation"][3]) score = Math.max(score, 4);
+        if (reconciliation === optionAnswerOptions["award-register-reconciliation"][4]) score = Math.max(score, 3);
 
-        const treatments = answers["award-transaction-treatment"] || [];
-        if (treatments.includes("Treatment not yet decided")) score = Math.max(score, 3);
-        if (treatments.filter((value) => value !== "Treatment not yet decided").length > 1) score = Math.max(score, 3);
+        const treatments = optionAnswer("award-transaction-treatment") || [];
+        if (treatments.includes(optionAnswerOptions["award-transaction-treatment"][5])) score = Math.max(score, 3);
+        if (treatments.filter((value) => value !== optionAnswerOptions["award-transaction-treatment"][5]).length > 1) score = Math.max(score, 3);
 
-        const implementation = answers["award-treatment-implementation"];
-        if (implementation === "Probably — documents or consents remain outstanding") score = Math.max(score, 3);
-        if (implementation === "Unclear — the governing documents conflict or are incomplete") score = Math.max(score, 4);
-        if (implementation === "No — it cannot currently be implemented by completion") score = Math.max(score, 4);
-        if (implementation === "Not yet assessed") score = Math.max(score, 3);
+        const implementation = optionAnswer("award-treatment-implementation");
+        if (implementation === optionAnswerOptions["award-treatment-implementation"][3]) score = Math.max(score, 3);
+        if (implementation === optionAnswerOptions["award-treatment-implementation"][4]) score = Math.max(score, 4);
+        if (implementation === optionAnswerOptions["award-treatment-implementation"][5]) score = Math.max(score, 4);
+        if (implementation === optionAnswerOptions["award-treatment-implementation"][6]) score = Math.max(score, 3);
 
-        const dilution = answers["award-dilution-percentage"];
-        if (dilution === "More than 5% up to 10%" || dilution === "More than 10%") score = Math.max(score, 4);
-        if (dilution === "Not yet calculated") score = Math.max(score, 3);
+        const dilution = optionAnswer("award-dilution-percentage");
+        if (dilution === optionAnswerOptions["award-dilution-percentage"][3] || dilution === optionAnswerOptions["award-dilution-percentage"][4]) score = Math.max(score, 4);
+        if (dilution === optionAnswerOptions["award-dilution-percentage"][5]) score = Math.max(score, 3);
 
-        const tax = answers["award-tax-payroll-position"];
-        if (tax === "Reviewed — treatment must change or a material cost arises") score = Math.max(score, 4);
-        if (tax === "Not reviewed — tax-advantaged awards are present") score = Math.max(score, 4);
-        if (["Not reviewed — no tax-advantaged awards are known", "Tax status is unknown"].includes(tax)) score = Math.max(score, 3);
+        const tax = optionAnswer("award-tax-payroll-position");
+        if (tax === optionAnswerOptions["award-tax-payroll-position"][3]) score = Math.max(score, 4);
+        if (tax === optionAnswerOptions["award-tax-payroll-position"][4]) score = Math.max(score, 4);
+        if ([optionAnswerOptions["award-tax-payroll-position"][5], optionAnswerOptions["award-tax-payroll-position"][6]].includes(tax)) score = Math.max(score, 3);
 
-        const materialAwards = ["More than 5% up to 10%", "More than 10%", "Not yet calculated"].includes(dilution);
-        if (implementation === "No — it cannot currently be implemented by completion" && materialAwards) score = 5;
+        const materialAwards = [optionAnswerOptions["award-dilution-percentage"][3], optionAnswerOptions["award-dilution-percentage"][4], optionAnswerOptions["award-dilution-percentage"][5]].includes(dilution);
+        if (implementation === optionAnswerOptions["award-treatment-implementation"][5] && materialAwards) score = 5;
         return score;
       };
 
       const optionHolderGuidance = {
-        "option-rights-exist": "Check the current option and warrant registers, scheme records, board minutes and cap table for any unexercised awards or other rights to acquire shares.",
+        "option-rights-exist": "Select No only after checking the relevant records. Possibly includes incomplete or inconsistent records. Check the current option and warrant registers, scheme records, board minutes and cap table for any unexercised awards or other rights to acquire shares.",
         "award-register-reconciliation": "Reconcile the register against grant documentation, historic exercises and cancellations, board approvals and the fully diluted cap table.",
         "award-transaction-treatment": "Review the transaction documents, scheme rules and award terms to identify every treatment proposed for outstanding awards.",
         "award-treatment-implementation": "Check the scheme rules, award terms, articles and approval or consent requirements against the intended completion timetable.",
@@ -814,31 +922,32 @@
       const optionInfoButton = (id) => `<button class="info" type="button" aria-label="Guidance for this question">i<span class="tooltip">${optionHolderGuidance[id]}</span></button>`;
       const optionSelectQuestion = (id, label, options) => `<div class="question"><div class="question-top"><label for="${id}">${label}</label>${optionInfoButton(id)}</div><select id="${id}">${options.map((option) => `<option ${answers[id] === option ? "selected" : ""}>${option}</option>`).join("")}</select></div>`;
       const optionHoldersQuestionMarkup = () => {
-        const existence = answers["option-rights-exist"] || "Unanswered";
-        const showReconciliation = ["Yes", "Possibly — the records are incomplete or inconsistent"].includes(existence);
-        const reconciliation = answers["award-register-reconciliation"] || "Unanswered";
+        const existence = optionAnswer("option-rights-exist") || "Unanswered";
+        const showReconciliation = ["Yes", optionAnswerOptions["option-rights-exist"][3]].includes(existence);
+        const reconciliation = optionAnswer("award-register-reconciliation") || "Unanswered";
         const showTreatment = showReconciliation && reconciliation !== "Unanswered";
-        const treatments = answers["award-transaction-treatment"] || [];
+        const treatments = optionAnswer("award-transaction-treatment") || [];
         const showImplementation = showTreatment && treatments.length > 0;
-        const implementation = answers["award-treatment-implementation"] || "Unanswered";
+        const implementation = optionAnswer("award-treatment-implementation") || "Unanswered";
         const showDilution = showImplementation && implementation !== "Unanswered";
-        const dilution = answers["award-dilution-percentage"] || "Unanswered";
+        const dilution = optionAnswer("award-dilution-percentage") || "Unanswered";
         const showTax = showDilution && dilution !== "Unanswered";
-        const treatmentOptions = ["Exercise and sell", "Cancel or release for cash", "Rollover or replace", "Lapse without payment", "Another documented treatment", "Treatment not yet decided"];
-        const treatmentUndecided = treatments.includes("Treatment not yet decided");
+        const treatmentOptions = optionAnswerOptions["award-transaction-treatment"];
+        const treatmentUndecided = treatments.includes(optionAnswerOptions["award-transaction-treatment"][5]);
 
         return [
-          optionSelectQuestion("option-rights-exist", optionHolderQuestions[0], ["Unanswered", "No — confirmed against the relevant records", "Yes", "Possibly — the records are incomplete or inconsistent", "Not yet checked"]),
-          showReconciliation ? optionSelectQuestion("award-register-reconciliation", optionHolderQuestions[1], ["Unanswered", "Yes — fully reconciled", "Broadly — only minor discrepancies remain", "No — material discrepancies or undocumented awards exist", "Not yet reconciled"]) : "",
-          showTreatment ? `<div class="question"><div class="question-top"><label>${optionHolderQuestions[2]}</label>${optionInfoButton("award-transaction-treatment")}</div><div class="choice-grid">${treatmentOptions.map((option) => { const disabled = treatmentUndecided && option !== "Treatment not yet decided"; return `<label ${disabled ? 'style="opacity:.45"' : ""}><input type="checkbox" class="option-treatment" value="${option}" ${treatments.includes(option) ? "checked" : ""} ${disabled ? "disabled" : ""}> ${option}</label>`; }).join("")}</div></div>` : "",
-          showImplementation ? optionSelectQuestion("award-treatment-implementation", optionHolderQuestions[3], ["Unanswered", "Yes — no holder consent is required", "Yes — all required consents and approvals are secured", "Probably — documents or consents remain outstanding", "Unclear — the governing documents conflict or are incomplete", "No — it cannot currently be implemented by completion", "Not yet assessed"]) : "",
-          showDilution ? optionSelectQuestion("award-dilution-percentage", optionHolderQuestions[4], ["Unanswered", "1% or less", "More than 1% up to 5%", "More than 5% up to 10%", "More than 10%", "Not yet calculated"]) : "",
-          showTax ? optionSelectQuestion("award-tax-payroll-position", optionHolderQuestions[5], ["Unanswered", "Reviewed — no material tax or payroll issue", "Reviewed — manageable withholding or reporting is required", "Reviewed — treatment must change or a material cost arises", "Not reviewed — tax-advantaged awards are present", "Not reviewed — no tax-advantaged awards are known", "Tax status is unknown"]) : ""
+          optionSelectQuestion("option-rights-exist", optionHolderQuestions[0], optionAnswerOptions["option-rights-exist"]),
+          showReconciliation ? optionSelectQuestion("award-register-reconciliation", optionHolderQuestions[1], optionAnswerOptions["award-register-reconciliation"]) : "",
+          showTreatment ? `<div class="question"><div class="question-top"><label>${optionHolderQuestions[2]}</label>${optionInfoButton("award-transaction-treatment")}</div><div class="choice-grid">${treatmentOptions.map((option) => { const disabled = treatmentUndecided && option !== optionAnswerOptions["award-transaction-treatment"][5]; return `<label ${disabled ? 'style="opacity:.45"' : ""}><input type="checkbox" class="option-treatment" value="${option}" ${treatments.includes(option) ? "checked" : ""} ${disabled ? "disabled" : ""}> ${option}</label>`; }).join("")}</div></div>` : "",
+          showImplementation ? optionSelectQuestion("award-treatment-implementation", optionHolderQuestions[3], optionAnswerOptions["award-treatment-implementation"]) : "",
+          showDilution ? optionSelectQuestion("award-dilution-percentage", optionHolderQuestions[4], optionAnswerOptions["award-dilution-percentage"]) : "",
+          showTax ? optionSelectQuestion("award-tax-payroll-position", optionHolderQuestions[5], optionAnswerOptions["award-tax-payroll-position"]) : ""
         ].join("");
       };
 
       const renderPanelBeforeOptionHolders = renderPanel;
       renderPanel = function () {
+        if (isOptionHolders(current())) normalizeOptionAnswers();
         renderPanelBeforeOptionHolders();
         if (!isOptionHolders(current())) return;
         const factsCard = document.querySelector(".content-grid > .card");
@@ -863,8 +972,8 @@
           input.onchange = (event) => {
             const selected = event.target.value;
             let values = [...document.querySelectorAll(".option-treatment:checked")].map((item) => item.value);
-            if (selected === "Treatment not yet decided" && event.target.checked) values = [selected];
-            if (selected !== "Treatment not yet decided" && event.target.checked) values = values.filter((value) => value !== "Treatment not yet decided");
+            if (selected === optionAnswerOptions["award-transaction-treatment"][5] && event.target.checked) values = [selected];
+            if (selected !== optionAnswerOptions["award-transaction-treatment"][5] && event.target.checked) values = values.filter((value) => value !== optionAnswerOptions["award-transaction-treatment"][5]);
             answers["award-transaction-treatment"] = values;
             saveOptionAnswers();
           };
@@ -877,8 +986,8 @@
         if (!isOptionHolders(issue)) return exportReportBeforeOptionHolders();
         const responseIds = ["option-rights-exist", "award-register-reconciliation", "award-transaction-treatment", "award-treatment-implementation", "award-dilution-percentage", "award-tax-payroll-position"];
         const lines = optionHolderQuestions.flatMap((question, index) => {
-          if (index > 0 && !["Yes", "Possibly — the records are incomplete or inconsistent"].includes(answers[responseIds[0]])) return [];
-          const response = answers[responseIds[index]];
+          if (index > 0 && !["Yes", optionAnswerOptions["option-rights-exist"][3]].includes(answers[responseIds[0]])) return [];
+          const response = optionAnswer(responseIds[index]);
           const display = Array.isArray(response) ? (response.join(", ") || "Unanswered") : (response || "Unanswered");
           return `- ${question}\n  Response: ${display}`;
         });
@@ -909,41 +1018,41 @@
         side = ["Buyer", "Seller", "Balanced"].includes(side) ? side : "Balanced";
         const actions = new Map();
         const sidePriority = (buyer, seller, balanced) => ({ Buyer: buyer, Seller: seller, Balanced: balanced }[side] || balanced);
-        const existence = answers["option-rights-exist"] || "Unanswered";
-        if (existence === "No — confirmed against the relevant records" || existence === "Unanswered") return actions;
-        const reconciliation = answers["award-register-reconciliation"] || "Unanswered";
-        const treatments = answers["award-transaction-treatment"] || [];
-        const treatmentUndecided = !treatments.length || treatments.includes("Treatment not yet decided");
-        const implementation = answers["award-treatment-implementation"] || "Unanswered";
-        const dilution = answers["award-dilution-percentage"] || "Unanswered";
-        const tax = answers["award-tax-payroll-position"] || "Unanswered";
-        const material = ["More than 5% up to 10%", "More than 10%", "Not yet calculated"].includes(dilution);
-        const implementationOpen = ["Unanswered", "Probably — documents or consents remain outstanding", "Unclear — the governing documents conflict or are incomplete", "No — it cannot currently be implemented by completion", "Not yet assessed"].includes(implementation);
-        const recordsOpen = existence !== "Yes" || ["Unanswered", "Broadly — only minor discrepancies remain", "No — material discrepancies or undocumented awards exist", "Not yet reconciled"].includes(reconciliation);
+        const existence = optionAnswer("option-rights-exist") || "Unanswered";
+        if (existence === optionAnswerOptions["option-rights-exist"][1] || existence === "Unanswered") return actions;
+        const reconciliation = optionAnswer("award-register-reconciliation") || "Unanswered";
+        const treatments = optionAnswer("award-transaction-treatment") || [];
+        const treatmentUndecided = !treatments.length || treatments.includes(optionAnswerOptions["award-transaction-treatment"][5]);
+        const implementation = optionAnswer("award-treatment-implementation") || "Unanswered";
+        const dilution = optionAnswer("award-dilution-percentage") || "Unanswered";
+        const tax = optionAnswer("award-tax-payroll-position") || "Unanswered";
+        const material = [optionAnswerOptions["award-dilution-percentage"][3], optionAnswerOptions["award-dilution-percentage"][4], optionAnswerOptions["award-dilution-percentage"][5]].includes(dilution);
+        const implementationOpen = ["Unanswered", optionAnswerOptions["award-treatment-implementation"][3], optionAnswerOptions["award-treatment-implementation"][4], optionAnswerOptions["award-treatment-implementation"][5], optionAnswerOptions["award-treatment-implementation"][6]].includes(implementation);
+        const recordsOpen = existence !== "Yes" || ["Unanswered", optionAnswerOptions["award-register-reconciliation"][2], optionAnswerOptions["award-register-reconciliation"][3], optionAnswerOptions["award-register-reconciliation"][4]].includes(reconciliation);
 
-        if (recordsOpen) addOptionHolderAction(actions, "OH01", reconciliation === "Broadly — only minor discrepancies remain" ? sidePriority("Required", "Recommended", "Recommended") : "Required");
+        if (recordsOpen) addOptionHolderAction(actions, "OH01", reconciliation === optionAnswerOptions["award-register-reconciliation"][2] ? sidePriority("Required", "Recommended", "Recommended") : "Required");
 
         if (treatmentUndecided) addOptionHolderAction(actions, "OH03", "Required");
         if (!treatmentUndecided) {
           addOptionHolderAction(actions, "OH03", "Required");
-          addOptionHolderAction(actions, "OH04", implementation === "Yes — all required consents and approvals are secured" ? sidePriority("Required", "Recommended", "Recommended") : "Required");
+          addOptionHolderAction(actions, "OH04", implementation === optionAnswerOptions["award-treatment-implementation"][2] ? sidePriority("Required", "Recommended", "Recommended") : "Required");
           addOptionHolderAction(actions, "OH06", "Required");
         }
-        if (["Probably — documents or consents remain outstanding", "No — it cannot currently be implemented by completion"].includes(implementation)) addOptionHolderAction(actions, "OH05", "Required");
-        if (["Unclear — the governing documents conflict or are incomplete", "Not yet assessed"].includes(implementation)) addOptionHolderAction(actions, "OH05", "Recommended");
+        if ([optionAnswerOptions["award-treatment-implementation"][3], optionAnswerOptions["award-treatment-implementation"][5]].includes(implementation)) addOptionHolderAction(actions, "OH05", "Required");
+        if ([optionAnswerOptions["award-treatment-implementation"][4], optionAnswerOptions["award-treatment-implementation"][6]].includes(implementation)) addOptionHolderAction(actions, "OH05", "Recommended");
 
-        const taxSensitiveTreatment = treatments.some((treatment) => ["Exercise and sell", "Cancel or release for cash", "Rollover or replace"].includes(treatment));
-        const taxAlreadyReviewed = ["Reviewed — no material tax or payroll issue", "Reviewed — manageable withholding or reporting is required"].includes(tax);
-        if (["Reviewed — treatment must change or a material cost arises", "Not reviewed — tax-advantaged awards are present", "Tax status is unknown"].includes(tax) || (taxSensitiveTreatment && !taxAlreadyReviewed)) addOptionHolderAction(actions, "OH07", "Required");
-        if (taxAlreadyReviewed && (taxSensitiveTreatment || tax === "Reviewed — manageable withholding or reporting is required")) addOptionHolderAction(actions, "OH07", tax === "Reviewed — manageable withholding or reporting is required" ? sidePriority("Required", "Recommended", "Recommended") : sidePriority("Recommended", "Consider", "Recommended"));
-        if (tax === "Not reviewed — no tax-advantaged awards are known") addOptionHolderAction(actions, "OH07", sidePriority("Required", "Recommended", "Recommended"));
+        const taxSensitiveTreatment = treatments.some((treatment) => [optionAnswerOptions["award-transaction-treatment"][0], optionAnswerOptions["award-transaction-treatment"][1], optionAnswerOptions["award-transaction-treatment"][2]].includes(treatment));
+        const taxAlreadyReviewed = [optionAnswerOptions["award-tax-payroll-position"][1], optionAnswerOptions["award-tax-payroll-position"][2]].includes(tax);
+        if ([optionAnswerOptions["award-tax-payroll-position"][3], optionAnswerOptions["award-tax-payroll-position"][4], optionAnswerOptions["award-tax-payroll-position"][6]].includes(tax) || (taxSensitiveTreatment && !taxAlreadyReviewed)) addOptionHolderAction(actions, "OH07", "Required");
+        if (taxAlreadyReviewed && (taxSensitiveTreatment || tax === optionAnswerOptions["award-tax-payroll-position"][2])) addOptionHolderAction(actions, "OH07", tax === optionAnswerOptions["award-tax-payroll-position"][2] ? sidePriority("Required", "Recommended", "Recommended") : sidePriority("Recommended", "Consider", "Recommended"));
+        if (tax === optionAnswerOptions["award-tax-payroll-position"][5]) addOptionHolderAction(actions, "OH07", sidePriority("Required", "Recommended", "Recommended"));
 
-        const blocked = implementation === "No — it cannot currently be implemented by completion";
+        const blocked = implementation === optionAnswerOptions["award-treatment-implementation"][5];
         if (material && (recordsOpen || treatmentUndecided || implementationOpen)) addOptionHolderAction(actions, "OH08", blocked ? sidePriority("Required", "Recommended", "Required") : sidePriority("Required", "Consider", "Recommended"));
         if (!material && blocked) addOptionHolderAction(actions, "OH08", sidePriority("Required", "Consider", "Recommended"));
-        if (!material && implementation === "Probably — documents or consents remain outstanding" && side === "Buyer") addOptionHolderAction(actions, "OH08", "Recommended");
+        if (!material && implementation === optionAnswerOptions["award-treatment-implementation"][3] && side === "Buyer") addOptionHolderAction(actions, "OH08", "Recommended");
 
-        const identifiedExposure = reconciliation === "No — material discrepancies or undocumented awards exist" || implementation === "No — it cannot currently be implemented by completion" || tax === "Reviewed — treatment must change or a material cost arises";
+        const identifiedExposure = reconciliation === optionAnswerOptions["award-register-reconciliation"][3] || implementation === optionAnswerOptions["award-treatment-implementation"][5] || tax === optionAnswerOptions["award-tax-payroll-position"][3];
         if (identifiedExposure) addOptionHolderAction(actions, "OH10", side === "Buyer" ? "Required" : side === "Seller" ? "Consider" : "Recommended");
         if (blocked && material) addOptionHolderAction(actions, "OH11", sidePriority("Recommended", "Required", "Recommended"));
         // All nine registered steps fit the shared limit without truncation.
@@ -956,64 +1065,69 @@
           return `<div class="logic-action" data-action-id="${id}"><span class="logic-icon" aria-hidden="true"></span><div><span class="logic-priority" data-level="${priority.toLowerCase()}">${priority}</span><strong>${escapeLogicText(action.title)}</strong><span>${escapeLogicText(action.description)}</span></div></div>`;
         }).join("");
       const optionHolderSummary = () => {
-        const existence = answers["option-rights-exist"] || "Unanswered";
-        const reconciliation = answers["award-register-reconciliation"] || "Unanswered";
-        const treatments = answers["award-transaction-treatment"] || [];
-        const implementation = answers["award-treatment-implementation"] || "Unanswered";
-        const dilution = answers["award-dilution-percentage"] || "Unanswered";
-        const tax = answers["award-tax-payroll-position"] || "Unanswered";
-        if (existence === "No — confirmed against the relevant records") return "No outstanding options, warrants or other rights to acquire shares have been identified after review of the relevant records. The agreed capital structure is not currently affected by option-holder treatment.";
-        if (existence === "Not yet checked") return "The existence of outstanding options, warrants or other share rights has not yet been checked. The fully diluted ownership position and required transaction mechanics therefore remain unconfirmed.";
-        if (existence === "Possibly — the records are incomplete or inconsistent") return "Outstanding options, warrants or other share rights may exist, but the available records are incomplete or inconsistent. The fully diluted capital structure cannot yet be relied upon.";
+        const existence = optionAnswer("option-rights-exist") || "Unanswered";
+        const reconciliation = optionAnswer("award-register-reconciliation") || "Unanswered";
+        const treatments = optionAnswer("award-transaction-treatment") || [];
+        const implementation = optionAnswer("award-treatment-implementation") || "Unanswered";
+        const dilution = optionAnswer("award-dilution-percentage") || "Unanswered";
+        const tax = optionAnswer("award-tax-payroll-position") || "Unanswered";
+        if (existence === optionAnswerOptions["option-rights-exist"][1]) return "No outstanding options, warrants or other rights to acquire shares have been identified after review of the relevant records. The agreed capital structure is not currently affected by option-holder treatment.";
+        if (existence === optionAnswerOptions["option-rights-exist"][4]) return "The existence of outstanding options, warrants or other share rights has not yet been checked. The fully diluted ownership position and required transaction mechanics therefore remain unconfirmed.";
+        if (existence === optionAnswerOptions["option-rights-exist"][3]) return "Outstanding options, warrants or other share rights may exist, but the available records are incomplete or inconsistent. The fully diluted capital structure cannot yet be relied upon.";
 
         let opening = "Outstanding options, warrants or other rights to acquire shares have been identified.";
-        if (reconciliation === "No — material discrepancies or undocumented awards exist") opening += " Material discrepancies or undocumented awards affect the current capitalisation analysis.";
-        else if (reconciliation === "Not yet reconciled") opening += " The award population has not yet been reconciled to the fully diluted cap table and supporting documents.";
-        else if (reconciliation === "Broadly — only minor discrepancies remain") opening += " The records broadly reconcile, although minor discrepancies remain to be resolved.";
-        else if (reconciliation === "Yes — fully reconciled") opening += " The award register is fully reconciled to the cap table and supporting documents.";
+        if (reconciliation === optionAnswerOptions["award-register-reconciliation"][3]) opening += " Material discrepancies or undocumented awards affect the current capitalisation analysis.";
+        else if (reconciliation === optionAnswerOptions["award-register-reconciliation"][4]) opening += " The award population has not yet been reconciled to the fully diluted cap table and supporting documents.";
+        else if (reconciliation === optionAnswerOptions["award-register-reconciliation"][2]) opening += " The records broadly reconcile, although minor discrepancies remain to be resolved.";
+        else if (reconciliation === optionAnswerOptions["award-register-reconciliation"][1]) opening += " The award register is fully reconciled to the cap table and supporting documents.";
 
-        if (treatments.includes("Treatment not yet decided") || !treatments.length) return `${opening} The transaction treatment remains undecided, so the closing capital structure and proceeds allocation cannot yet be finalised.`;
+        if (treatments.includes(optionAnswerOptions["award-transaction-treatment"][5]) || !treatments.length) return `${opening} The transaction treatment remains undecided, so the closing capital structure and proceeds allocation cannot yet be finalised.`;
         const treatmentCopy = treatments.map((value) => value.toLowerCase()).join(", ");
         opening += ` The recorded treatment is: ${treatmentCopy}.`;
-        if (implementation === "No — it cannot currently be implemented by completion") opening += " That treatment cannot currently be validly implemented by completion.";
-        else if (implementation === "Unclear — the governing documents conflict or are incomplete") opening += " Conflicting or incomplete governing documents create material implementation uncertainty.";
-        else if (implementation === "Probably — documents or consents remain outstanding") opening += " Implementation appears available, but documents or consents remain outstanding.";
-        else if (implementation === "Yes — no holder consent is required") opening += " The treatment can be implemented without holder consent.";
-        else if (implementation === "Yes — all required consents and approvals are secured") opening += " All identified consents and approvals are secured.";
-        else if (implementation === "Not yet assessed") opening += " Implementation has not yet been assessed.";
-        if (dilution && dilution !== "Unanswered") opening += ` The awards represent ${dilution.toLowerCase()} of the fully diluted share capital.`;
-        if (tax === "Reviewed — treatment must change or a material cost arises") opening += " Tax review indicates that the treatment must change or a material cost must be addressed.";
-        else if (tax === "Not reviewed — tax-advantaged awards are present") opening += " Tax-advantaged awards remain subject to transaction-specific tax review.";
+        if (implementation === optionAnswerOptions["award-treatment-implementation"][5]) opening += " That treatment cannot currently be validly implemented by completion.";
+        else if (implementation === optionAnswerOptions["award-treatment-implementation"][4]) opening += " Conflicting or incomplete governing documents create material implementation uncertainty.";
+        else if (implementation === optionAnswerOptions["award-treatment-implementation"][3]) opening += " Implementation appears available, but documents or consents remain outstanding.";
+        else if (implementation === optionAnswerOptions["award-treatment-implementation"][1]) opening += " The treatment can be implemented without holder consent.";
+        else if (implementation === optionAnswerOptions["award-treatment-implementation"][2]) opening += " All identified consents and approvals are secured.";
+        else if (implementation === optionAnswerOptions["award-treatment-implementation"][6]) opening += " Implementation has not yet been assessed.";
+        if (dilution && dilution !== "Unanswered") opening += ` The recorded award proportion is ${dilution.toLowerCase()} of the fully diluted share capital.`;
+        if (tax === optionAnswerOptions["award-tax-payroll-position"][3]) opening += " Tax review indicates that the treatment must change or a material cost must be addressed.";
+        else if (tax === optionAnswerOptions["award-tax-payroll-position"][4]) opening += " Tax-advantaged awards remain subject to transaction-specific tax review.";
+        else if (tax === optionAnswerOptions["award-tax-payroll-position"][1]) opening += " Tax and payroll review identified no issues.";
+        else if (tax === optionAnswerOptions["award-tax-payroll-position"][2]) opening += " Manageable withholding or reporting is required.";
+        else if (tax === optionAnswerOptions["award-tax-payroll-position"][5]) opening += " Tax and payroll review has not been completed; no tax-advantaged awards are known.";
+        else if (tax === optionAnswerOptions["award-tax-payroll-position"][6]) opening += " The tax and payroll status is unknown.";
         return opening;
       };
       const optionHolderImplications = () => {
         const implications = [];
-        const existence = answers["option-rights-exist"] || "Unanswered";
-        const reconciliation = answers["award-register-reconciliation"] || "Unanswered";
-        const treatments = answers["award-transaction-treatment"] || [];
-        const implementation = answers["award-treatment-implementation"] || "Unanswered";
-        const dilution = answers["award-dilution-percentage"] || "Unanswered";
-        const tax = answers["award-tax-payroll-position"] || "Unanswered";
-        if (existence === "No — confirmed against the relevant records") return ["No option-holder remediation or additional completion mechanic is currently indicated."];
-        if (existence !== "Yes" || ["Unanswered", "No — material discrepancies or undocumented awards exist", "Not yet reconciled"].includes(reconciliation)) implications.push("Pricing, proceeds allocation and the closing cap table should not be finalised until the award population is reconciled.");
-        if (!treatments.length || treatments.includes("Treatment not yet decided")) implications.push("An award-by-award treatment must be agreed before definitive completion mechanics can be prepared.");
-        else if (["Probably — documents or consents remain outstanding", "Unclear — the governing documents conflict or are incomplete", "No — it cannot currently be implemented by completion", "Not yet assessed", "Unanswered"].includes(implementation)) implications.push("The agreed treatment remains an execution dependency and may require holder participation or completion protection.");
+        const existence = optionAnswer("option-rights-exist") || "Unanswered";
+        const reconciliation = optionAnswer("award-register-reconciliation") || "Unanswered";
+        const treatments = optionAnswer("award-transaction-treatment") || [];
+        const implementation = optionAnswer("award-treatment-implementation") || "Unanswered";
+        const dilution = optionAnswer("award-dilution-percentage") || "Unanswered";
+        const tax = optionAnswer("award-tax-payroll-position") || "Unanswered";
+        if (existence === optionAnswerOptions["option-rights-exist"][1]) return ["No option-holder remediation or additional completion mechanic is currently indicated."];
+        if (existence !== "Yes" || ["Unanswered", optionAnswerOptions["award-register-reconciliation"][3], optionAnswerOptions["award-register-reconciliation"][4]].includes(reconciliation)) implications.push("Pricing, proceeds allocation and the closing cap table should not be finalised until the award population is reconciled.");
+        if (!treatments.length || treatments.includes(optionAnswerOptions["award-transaction-treatment"][5])) implications.push("An award-by-award treatment must be agreed before definitive completion mechanics can be prepared.");
+        else if ([optionAnswerOptions["award-treatment-implementation"][3], optionAnswerOptions["award-treatment-implementation"][4], optionAnswerOptions["award-treatment-implementation"][5], optionAnswerOptions["award-treatment-implementation"][6], "Unanswered"].includes(implementation)) implications.push("The agreed treatment remains an execution dependency and may require holder participation or completion protection.");
         else implications.push("The selected treatment appears implementable; the final cap table, funds flow and evidence of treatment should be delivered at completion.");
-        if (["More than 5% up to 10%", "More than 10%", "Not yet calculated"].includes(dilution)) implications.push("The recorded or unquantified dilution makes unresolved award mechanics material to the transaction.");
-        if (["Reviewed — treatment must change or a material cost arises", "Not reviewed — tax-advantaged awards are present", "Tax status is unknown"].includes(tax)) implications.push("Tax and payroll treatment must be resolved before the award mechanics are implemented.");
+        if ([optionAnswerOptions["award-dilution-percentage"][3], optionAnswerOptions["award-dilution-percentage"][4], optionAnswerOptions["award-dilution-percentage"][5]].includes(dilution)) implications.push("The recorded or unquantified dilution makes unresolved award mechanics material to the transaction.");
+        if ([optionAnswerOptions["award-tax-payroll-position"][3], optionAnswerOptions["award-tax-payroll-position"][4], optionAnswerOptions["award-tax-payroll-position"][6]].includes(tax)) implications.push("Tax and payroll treatment must be resolved before the award mechanics are implemented.");
+        if (tax === optionAnswerOptions["award-tax-payroll-position"][2]) implications.push("The completion mechanics must provide for the required withholding and reporting.");
         return implications.slice(0, 4);
       };
       const optionHolderNotes = `<div class="logic-note"><strong>Exit Mechanics:</strong> Whether options accelerate, lapse, cash out, or roll over is governed by scheme rules, grant terms, articles, and resolutions. The board must act within these explicit powers; unsupported changes risk contractual disputes and tax liabilities.</div><div class="logic-note"><strong>Tax and Payroll:</strong> Option exercise or cash cancellation may create Income Tax, PAYE and NIC liabilities; the outcome depends on the scheme, reliefs and transaction facts. Check scheme-specific tax treatment and ERS reporting separately before implementing the exit. <a href="https://www.gov.uk/hmrc-internal-manuals/employment-income-manual/eim12300" target="_blank" rel="noopener noreferrer">HMRC: PAYE on securities option gains</a>; <a href="https://www.gov.uk/guidance/how-employment-related-securities-work-if-youre-an-employer" target="_blank" rel="noopener noreferrer">HMRC: ERS reporting</a></div>`;
 
       const optionHolderAnswersComplete = () => {
-        const existence = answers["option-rights-exist"] || "Unanswered";
-        return existence === "No — confirmed against the relevant records" || (
-          ["Yes", "Possibly — the records are incomplete or inconsistent"].includes(existence) &&
-          answers["award-register-reconciliation"] && answers["award-register-reconciliation"] !== "Unanswered" &&
-          (answers["award-transaction-treatment"] || []).length > 0 &&
-          answers["award-treatment-implementation"] && answers["award-treatment-implementation"] !== "Unanswered" &&
-          answers["award-dilution-percentage"] && answers["award-dilution-percentage"] !== "Unanswered" &&
-          answers["award-tax-payroll-position"] && answers["award-tax-payroll-position"] !== "Unanswered"
+        const existence = optionAnswer("option-rights-exist") || "Unanswered";
+        return existence === optionAnswerOptions["option-rights-exist"][1] || (
+          ["Yes", optionAnswerOptions["option-rights-exist"][3]].includes(existence) &&
+          optionAnswer("award-register-reconciliation") && optionAnswer("award-register-reconciliation") !== "Unanswered" &&
+          (optionAnswer("award-transaction-treatment") || []).length > 0 &&
+          optionAnswer("award-treatment-implementation") && optionAnswer("award-treatment-implementation") !== "Unanswered" &&
+          optionAnswer("award-dilution-percentage") && optionAnswer("award-dilution-percentage") !== "Unanswered" &&
+          optionAnswer("award-tax-payroll-position") && optionAnswer("award-tax-payroll-position") !== "Unanswered"
         );
       };
 
@@ -1024,7 +1138,7 @@
         const protectionsCard = document.querySelector("#recommendations-card");
         protectionsCard?.remove();
         logicCard.classList.add("coc-deal-logic");
-        const existence = answers["option-rights-exist"] || "Unanswered";
+        const existence = optionAnswer("option-rights-exist") || "Unanswered";
         const questionnaireComplete = optionHolderAnswersComplete();
         if (!questionnaireComplete) {
           logicCard.classList.add("logic-standby");

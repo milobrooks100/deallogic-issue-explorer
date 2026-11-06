@@ -60,3 +60,7 @@ Five focused tests pass, including 138,240 substantive answer/perspective combin
 Browser checks confirmed nine live recommendations for the blocked case, the full nine-action library, all three toggles, Seller catalogue wording and matching Seller live advice. Shared icon styling remains in use.
 
 Runtime validation and whitespace checks pass. Full suite: 145 pass; the one pre-existing `core-action-colours.test.mjs` failure still expects obsolete positional colour CSS.
+
+## Concise questionnaire wording
+
+The approved short labels are canonical in `optionAnswerOptions` in `dist/index.html`; logic refers to their stable positions. Historical single and multiple selections migrate to their corresponding current labels. The percentage bands remain Up to 1%, Over 1% to 5%, Over 5% to 10%, Over 10%, and Not calculated, avoiding overlapping boundaries. Summaries cover all tax review states and implications include required withholding/reporting. Risk scores, recommendation triggers, priorities and registry copy are preserved: 276,480 answer/perspective comparisons match the previous runtime. The implementation and tax questions retain six choices to preserve all existing distinctions.
