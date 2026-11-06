@@ -142,7 +142,8 @@
     if (consentRequired(effect)) visible.push(ids[3]);
     if (repaymentRequired(effect)) visible.push(ids[4], ids[5]);
     visible.push(ids[6]);
-    return visible;
+    const next = visible.findIndex(id => !isKnown(answer(id)));
+    return next < 0 ? visible : visible.slice(0, next + 1);
   };
   const debtAnswersComplete = () => visibleIds().every(id => isKnown(answer(id)));
 
@@ -425,10 +426,8 @@
       select.onchange = event => {
         const id = event.target.id;
         answers[id] = event.target.value;
-        if (id === ids[0] || id === ids[1]) {
-          const index = ids.indexOf(id);
-          ids.slice(index + 1).forEach(dependent => delete answers[dependent]);
-        }
+        const index = ids.indexOf(id);
+        ids.slice(index + 1).forEach(dependent => delete answers[dependent]);
         DealLogicStorage.setItem(storedKey(), JSON.stringify(answers));
         renderPanel();
       };

@@ -372,3 +372,17 @@ test("unassessed releases have an accurate summary and closing implication", () 
   assert.match(summary(responses), /releases have not yet been assessed/);
   assert.ok(implications(responses).some(text => text.includes("other credit support")));
 });
+
+test("repayment and combined routes reveal only the next unanswered question", () => {
+  const { ids, options, visibleIds, debtAnswersComplete } = context.__debtTest;
+  for (const [effect, route] of [[2, [0,1,2,4,5,6]], [3, [0,1,3,6]], [4, [0,1,2,3,4,5,6]]]) {
+    context.answers = {};
+    for (let step = 0; step < route.length; step++) {
+      assert.deepEqual(Array.from(visibleIds()), route.slice(0, step + 1).map(i => ids[i]));
+      assert.equal(debtAnswersComplete(), false);
+      const i = route[step];
+      context.answers[ids[i]] = options[ids[i]][i === 0 ? 2 : i === 1 ? effect : 1];
+    }
+    assert.equal(debtAnswersComplete(), true);
+  }
+});

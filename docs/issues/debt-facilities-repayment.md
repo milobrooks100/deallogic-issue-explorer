@@ -68,3 +68,5 @@ Browser checks cover the 14-entry Seller catalogue, nine cards for the blocked c
 ## Concise-answer validation
 
 Compared every substantive answer combination (25,600) against the prior runtime: identical risk scores and recommended action objects for Buyer, Seller and Balanced (76,800 perspective comparisons). Regression tests verify every historical answer migrates to the corresponding current choice, with unchanged risk and live/Hub actions. Definitions and group-wide review remain in the guidance.
+
+Questions reveal one unanswered step at a time on repayment, consent and combined routes. Earlier answered questions remain visible. Changing any answer clears later answers, preventing stale follow-ups; summaries and reports use the same progressive visibility. Question 6 refers to target security and guarantee releases.

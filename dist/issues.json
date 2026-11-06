@@ -167,7 +167,7 @@
       },
       {
         "id": "debt-releases",
-        "question": "Are all required target-group security and guarantee releases agreed for completion?"
+        "question": "Are all required target security and guarantee releases agreed for completion?"
       },
       {
         "id": "debt-completion-sequence",
