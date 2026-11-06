@@ -152,3 +152,7 @@
   :root[data-app-theme="navy"] .project-rail-item:hover,
   :root[data-app-theme="forest"] .project-rail-item:hover { background: var(--theme-hover); }
 }
+
+/* Neutral table surfaces in grey mode; navy/forest retain their existing rules. */
+:root:not([data-app-theme="navy"]):not([data-app-theme="forest"]) .hub-table th { background: #f4f4f3; color: var(--muted); }
+:root:not([data-app-theme="navy"]):not([data-app-theme="forest"]) .hub-table tbody tr:hover { background: #fafafa; }
