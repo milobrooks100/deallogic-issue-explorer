@@ -73,8 +73,8 @@
 :root[data-app-theme="forest"] :is(.project-rail-note, .radar-search, .hub-tabs, .radar-fact, .radar-divider) { border-color: var(--line); }
 :root[data-app-theme="navy"] :is(.map, .radar-sidebar),
 :root[data-app-theme="forest"] :is(.map, .radar-sidebar) { background: var(--soft); }
-:root[data-app-theme="navy"] :is(.eyebrow, .radar-eyebrow, .logic-section h4, .hub-text-button, .radar-flag-actions a, .radar-panel-heading a, .radar-subhead a, .radar-filing-tools a),
-:root[data-app-theme="forest"] :is(.eyebrow, .radar-eyebrow, .logic-section h4, .hub-text-button, .radar-flag-actions a, .radar-panel-heading a, .radar-subhead a, .radar-filing-tools a) { color: var(--theme-accent); }
+:root[data-app-theme="navy"] :is(.eyebrow, .radar-eyebrow, .hub-text-button, .radar-flag-actions a, .radar-panel-heading a, .radar-subhead a, .radar-filing-tools a),
+:root[data-app-theme="forest"] :is(.eyebrow, .radar-eyebrow, .hub-text-button, .radar-flag-actions a, .radar-panel-heading a, .radar-subhead a, .radar-filing-tools a) { color: var(--theme-accent); }
 :root[data-app-theme="navy"] :is(.workspace-navigation nav button.active, .hub-button.primary, .hub-toolbar button.primary, .transaction-side-options button.active, .brand-mark, .radar-search button, .radar-pagination button[aria-current="page"]),
 :root[data-app-theme="forest"] :is(.workspace-navigation nav button.active, .hub-button.primary, .hub-toolbar button.primary, .transaction-side-options button.active, .brand-mark, .radar-search button, .radar-pagination button[aria-current="page"]) { background: var(--ink); border-color: var(--ink); color: #fff; }
 :root[data-app-theme="navy"] .radar-company-tools > a,
@@ -88,8 +88,8 @@
 
 /* Analysis, actions, and workflow use coordinated tonal steps. Risk colours
    and Company Radar attention colours stay semantic across every palette. */
-:root[data-app-theme="navy"] :is(.logic, .logic.coc-deal-logic, .hub-new-action, .hub-editor, .custom-action, .hub-summary-tile .hub-issue),
-:root[data-app-theme="forest"] :is(.logic, .logic.coc-deal-logic, .hub-new-action, .hub-editor, .custom-action, .hub-summary-tile .hub-issue) { background: var(--theme-hover); border-color: var(--line); }
+:root[data-app-theme="navy"] :is(.hub-new-action, .hub-editor, .custom-action, .hub-summary-tile .hub-issue),
+:root[data-app-theme="forest"] :is(.hub-new-action, .hub-editor, .custom-action, .hub-summary-tile .hub-issue) { background: var(--theme-hover); border-color: var(--line); }
 :root[data-app-theme="navy"] :is(.hub-tabs button.active, .hub-table th, .hub-table tbody tr:hover),
 :root[data-app-theme="forest"] :is(.hub-tabs button.active, .hub-table th, .hub-table tbody tr:hover) { background: var(--theme-hover); color: var(--ink); }
 :root[data-app-theme="navy"] .radar-overview,
@@ -106,12 +106,8 @@
 :root[data-app-theme="forest"] .hub-column[data-drop-status="Drafted in SPA"] h3 { color: var(--theme-icon-3); }
 :root[data-app-theme="navy"] .hub-column[data-drop-status="Satisfied/Closed"] h3,
 :root[data-app-theme="forest"] .hub-column[data-drop-status="Satisfied/Closed"] h3 { color: var(--theme-icon-4); }
-:root[data-app-theme="navy"] :is(.logic-action .logic-icon, .info, .hub-count),
-:root[data-app-theme="forest"] :is(.logic-action .logic-icon, .info, .hub-count) { background: var(--theme-selected); color: var(--theme-accent); }
-:root:is([data-app-theme="navy"], [data-app-theme="forest"]) :is(.logic-action[data-action-icon="search"], .logic-action[data-action-icon="filePenLine"], .logic-action[data-action-icon="arrowCircle"]) .logic-icon { background: var(--theme-stage-1); color: var(--theme-icon-1); }
-:root:is([data-app-theme="navy"], [data-app-theme="forest"]) :is(.logic-action[data-action-icon="wrench"], .logic-action[data-action-icon="shieldCheck"], .logic-action[data-action-icon="lockKeyhole"]) .logic-icon { background: var(--theme-stage-2); color: var(--theme-icon-2); }
-:root:is([data-app-theme="navy"], [data-app-theme="forest"]) :is(.logic-action[data-action-icon="handshake"], .logic-action[data-action-icon="banknote"], .logic-action[data-action-icon="arrowDownUp"], .logic-action[data-action-icon="arrowLeftRight"]) .logic-icon { background: var(--theme-stage-3); color: var(--theme-icon-3); }
-:root:is([data-app-theme="navy"], [data-app-theme="forest"]) :is(.logic-action[data-action-icon="circleCheck"], .logic-action[data-action-icon="fileSearch"], .logic-action[data-action-icon="calendarCheck"], .logic-action[data-action-icon="ellipsisCircle"]) .logic-icon { background: var(--theme-stage-4); color: var(--theme-icon-4); }
+:root[data-app-theme="navy"] :is(.info, .hub-count),
+:root[data-app-theme="forest"] :is(.info, .hub-count) { background: var(--theme-selected); color: var(--theme-accent); }
 :root[data-app-theme="navy"] :is(.hub-stage, .hub-tag),
 :root[data-app-theme="forest"] :is(.hub-stage, .hub-tag) { border-color: var(--line); }
 /* Risk meaning and severity colours stay on the grey-theme palette. */
@@ -156,3 +152,16 @@
 /* Neutral table surfaces in grey mode; navy/forest retain their existing rules. */
 :root:not([data-app-theme="navy"]):not([data-app-theme="forest"]) .hub-table th { background: #f4f4f3; color: var(--muted); }
 :root:not([data-app-theme="navy"]):not([data-app-theme="forest"]) .hub-table tbody tr:hover { background: #fafafa; }
+
+/* Apply deal logic keeps the original neutral palette in every app colour. */
+.logic {
+  --ink: #252a2a;
+  --muted: #737979;
+  --line: #e4e5e3;
+  --moss: #252f2f;
+  --lime: #e8ebea;
+  --surface: #ffffff;
+  --shadow: 0 2px 6px #252a2a08, 0 14px 36px #252a2a06;
+  --theme-selected: #ebedeb;
+  --theme-ring: #8aa9a0;
+}

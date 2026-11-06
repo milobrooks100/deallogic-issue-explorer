@@ -46,5 +46,5 @@
 .library-view .action-item[data-core-icon="ellipsis"] .action-symbol, .playbook-card[data-core-icon="ellipsis"] .action-symbol, .logic-action[data-core-icon="ellipsis"] .logic-icon { background: #eef0ef; color: #65716e; }
 
 .map .map-title { border: 0; padding: 4px 8px; margin: -4px -8px; min-height: 28px; border-radius: 999px; background: transparent; color: inherit; font: inherit; text-align: left; cursor: pointer; transition: background-color 150ms ease; }
-.map .map-title:hover { background: #dfe5e0; color: var(--ink); text-decoration: none; }
+.map .map-title:hover { background: var(--theme-selected, #dfe5e0); color: var(--ink); text-decoration: none; }
 @media (prefers-reduced-motion: reduce) { .map .map-title { transition: none; } }
