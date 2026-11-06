@@ -1,15 +1,33 @@
-/* The navigation rail should only gain an internal scroll area when its content
-   cannot fit within the available viewport height. */
+/* Keep desktop navigation anchored to the viewport, independently of the page
+   and its footer. Only overflowing navigation content gets an internal scroll. */
 @media (min-width: 981px) {
-  .project-rail {
+  main:has(.project-rail) > .project-rail {
+    position: fixed;
     top: 24px;
+    left: max(32px, calc((100vw - 1600px) / 2 + 32px));
+    width: 224px;
+    height: calc(100dvh - 48px);
     min-height: 0;
-    max-height: calc(100vh - 48px);
+    max-height: calc(100dvh - 48px);
     overflow-y: auto;
     overscroll-behavior: contain;
   }
 
-  .map {
-    top: 24px;
+  /* Flex items must retain their natural height so overflow stays accessible. */
+  .project-rail > * { flex-shrink: 0; }
+
+  main.workspace-rail-collapsed > .project-rail { width: 72px; }
+
+  .map { top: 24px; }
+}
+
+@media (min-width: 981px) and (max-width: 1250px) {
+  main:has(.project-rail) > .project-rail {
+    top: 20px;
+    left: 20px;
+    width: 196px;
+    height: calc(100dvh - 40px);
+    max-height: calc(100dvh - 40px);
   }
+  main.workspace-rail-collapsed > .project-rail { width: 72px; }
 }
