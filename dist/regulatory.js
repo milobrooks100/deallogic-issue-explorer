@@ -1,4 +1,4 @@
-/* Regulatory questionnaire: shared Threatened Litigation presentation; assessment deferred. */
+/* Regulatory questionnaire, risk and analysis using shared Deal Map presentation. */
 (() => {
   const issueId = "regulatory-licences-and-transaction-approvals";
   const isRegulatory = issue => issue?.id === issueId;
@@ -227,6 +227,106 @@
     if (deadlines === "completed" && known && stepsAddressed) score -= 1;
     return Math.max(floor, Math.min(4, Math.max(1, score)));
   }
+  const summaryCopy = {
+    permissions: {
+      yes: "The target requires regulatory permissions to operate.",
+      no: "The recorded review identifies no regulatory permissions required for the target to operate.",
+      unknown: "It is unknown whether the target requires regulatory permissions to operate."
+    },
+    issues: {
+      none: "No issues with those permissions have been identified.",
+      gaps: "Gaps in the target’s operating permissions have been identified.",
+      compliance: "Compliance issues concerning the target’s operating permissions have been identified.",
+      both: "Both permission gaps and compliance issues have been identified.",
+      unknown: "The position under the target’s operating permissions is unknown."
+    },
+    status: {
+      completed: "The identified transaction steps are reported to be completed, with applicable waiting periods and conditions for proceeding satisfied.",
+      progress: "The identified transaction steps are in progress.",
+      "not-started": "The identified transaction steps have not started.",
+      blocked: "At least one identified transaction step is blocked.",
+      unknown: "The status of the transaction steps is unknown."
+    },
+    impact: {
+      minimal: "The likely impact on the target or deal is assessed as minimal.",
+      manageable: "The likely impact on the target or deal is assessed as manageable.",
+      significant: "The likely impact on the target or deal is assessed as significant.",
+      fundamental: "The likely impact on the target or deal is assessed as fundamental.",
+      unknown: "The likely impact on the target or deal is unknown."
+    },
+    deadlines: {
+      completed: "All necessary steps are reported to have been completed.",
+      yes: "All outstanding steps are expected to be completed by their applicable deadlines.",
+      partly: "Only some outstanding steps are expected to be completed by their applicable deadlines.",
+      no: "The outstanding steps cannot all be completed by their applicable deadlines.",
+      unknown: "It is unknown whether all outstanding steps can be completed by their applicable deadlines."
+    }
+  };
+  const implicationCopy = {
+    clean: "No specific operating-permission or transaction-approval obstacle is identified by the recorded review; this does not confirm wider regulatory compliance.",
+    fundamental: "Regulatory matters may threaten lawful completion or essential operations, putting the viability of the deal or business at risk.",
+    significant: "Regulatory exposure may materially affect business continuity, value or the completion timetable.",
+    gaps: "Gaps in operating permissions may affect the target’s ability to continue the relevant activities.",
+    compliance: "Operating-permission compliance issues may carry continuing restrictions, remediation costs or liabilities.",
+    scopeUnknown: "The operating-permission position remains unconfirmed, so continuity and compliance exposure cannot yet be established.",
+    blocked: "A blocked regulatory step may prevent the proposed transaction route from proceeding; the effect depends on the relevant requirement.",
+    transactionUnknown: "Transaction requirements or their status remain unconfirmed, leaving regulatory dependencies unresolved.",
+    approval: "Completion depends on obtaining effective prior approvals and satisfying applicable conditions, alongside any separate notification obligations.",
+    notification: "Mandatory filings need to be coordinated with their applicable deadlines; an outstanding filing is not necessarily overdue.",
+    voluntary: "The decision whether to pursue voluntary clearance, and its timing, may affect the transaction timetable and exposure to regulatory review.",
+    stepsCompleted: "Reported completion of transaction steps should be supported by evidence covering the relevant filings, approvals and conditions.",
+    reconcile: "Reported completion of all necessary steps is inconsistent with other unresolved answers and needs reconciliation before readiness can be established.",
+    missed: "Missed regulatory deadlines may affect the proposed timetable or operating arrangements; steps due before completion cannot simply be deferred until afterwards.",
+    partial: "Readiness depends on resolving the steps that cannot be delivered on time and identifying any permissible alternative arrangements.",
+    planned: "Readiness depends on the remaining steps being delivered by their respective deadlines; expected delivery is not completed delivery.",
+    timingUnknown: "The applicable deadlines and delivery plan remain unconfirmed, leaving completion and operating readiness uncertain.",
+    residual: "Completed steps do not necessarily remove continuing regulatory restrictions, liabilities or the recorded business impact.",
+    verified: "The reported completion of remedial steps needs supporting evidence before the regulatory position is treated as resolved."
+  };
+  function buildAnalysis(state) {
+    if (!complete(state)) return null;
+    const visible = visibleIds(state);
+    const [permissions, issues, steps, status, impact, deadlines] = ids.map(id => visible.includes(id) ? state[id] : undefined);
+    const sentences = [summaryCopy.permissions[permissions]];
+    if (visible.includes(ids[1])) sentences.push(summaryCopy.issues[issues]);
+    if (steps[0] === "none") sentences.push("No regulatory steps for the transaction have been identified.");
+    else if (steps[0] === "unknown") sentences.push("The regulatory steps applicable to the transaction are unknown.");
+    else {
+      const stepCopy = {approval: "prior regulatory approval", notification: "mandatory notification", voluntary: "voluntary clearance being pursued or considered"};
+      const items = fields[ids[2]].options.filter(([key]) => steps.includes(key)).map(([key]) => stepCopy[key]);
+      const listed = items.length === 1 ? items[0] : items.slice(0, -1).join(", ") + " and " + items.at(-1);
+      sentences.push(`The transaction involves ${listed}.`);
+    }
+    if (visible.includes(ids[3])) sentences.push(summaryCopy.status[status]);
+    if (!visible.includes(ids[4])) return {summary: sentences.join(" "), implications: [implicationCopy.clean]};
+    sentences.push(summaryCopy.impact[impact], summaryCopy.deadlines[deadlines]);
+    const inconsistent = deadlines === "completed" && (["gaps", "compliance", "both"].includes(issues)
+      || (steps[0] !== "none" && status !== "completed"));
+    if (inconsistent) sentences.push("The reported completion needs to be reconciled with the unresolved or unconfirmed position recorded above.");
+    // Select at most one canonical implication per theme, rather than truncating
+    // an arbitrary list and risking the loss of a serious finding.
+    const implications = [];
+    if (impact === "fundamental") implications.push(implicationCopy.fundamental);
+    else if (impact === "significant") implications.push(implicationCopy.significant);
+    else if (["gaps", "both"].includes(issues)) implications.push(implicationCopy.gaps);
+    else if (issues === "compliance") implications.push(implicationCopy.compliance);
+    else if (permissions === "unknown" || issues === "unknown") implications.push(implicationCopy.scopeUnknown);
+
+    if (status === "blocked") implications.push(implicationCopy.blocked);
+    else if (steps[0] === "unknown" || status === "unknown") implications.push(implicationCopy.transactionUnknown);
+    else if (status === "completed") implications.push(implicationCopy.stepsCompleted);
+    else if (steps.includes("approval")) implications.push(implicationCopy.approval);
+    else if (steps.includes("notification")) implications.push(implicationCopy.notification);
+    else if (steps.includes("voluntary")) implications.push(implicationCopy.voluntary);
+
+    if (inconsistent) implications.push(implicationCopy.reconcile);
+    else if (deadlines === "no") implications.push(implicationCopy.missed);
+    else if (deadlines === "partly") implications.push(implicationCopy.partial);
+    else if (deadlines === "yes") implications.push(implicationCopy.planned);
+    else if (deadlines === "unknown") implications.push(implicationCopy.timingUnknown);
+    else implications.push(["significant", "fundamental"].includes(impact) ? implicationCopy.residual : implicationCopy.verified);
+    return {summary: sentences.join(" "), implications};
+  }
   const previousRiskScore = riskScore;
   riskScore = function () { return isRegulatory(current()) ? assessRisk(answers) : previousRiskScore(); };
   const previousRenderLogic = renderLogic;
@@ -234,8 +334,15 @@
     if (!isRegulatory(issue)) return previousRenderLogic(issue);
     document.querySelector("#recommendations-card")?.remove();
     const card = document.querySelector("#logic-card");
-    card.classList.add("coc-deal-logic", "logic-standby");
-    card.innerHTML = `<h3>Apply deal logic</h3><p>${complete(answers) ? "Your responses have been recorded. Deal analysis will be added next." : "Answer all relevant questions to generate your deal analysis."}</p>`;
+    card.classList.add("coc-deal-logic");
+    const analysis = buildAnalysis(answers);
+    if (!analysis) {
+      card.classList.add("logic-standby");
+      card.innerHTML = '<h3>Apply deal logic</h3><p>Answer all relevant questions to generate your deal analysis.</p>';
+      return;
+    }
+    card.classList.remove("logic-standby");
+    card.innerHTML = `<h3>Apply deal logic</h3><section class="logic-section"><h4>Summary</h4><p class="logic-conclusion">${escape(analysis.summary)}</p></section><section class="logic-section"><h4>Key deal implications</h4><ul>${analysis.implications.map(text => `<li>${escape(text)}</li>`).join("")}</ul></section>`;
   };
   function saveAnswer(id, value) {
     answers[id] = value;
@@ -285,7 +392,9 @@
       const labels = fields[id].options.filter(([key]) => selected.includes(key)).map(([,label]) => label);
       return `- ${question}\n  Response: ${labels.join("; ") || "Unanswered"}`;
     });
-    const report = ["DEALLOGIC ISSUE REPORT", "", issue.title, `${areas[issue.category]} · ${issue.jurisdiction.primary}`, issue.summary, `Risk score: ${assessRisk(answers)}/5 — ${riskNames[assessRisk(answers) - 1]}`, "", "DILIGENCE ANSWERS", ...lines, "", "NOTE", "Prototype content only. Obtain transaction-specific legal advice."].join("\n");
+    const analysis = buildAnalysis(answers);
+    const analysisLines = analysis ? ["", "SUMMARY", analysis.summary, "", "KEY DEAL IMPLICATIONS", ...analysis.implications.map(text => `- ${text}`)] : [];
+    const report = ["DEALLOGIC ISSUE REPORT", "", issue.title, `${areas[issue.category]} · ${issue.jurisdiction.primary}`, issue.summary, `Risk score: ${assessRisk(answers)}/5 — ${riskNames[assessRisk(answers) - 1]}`, "", "DILIGENCE ANSWERS", ...lines, ...analysisLines, "", "NOTE", "Prototype content only. Obtain transaction-specific legal advice."].join("\n");
     const url = URL.createObjectURL(new Blob([report], {type: "text/plain"}));
     const link = document.createElement("a"); link.href = url; link.download = `${issue.id}-report.txt`; link.click(); URL.revokeObjectURL(url);
   };

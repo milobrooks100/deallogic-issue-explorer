@@ -2,7 +2,7 @@
 
 ## Identity and scope
 
-Area Regulatory (`regulatory`); issue `regulatory-licences-and-transaction-approvals`. UK-target share and business acquisitions, with sector, territorial and applicable overseas requirements established through transaction-specific review. This stage implements the agreed questionnaire and draft risk assessment for user review. Use Threatened Litigation's existing issue header, subtitle, risk track, facts card, tooltip/select styling, progressive reveal, reset and standby panel. Summaries, implications, actions and legal notes remain deferred; no litigation rules or advice are copied.
+Area Regulatory (`regulatory`); issue `regulatory-licences-and-transaction-approvals`. UK-target share and business acquisitions, with sector, territorial and applicable overseas requirements established through transaction-specific review. This stage implements the agreed questionnaire, risk assessment, prose summary and key deal implications. Use Threatened Litigation's existing issue header, subtitle, risk track, facts card, tooltip/select styling, progressive reveal, reset and standby panel. Recommended actions and legal notes remain deferred; no litigation rules or advice are copied.
 
 Introduction: Review whether the target holds and complies with the regulatory permissions it needs to operate, and whether the proposed transaction requires regulatory approval, notification or clearance. Identify outstanding issues and their effect on business continuity and completion.
 
@@ -31,9 +31,25 @@ Finish early if Q3 is None identified and Q1 is No, or Q1 is Yes and Q2 is None 
 
 Before completion: Answer all relevant questions to generate your deal analysis.
 
-After completion: Your responses have been recorded. Deal analysis will be added next.
+After completion: Summary followed by Key deal implications, using the shared `.logic-section` / `.logic-conclusion` presentation. `buildAnalysis` returns null until all visible questions are valid; UI and reports use its identical prose and implications. It reads only visible answers and does not mutate saved data. Buyer/Seller/Balanced does not change factual analysis.
 
-The risk badge and report use the same `assessRisk` function. The initial score is 1/5. Only visible, valid answers contribute; changing upstream answers removes irrelevant inputs. No derived summary, implications, actions, legal notes or Hub snapshots are generated yet.
+### Summary composition
+
+Canonical sentence maps describe operating-permission requirements, identified issues, transaction-step status, impact and deadline readiness. Transaction requirements use a single grammatical list of every selected step in canonical order. Voluntary clearance remains pursued or considered rather than presented as mandatory. Unknown answers remain explicit; completed steps are reported positions and expected delivery is a forecast. Clean early exits mention only the recorded operating-permission and transaction-screening position.
+
+Q6 Already completed alongside a recorded permission/compliance issue or transaction steps not confirmed All completed adds an explicit reconciliation sentence. This avoids treating a reported remedy as proof that the recorded gap, concern or block is cured. Significant and Fundamental impact remain in the prose after reported completion.
+
+### Canonical implication selection
+
+Choose at most one statement per theme; never generate a longer list and truncate it:
+
+1. **Business continuity and impact:** Fundamental, then Significant, then permission gaps/Both, then compliance issues, then uncertainty about operating permissions. Omit for a confirmed clean operating position and lower/unknown impact; impact uncertainty remains explicit in the summary.
+2. **Transaction requirements:** Blocked takes precedence, then unknown requirements/status, then reported completed steps, then pending prior approval, mandatory notification or voluntary clearance. Prior-approval wording preserves separate notification obligations; all selected requirements remain in the summary. Omit if no transaction steps are identified.
+3. **Readiness and residual exposure:** Conflicting completion reports first, then missed deadlines, partial delivery, expected delivery, unknown timing, or reported completion. Completion with Significant/Fundamental impact retains residual-exposure wording.
+
+Clean early exits show one scoped implication, expressly preserving the distinction from wider regulatory compliance. Active assessments show one to three unique implications from `implicationCopy`. These describe transaction consequences without introducing an action catalogue or legal notes.
+
+The risk badge and report continue to use the same `assessRisk` function. The initial score is 1/5. No recommended actions, legal notes or Hub snapshots are generated yet.
 
 ## Draft risk decision matrix — pending user review
 
@@ -74,7 +90,7 @@ Reviewed 6 November 2026 before agreeing this questionnaire:
 
 ## Integration and verification
 
-Regulatory is in the alphabetical Deal Map areas and the common issue tiles. The dedicated script loads after the existing issue adapters, delegates other issues unchanged, and uses the current active-deal storage adapter and shared reset. Runtime checks cover script loading and the storage boundary. Focused tests cover early exits, uncertainty, compatible/exclusive selections, hidden/invalid responses, report parity and non-delegation of risk/advice. Build and all 184 repository tests pass, including draft scoring examples, exhaustive answer combinations, protected minimums, hidden-answer exclusion and UI/report scoring parity.
+Regulatory is in the alphabetical Deal Map areas and the common issue tiles. The dedicated script loads after the existing issue adapters, delegates other issues unchanged, and uses the current active-deal storage adapter and shared reset. Runtime checks cover script loading and the storage boundary. Focused tests cover early exits, uncertainty, compatible/exclusive selections, hidden/invalid responses, report parity and non-delegation of risk/advice. Build and all 187 repository tests pass, including scoring examples, exhaustive answer combinations, protected minimums, hidden-answer exclusion, completed/incomplete analysis gates, canonical implication membership, the three-bullet limit and UI/report parity.
 
 Browser verification at the existing narrow viewport confirmed the tile, introduction, progressive questions, compatible checkbox selections, completed-stage message and persistence across refresh/reopening. Full account sync, two-deal switching, all themes and desktop-width visual review have not been rechecked. Draft risk rules are covered by automated tests; perspective actions and Hub snapshots remain deferred.
 

@@ -6,9 +6,9 @@ const source=await readFile(new URL('../dist/regulatory.js',import.meta.url),'ut
 const issue=JSON.parse(await readFile(new URL('../dist/issues.json',import.meta.url),'utf8')).find(i=>i.category==='regulatory');
 function setup(){
   let report='';
-  const card={innerHTML:'',classList:{add(){}}};
+  const card={innerHTML:'',classList:{add(){},remove(){}}};
   const context=vm.createContext({answers:{},escapeLogicText:String,current:()=>issue,riskScore:()=>4,renderPanel(){},renderLogic(){card.innerHTML='delegated';},exportReport(){report='delegated';},riskNames:["No risk","Low risk","Medium risk","High risk","Very high risk"],areas:{regulatory:'Regulatory'},document:{querySelector:s=>s==='#logic-card'?card:null,createElement:()=>({click(){}})},Blob:class{constructor(parts){report=parts.join('');}},URL:{createObjectURL:()=>'',revokeObjectURL(){}}});
-  vm.runInContext(source.replace(/\}\)\(\);\s*$/,'globalThis.api={ids,fields,valid,visibleIds,normalize,complete,assessRisk};})();'),context);
+  vm.runInContext(source.replace(/\}\)\(\);\s*$/,'globalThis.api={ids,fields,valid,visibleIds,normalize,complete,assessRisk,buildAnalysis,summaryCopy,implicationCopy};})();'),context);
   return {...context.api,context,card,report:()=>report};
 }
 test('operating-permission absence never skips transaction screening',()=>{
@@ -47,8 +47,8 @@ test('Regulatory uses its own risk without borrowing litigation conclusions',()=
   context.renderLogic(issue);assert.match(card.innerHTML,/Answer all relevant questions/);
   context.answers=Object.fromEntries(ids.map(id=>[id,id===ids[2]?['approval']:'unknown']));
   context.answers[ids[3]]='blocked';context.answers[ids[4]]='fundamental';
-  context.renderLogic(issue);assert.match(card.innerHTML,/responses have been recorded/);
-  assert.doesNotMatch(card.innerHTML,/Recommended actions|Limitation periods|Summary/);
+  context.renderLogic(issue);assert.match(card.innerHTML,/Key deal implications/);
+  assert.doesNotMatch(card.innerHTML,/Recommended actions|Limitation periods/);
   assert.equal(context.riskScore(),5);
   context.current=()=>({id:'other'});assert.equal(context.riskScore(),4);
   context.renderLogic({id:'other'});assert.equal(card.innerHTML,'delegated');
@@ -95,4 +95,59 @@ test('all answer combinations respect floors, hidden answers and UI/report parit
   };visit([]);assert.ok(count>10000);
   context.answers=Object.fromEntries(ids.map((id,i)=>[id,['no',null,['approval'],'blocked','minimal','yes'][i]]));
   context.exportReport();assert.match(report(),/Risk score: 4\/5/);assert.equal(context.riskScore(),4);
+});
+
+test('summary prose retains uncertainty, multiple steps and contradictory completion',()=>{
+  const {ids,buildAnalysis,implicationCopy}=setup();
+  const state=Object.fromEntries(ids.map((id,i)=>[id,['yes','both',['approval','notification','voluntary'],'blocked','fundamental','completed'][i]]));
+  const result=buildAnalysis(state);
+  assert.match(result.summary,/Both permission gaps and compliance issues/);
+  assert.match(result.summary,/prior regulatory approval, mandatory notification and voluntary clearance being pursued or considered/);
+  assert.match(result.summary,/blocked/);assert.match(result.summary,/reconciled/);
+  assert.deepEqual(Array.from(result.implications),[implicationCopy.fundamental,implicationCopy.blocked,implicationCopy.reconcile]);
+  state[ids[2]]=['voluntary'];state[ids[3]]='progress';state[ids[4]]='manageable';state[ids[5]]='yes';
+  const voluntary=buildAnalysis(state);assert.match(voluntary.summary,/expected/);
+  assert.ok(voluntary.implications.includes(implicationCopy.voluntary));
+  assert.ok(!voluntary.implications.includes(implicationCopy.approval));
+  const unknown=buildAnalysis(Object.fromEntries(ids.map(id=>[id,id===ids[2]?['unknown']:'unknown'])));
+  assert.match(unknown.summary,/unknown/);assert.equal(unknown.implications.length,3);
+  assert.equal(buildAnalysis({}),null);
+});
+test('every permutation has gated, stable analysis with at most three unique implications',()=>{
+  const {ids,fields,buildAnalysis,normalize,complete,implicationCopy,summaryCopy}=setup();
+  const stepChoices=[[],['none'],['unknown'],['approval'],['notification'],['voluntary'],['approval','notification'],['approval','voluntary'],['notification','voluntary'],['approval','notification','voluntary'],['unknown','approval']];
+  const canonical=new Set(Object.values(implicationCopy));let count=0;
+  const visit=values=>{
+    if(values.length<ids.length){
+      const choices=values.length===2?stepChoices:['', 'invalid',...fields[ids[values.length]].options.map(([key])=>key)];
+      for(const value of choices)visit([...values,value]);return;
+    }
+    const raw=Object.fromEntries(ids.map((id,i)=>[id,values[i]])), clean={...raw};normalize(clean);
+    const result=buildAnalysis(raw);assert.equal(JSON.stringify(result),JSON.stringify(buildAnalysis(clean)));
+    assert.equal(Boolean(result),complete(clean));if(!result)return;
+    count++;assert.doesNotMatch(result.summary,/undefined|null|Unanswered/);
+    assert.ok(result.implications.length>=1&&result.implications.length<=3);
+    assert.equal(new Set(result.implications).size,result.implications.length);
+    for(const text of result.implications)assert.ok(canonical.has(text));
+    if(clean[ids[4]]==='fundamental')assert.equal(result.implications[0],implicationCopy.fundamental);
+    if(clean[ids[4]]==='significant')assert.equal(result.implications[0],implicationCopy.significant);
+    if(clean[ids[3]]==='blocked')assert.ok(result.implications.includes(implicationCopy.blocked));
+    if(!clean[ids[4]])assert.deepEqual(Array.from(result.implications),[implicationCopy.clean]);
+    assert.ok(result.summary.includes(summaryCopy.permissions[clean[ids[0]]]));
+    for(const [index,theme] of [[1,'issues'],[3,'status'],[4,'impact'],[5,'deadlines']]) if(clean[ids[index]])assert.ok(result.summary.includes(summaryCopy[theme][clean[ids[index]]]));
+  };visit([]);assert.ok(count>1000);
+});
+test('completed UI and reports share analysis, early exits exclude stale prose',()=>{
+  const {ids,context,card,report,buildAnalysis}=setup();
+  context.answers=Object.fromEntries(ids.map(id=>[id,id===ids[2]?['unknown']:'unknown']));
+  const analysis=buildAnalysis(context.answers);context.renderLogic(issue);context.exportReport();
+  assert.ok(card.innerHTML.includes(analysis.summary));assert.ok(report().includes(analysis.summary));
+  for(const text of analysis.implications){assert.ok(card.innerHTML.includes(text));assert.ok(report().includes(text));}
+  assert.equal((card.innerHTML.match(/<li>/g)||[]).length,3);
+  context.answers={[ids[0]]:'no',[ids[2]]:['none'],[ids[3]]:'blocked',[ids[4]]:'fundamental'};
+  context.renderLogic(issue);context.exportReport();
+  assert.doesNotMatch(card.innerHTML,/blocked|fundamental/);assert.doesNotMatch(report(),/blocked|fundamental/);
+  assert.equal((card.innerHTML.match(/<li>/g)||[]).length,1);
+  context.answers={[ids[0]]:'unknown'};context.renderLogic(issue);context.exportReport();
+  assert.match(card.innerHTML,/Answer all relevant questions/);assert.doesNotMatch(report(),/KEY DEAL IMPLICATIONS|\nSUMMARY\n/);
 });
