@@ -263,25 +263,25 @@
     }
   };
   const implicationCopy = {
-    clean: "No specific operating-permission or transaction-approval obstacle is identified by the recorded review; this does not confirm wider regulatory compliance.",
-    fundamental: "Regulatory matters may threaten lawful completion or essential operations, putting the viability of the deal or business at risk.",
-    significant: "Regulatory exposure may materially affect business continuity, value or the completion timetable.",
-    gaps: "Gaps in operating permissions may affect the target’s ability to continue the relevant activities.",
-    compliance: "Operating-permission compliance issues may carry continuing restrictions, remediation costs or liabilities.",
-    scopeUnknown: "The operating-permission position remains unconfirmed, so continuity and compliance exposure cannot yet be established.",
-    blocked: "A blocked regulatory step may prevent the proposed transaction route from proceeding; the effect depends on the relevant requirement.",
-    transactionUnknown: "Transaction requirements or their status remain unconfirmed, leaving regulatory dependencies unresolved.",
-    approval: "Completion depends on obtaining effective prior approvals and satisfying applicable conditions, alongside any separate notification obligations.",
-    notification: "Mandatory filings need to be coordinated with their applicable deadlines; an outstanding filing is not necessarily overdue.",
-    voluntary: "The decision whether to pursue voluntary clearance, and its timing, may affect the transaction timetable and exposure to regulatory review.",
-    stepsCompleted: "Reported completion of transaction steps should be supported by evidence covering the relevant filings, approvals and conditions.",
-    reconcile: "Reported completion of all necessary steps is inconsistent with other unresolved answers and needs reconciliation before readiness can be established.",
-    missed: "Missed regulatory deadlines may affect the proposed timetable or operating arrangements; steps due before completion cannot simply be deferred until afterwards.",
-    partial: "Readiness depends on resolving the steps that cannot be delivered on time and identifying any permissible alternative arrangements.",
-    planned: "Readiness depends on the remaining steps being delivered by their respective deadlines; expected delivery is not completed delivery.",
-    timingUnknown: "The applicable deadlines and delivery plan remain unconfirmed, leaving completion and operating readiness uncertain.",
-    residual: "Completed steps do not necessarily remove continuing regulatory restrictions, liabilities or the recorded business impact.",
-    verified: "The reported completion of remedial steps needs supporting evidence before the regulatory position is treated as resolved."
+    clean: "No regulatory obstacle is identified on the reviewed facts; business or deal changes may require reassessment.",
+    fundamental: "The deal may not deliver a lawfully operating business, putting its structure or viability in question.",
+    significant: "Regulatory exposure may affect valuation, business continuity or deal terms.",
+    gaps: "Affected activities may need to pause, reducing the business available at completion.",
+    compliance: "Enforcement or operating restrictions may leave costs and liabilities to allocate between the parties.",
+    scopeUnknown: "It remains unclear whether the business can continue under its existing permissions.",
+    blocked: "The proposed deal may need an alternative structure unless the regulatory block is removed.",
+    transactionUnknown: "Unconfirmed regulatory steps leave completion requirements and timing unclear.",
+    approval: "Approval timing and conditions may determine completion timing or require changes to the deal.",
+    notification: "Filing deadlines need clear ownership, including obligations falling after completion.",
+    voluntary: "The parties must weigh clearance delays against the risk of proceeding without regulatory comfort.",
+    stepsCompleted: "Approvals must cover the final deal structure, with all conditions for proceeding satisfied.",
+    reconcile: "Conflicting answers prevent reliance on the reported resolution when assessing readiness.",
+    missed: "Timing or operating plans may need to change; contractual protections cannot replace required approval.",
+    partial: "Separate steps that prevent completion from those that can properly follow it.",
+    planned: "Delivery remains a completion dependency, requiring clear responsibility, evidence and a fallback for delay.",
+    timingUnknown: "The timetable remains untested until regulatory lead times and dependencies are established.",
+    residual: "Remaining losses, restrictions or claims may still affect price and risk allocation.",
+    verified: "Resolution needs evidence of implementation and any continuing conditions or monitoring obligations."
   };
   function buildAnalysis(state) {
     if (!complete(state)) return null;

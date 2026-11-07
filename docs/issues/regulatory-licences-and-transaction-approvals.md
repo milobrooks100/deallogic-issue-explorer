@@ -47,7 +47,7 @@ Choose at most one statement per theme; never generate a longer list and truncat
 2. **Transaction requirements:** Blocked takes precedence, then unknown requirements/status, then reported completed steps, then pending prior approval, mandatory notification or voluntary clearance. Prior-approval wording preserves separate notification obligations; all selected requirements remain in the summary. Omit if no transaction steps are identified.
 3. **Readiness and residual exposure:** Conflicting completion reports first, then missed deadlines, partial delivery, expected delivery, unknown timing, or reported completion. Completion with Significant/Fundamental impact retains residual-exposure wording.
 
-Clean early exits show one scoped implication, expressly preserving the distinction from wider regulatory compliance. Active assessments show one to three unique implications from `implicationCopy`. These describe transaction consequences without introducing an action catalogue or legal notes.
+Clean early exits show one scoped implication, noting that business or deal changes may require reassessment. Active assessments show one to three unique implications from `implicationCopy`. These describe transaction consequences without introducing an action catalogue or legal notes.
 
 The risk badge and report continue to use the same `assessRisk` function. The initial score is 1/5. No recommended actions, legal notes or Hub snapshots are generated yet.
 
@@ -95,3 +95,5 @@ Regulatory is in the alphabetical Deal Map areas and the common issue tiles. The
 Browser verification at the existing narrow viewport confirmed the tile, introduction, progressive questions, compatible checkbox selections, completed-stage message and persistence across refresh/reopening. Full account sync, two-deal switching, all themes and desktop-width visual review have not been rechecked. Draft risk rules are covered by automated tests; perspective actions and Hub snapshots remain deferred.
 
 Regulatory tooltips were shortened after questionnaire review, retaining the distinctions and completion qualifications above. Q3 uses the shared question label and choice-grid answer labels, matching Data Protection and the other facts questions.
+
+The user-approved concise implication wording replaces the original copy in `implicationCopy`; selection precedence, risk rules and the three-bullet limit are unchanged. UI and report exports share this canonical wording.
