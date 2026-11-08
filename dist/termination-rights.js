@@ -1,4 +1,4 @@
-/* Material Contracts questionnaire using the existing Change-of-Control presentation. */
+/* Material Contracts questionnaire using the existing Change of Control presentation. */
 (() => {
   const issueId = "termination-rights-and-material-breaches";
   const isTermination = issue => issue?.id === issueId;
@@ -23,7 +23,7 @@
         "Unknown"
       ]
     ],
-    "guidance": "Review key customer, supplier and other commercial contracts, performance records and correspondence. Include breaches by either party and rights allowing the counterparty to terminate without a breach. Transaction-triggered change-of-control provisions are covered separately."
+    "guidance": "Review key customer, supplier and other commercial contracts, performance records and correspondence. Include breaches by either party and rights allowing the counterparty to terminate without a breach. Transaction-triggered change of control provisions are covered separately."
   },
   "contract-termination-type": {
     "options": [

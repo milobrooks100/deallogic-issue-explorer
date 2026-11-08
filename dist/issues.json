@@ -1,7 +1,7 @@
 [
   {
     "id": "customer-change-of-control",
-    "title": "Change-of-Control Clause",
+    "title": "Change of Control Clause",
     "category": "commercial-contracts",
     "summary": "A contract between the target and a third party may require the third party's consent, permit termination, or trigger another remedy when ownership or control of the target changes. Unmanaged, these provisions can delay completion, increase costs, or result in the loss of critical contracts, revenue, and financing post-acquisition.",
     "jurisdiction": {
@@ -11,11 +11,11 @@
     "key_questions": [
       {
         "id": "contract-provision-exists",
-        "question": "Has the target company signed a contract with a third party containing a change-of-control, assignment, termination or analogous provision?"
+        "question": "Has the target company signed a contract with a third party containing a change of control, assignment, termination or analogous provision?"
       },
       {
         "id": "transaction-triggers-provision",
-        "question": "Does the proposed transaction trigger the change-of-control clause?"
+        "question": "Does the proposed transaction trigger the change of control clause?"
       },
       {
         "id": "triggered-provision-consequences",
@@ -174,7 +174,7 @@
         "question": "Are all required lender steps coordinated for completion?"
       }
     ],
-    "notes": "Transaction triggers: Check the precise change-of-control, mandatory prepayment, cancellation and default wording against the agreed transaction structure; repayment alone may not address every consent or notice requirement.\n\nRegister updates: Check the required post-completion filings separately from the contractual release. A Companies House MR04 records satisfaction on the public register; filing it does not remove the charge entry."
+    "notes": "Transaction triggers: Check the precise change of control, mandatory prepayment, cancellation and default wording against the agreed transaction structure; repayment alone may not address every consent or notice requirement.\n\nRegister updates: Check the required post-completion filings separately from the contractual release. A Companies House MR04 records satisfaction on the public register; filing it does not remove the charge entry."
   },
   {
     "id": "missing-ip-assignment",
