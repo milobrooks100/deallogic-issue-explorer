@@ -11,6 +11,7 @@ The **Getting started** button opens an on-demand tour of the live workspace. A 
 - Six completed issue-specific diligence flows: change-of-control clauses, option holders, share ownership and transfer restrictions, missing IP assignments, debt facilities and threatened litigation.
 - An Employment questionnaire for Key Employee Retention and Employment Terms with a prose summary and up to three key deal implications; answer-specific risk scoring and up to nine perspective-based action cards, with all 12 registered actions in the Action Library.
 - Deal-specific answers, transaction-side settings, recommended actions and a Deal Hub with summary, task board, table and deal settings.
+- Regulatory recommendations with twelve actions per transaction perspective in the Action Library and at most nine answer-based actions, removing overlaps before priority trimming.
 - An Action Library, Company Radar and optional account sync.
 
 ## Local development

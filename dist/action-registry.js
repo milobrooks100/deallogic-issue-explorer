@@ -534,6 +534,162 @@
       "search", "Due diligence"]
   );
 
+  topics.push({
+  "id": "regulatory-licences-and-transaction-approvals",
+  "label": "Regulatory Licences and Transaction Approvals",
+  "shortLabel": "Regulatory",
+  "actions": [
+    [
+      "RG01",
+      "Establish the regulatory position",
+      "Confirm operating permissions and transaction requirements for the relevant entities, activities and jurisdictions, using specialist advice where needed.",
+      "search",
+      "Due diligence",
+      {
+        "Buyer": "Verify operating permissions and screen the proposed ownership and transaction structure for sector approvals, NSI, merger control and overseas requirements.",
+        "Seller": "Assemble permission records and establish which regulatory requirements arise from the business, transaction structure or proposed buyer."
+      }
+    ],
+    [
+      "RG02",
+      "Verify reported completion",
+      "Verify reported completion against effective approvals, remedial evidence and the final transaction structure, resolving inconsistent answers and recording continuing obligations.",
+      "circle-check",
+      "Due diligence",
+      {
+        "Buyer": "Obtain evidence that approvals and remedial steps are effective, cover the final transaction and satisfy applicable conditions and waiting periods.",
+        "Seller": "Assemble evidence of completed regulatory steps, reconcile inconsistent records and identify any continuing conditions or reporting duties."
+      }
+    ],
+    [
+      "RG03",
+      "Remedy permission and compliance issues",
+      "Agree remedial steps and lawful operating arrangements, coordinating any permission transfer or replacement with the proposed business handover.",
+      "wrench",
+      "Due diligence",
+      {
+        "Buyer": "Require a proportionate remedial plan and evidence of lawful operating arrangements, including replacement or transferred permissions where the operator will change.",
+        "Seller": "Arrange proportionate remediation and any necessary permission changes, restricting affected activities where lawful operation cannot be maintained."
+      }
+    ],
+    [
+      "RG04",
+      "Deliver filings and regulatory steps",
+      "Agree owners, dependencies and deadlines for filings and regulatory steps before and after completion, including evidence requirements and continuing monitoring.",
+      "calendar-check",
+      "Due diligence",
+      {
+        "Buyer": "Require a timetable with named owners for filings and regulatory steps before and after completion, with evidence of submission and satisfaction.",
+        "Seller": "Prepare the regulatory timetable, provide required information promptly and secure buyer ownership of filings and obligations falling to the buyer."
+      }
+    ],
+    [
+      "RG05",
+      "Decide the voluntary-clearance strategy",
+      "Record the decision whether to seek voluntary clearance, weighing intervention risk, possible remedies and delay against proceeding without clearance.",
+      "search",
+      "Signing",
+      {
+        "Buyer": "Assess whether voluntary clearance offers sufficient protection against intervention, operating restrictions or unwinding to justify its cost and delay.",
+        "Seller": "Test whether voluntary clearance is justified and agree its scope and timetable before accepting additional execution risk or delay."
+      }
+    ],
+    [
+      "RG06",
+      "Set regulatory completion conditions",
+      "Specify required approvals and agreed material remediation milestones as completion conditions, distinguishing legal requirements from waivable contractual protections.",
+      "circle-check",
+      "Closing condition",
+      {
+        "Buyer": "Make mandatory approvals and material regulatory milestones objective completion conditions, distinguishing statutory requirements from protections the buyer may lawfully waive.",
+        "Seller": "Preserve mandatory approval conditions and confine additional conditions to material, measurable regulatory milestones with limited buyer discretion."
+      }
+    ],
+    [
+      "RG07",
+      "Allocate efforts, remedies and conduct",
+      "Allocate filings, cooperation, costs and continuing compliance, with agreed efforts, consultation rights and limits on required divestments or operating restrictions.",
+      "file-pen-line",
+      "SPA drafting",
+      {
+        "Buyer": "Require filing and remediation covenants, progress reporting and consultation on material concessions, with defined limits on remedies affecting the acquired business.",
+        "Seller": "Require firm buyer filing and cooperation commitments, protect the retained business from unwanted remedies and avoid guaranteeing regulatory approval."
+      }
+    ],
+    [
+      "RG08",
+      "Address delay and failed clearance",
+      "Agree a realistic longstop, limited extensions and proportionate termination rights for unmet conditions or defined unacceptable regulatory remedies.",
+      "arrow-left-right",
+      "SPA drafting",
+      {
+        "Buyer": "Seek a realistic longstop, controlled extensions and termination rights linked to unmet regulatory conditions or defined unacceptable clearance terms.",
+        "Seller": "Set a realistic longstop and restrict buyer withdrawal or extension rights, addressing delay caused by the buyer’s conduct or regulatory profile."
+      }
+    ],
+    [
+      "RG09",
+      "Tailor warranties and disclosure",
+      "Agree proportionate regulatory warranties and specific disclosure of permissions, compliance issues, correspondence and transaction requirements, identifying uncertainty expressly.",
+      "shield-check",
+      "SPA drafting",
+      {
+        "Buyer": "Seek tailored warranties on permissions, compliance and regulatory correspondence, supported by specific disclosure of gaps, conditions and outstanding requirements.",
+        "Seller": "Make fair, specific disclosure of regulatory issues and qualify warranties appropriately, avoiding assurances about future regulatory decisions."
+      }
+    ],
+    [
+      "RG10",
+      "Allocate identified regulatory liabilities",
+      "Allocate identified regulatory losses through a targeted indemnity or APA liability provisions, with clear limits, claims control and no double recovery.",
+      "banknote",
+      "SPA drafting",
+      {
+        "Buyer": "Seek a specific indemnity for identified regulatory losses, with appropriate claims control and recovery support, limiting fines coverage to amounts lawfully recoverable.",
+        "Seller": "Limit any regulatory indemnity to defined exposure, agreed caps and claim periods, with conduct rights and protection against overlapping price deductions."
+      }
+    ],
+    [
+      "RG11",
+      "Reflect exposure in the economics",
+      "Reflect substantiated regulatory costs and restrictions in valuation or completion mechanics, allowing for recoveries and protection already agreed.",
+      "arrow-down-up",
+      "SPA drafting",
+      {
+        "Buyer": "Quantify remediation costs, operating restrictions and delay losses, then seek a supported price adjustment or retention without duplicating other protection."
+      },
+      [
+        "Buyer",
+        "Balanced"
+      ]
+    ],
+    [
+      "RG12",
+      "Reassess structure and viability",
+      "Assess whether remediation, restructuring or revised terms can deliver a lawful, viable transaction before proceeding or exercising available termination rights.",
+      "arrow-left-right",
+      "Signing",
+      {
+        "Buyer": "Reassess value, structure and the ability to proceed where regulatory barriers threaten lawful completion or essential operations, checking available withdrawal rights.",
+        "Seller": "Propose a credible cure, revised timetable or alternative structure where regulatory barriers threaten the sale, testing whether the revised transaction remains deliverable."
+      }
+    ],
+    [
+      "RG13",
+      "Protect against buyer clearance risk",
+      "Seek a reverse break fee where buyer-related clearance risk threatens execution, with defined payment triggers, suitable security and coordination with the buyer’s efforts obligations.",
+      "banknote",
+      "SPA drafting",
+      {
+        "Seller": "Seek a reverse break fee where buyer-related clearance risk threatens execution, with defined payment triggers, suitable security and coordination with the buyer’s efforts obligations."
+      },
+      [
+        "Seller"
+      ]
+    ]
+  ]
+});
+
   const coreActionIcons = Object.freeze({
     "Further diligence": "search",
     "Rectification": "wrench",
@@ -552,9 +708,9 @@
   });
   const validIcons = new Set(Object.values(coreActionIcons));
   topics.forEach(topic => {
-    topic.actions = topic.actions.map(([id, title, description, icon, phase, descriptionsBySide]) => {
+    topic.actions = topic.actions.map(([id, title, description, icon, phase, descriptionsBySide, availableSides]) => {
       if (!validIcons.has(icon)) throw new Error(`Unknown action icon for ${topic.id}/${id}: ${icon}`);
-      return { id, title, description, icon, phase, ...(descriptionsBySide ? { descriptionsBySide } : {}) };
+      return { id, title, description, icon, phase, ...(descriptionsBySide ? { descriptionsBySide } : {}), ...(availableSides ? { availableSides } : {}) };
     });
   });
 
@@ -594,5 +750,6 @@
   };
 
   const forSide = (action, side = "Balanced") => action ? { ...action, description: action.descriptionsBySide?.[side] || action.description } : null;
-  window.DealLogicActionRegistry = { topics, byTopic, coreActionIcons, resolveActionId, actionFor, forSide };
+  const actionsForSide = (topicId, side = "Balanced") => (byTopic.get(topicId)?.actions || []).filter(action => !action.availableSides || action.availableSides.includes(side));
+  window.DealLogicActionRegistry = { topics, byTopic, coreActionIcons, resolveActionId, actionFor, forSide, actionsForSide };
 })();

@@ -420,6 +420,7 @@ test('Actions by Issue uses canonical perspective copy for every topic without a
  for(const topic of registry.topics)for(const side of ['Buyer','Seller','Balanced']){
   testContext.activeTopic=topic.id;testContext.getTransactionSide=()=>side;testContext.renderTopic();
   assert.doesNotMatch(panel.innerHTML,/data-logic-side=|logic-side-picker/);
-  for(const action of topic.actions)assert.ok(panel.innerHTML.includes(registry.forSide(action,side).description));
+  for(const action of registry.actionsForSide(topic.id,side))assert.ok(panel.innerHTML.includes(registry.forSide(action,side).description));
+  for(const action of topic.actions.filter(a=>a.availableSides&&!a.availableSides.includes(side)))assert.ok(!panel.innerHTML.includes(`data-library-action="${action.id}"`));
  }
 });

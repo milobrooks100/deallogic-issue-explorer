@@ -12,7 +12,7 @@ When questionnaire wording changes, update every dependent summary, risk rule, r
 
 For new or revised Deal Map actions, make the concise, one-sentence instruction and Required / Recommended / Consider label reflect Buyer, Seller and Balanced objectives where the perspective changes the advice; do not change only the label when different advice is needed, or force artificial differences for neutral factual checks. Reuse canonical perspective copy across Apply deal logic, Actions by Issue, exports and Deal Hub capture.
 
-Show at most nine recommended action cards per completed response. Consolidate related steps into a concise, perspective-specific sentence when needed; retain all triggered steps, the highest constituent priority and the stable component identities instead of silently dropping required actions. The full Actions by Issue catalogue may contain more than nine entries. Document and test the issue-specific consolidation rules.
+Show at most nine recommended action cards per completed response. Consolidate related steps into a concise, perspective-specific sentence when needed; retain all triggered steps, the highest constituent priority and the stable component identities instead of silently dropping required actions. The full Actions by Issue catalogue may contain more than nine entries. Regulatory uses the user-approved exception: remove overlapping recommendations first, then trim Consider before Recommended before Required, with a hard nine-card cap; see its issue specification. Document and test the issue-specific consolidation rules.
 
 ## Action icon contract
 

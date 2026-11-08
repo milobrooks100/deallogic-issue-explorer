@@ -2,7 +2,7 @@
 
 ## Identity and scope
 
-Area Regulatory (`regulatory`); issue `regulatory-licences-and-transaction-approvals`. UK-target share and business acquisitions, with sector, territorial and applicable overseas requirements established through transaction-specific review. This stage implements the agreed questionnaire, risk assessment, prose summary and key deal implications. Use Threatened Litigation's existing issue header, subtitle, risk track, facts card, tooltip/select styling, progressive reveal, reset and standby panel. Recommended actions and legal notes remain deferred; no litigation rules or advice are copied.
+Area Regulatory (`regulatory`); issue `regulatory-licences-and-transaction-approvals`. UK-target share and business acquisitions, with sector, territorial and applicable overseas requirements established through transaction-specific review. This stage implements the agreed questionnaire, risk assessment, prose summary and key deal implications. Use Threatened Litigation's existing issue header, subtitle, risk track, facts card, tooltip/select styling, progressive reveal, reset and standby panel. Perspective-specific actions are implemented through the [regulatory action matrix](regulatory-action-matrix.md); legal notes remain deferred, and no litigation rules or advice are copied.
 
 Introduction: Review whether the target holds and complies with the regulatory permissions it needs to operate, and whether the proposed transaction requires regulatory approval, notification or clearance. Identify outstanding issues and their effect on business continuity and completion.
 
@@ -27,7 +27,7 @@ Initially show Q1 only. Each valid response reveals the next relevant question. 
 
 Finish early if Q3 is None identified and Q1 is No, or Q1 is Yes and Q2 is None identified. Otherwise ask Q5 then Q6. Q1 Unknown cannot take the clean early exit, even if Q2 is None identified. Completion means every visible question is valid. Changing an answer clears all later answers; invalid, obsolete and hidden answers are excluded before rendering, saving and exporting. No migration is needed for this new issue.
 
-## Outputs and deferred assessment
+## Outputs and assessment
 
 Before completion: Answer all relevant questions to generate your deal analysis.
 
@@ -49,7 +49,7 @@ Choose at most one statement per theme; never generate a longer list and truncat
 
 Clean early exits show one scoped implication, noting that business or deal changes may require reassessment. Active assessments show one to three unique implications from `implicationCopy`. These describe transaction consequences without introducing an action catalogue or legal notes.
 
-The risk badge and report continue to use the same `assessRisk` function. The initial score is 1/5. No recommended actions, legal notes or Hub snapshots are generated yet.
+The risk badge and report continue to use the same `assessRisk` function. The initial score is 1/5. Recommended actions, report recommendations and selected-action Hub snapshots use the regulatory action matrix; legal notes remain deferred.
 
 ## Draft risk decision matrix — pending user review
 
@@ -90,9 +90,9 @@ Reviewed 6 November 2026 before agreeing this questionnaire:
 
 ## Integration and verification
 
-Regulatory is in the alphabetical Deal Map areas and the common issue tiles. The dedicated script loads after the existing issue adapters, delegates other issues unchanged, and uses the current active-deal storage adapter and shared reset. Runtime checks cover script loading and the storage boundary. Focused tests cover early exits, uncertainty, compatible/exclusive selections, hidden/invalid responses, report parity and non-delegation of risk/advice. Build and all 187 repository tests pass, including scoring examples, exhaustive answer combinations, protected minimums, hidden-answer exclusion, completed/incomplete analysis gates, canonical implication membership, the three-bullet limit and UI/report parity.
+Regulatory is in the alphabetical Deal Map areas and the common issue tiles. The dedicated script loads after the existing issue adapters, delegates other issues unchanged, and uses the current active-deal storage adapter and shared reset. Runtime checks cover script loading and the storage boundary. Focused tests cover early exits, uncertainty, compatible/exclusive selections, hidden/invalid responses, report parity and non-delegation of risk/advice. The questionnaire tests cover scoring examples, exhaustive answer combinations, protected minimums, hidden-answer exclusion, completed/incomplete analysis gates, canonical implication membership, the three-bullet limit and UI/report parity; the action-matrix specification records the additional action validation.
 
-Browser verification at the existing narrow viewport confirmed the tile, introduction, progressive questions, compatible checkbox selections, completed-stage message and persistence across refresh/reopening. Full account sync, two-deal switching, all themes and desktop-width visual review have not been rechecked. Draft risk rules are covered by automated tests; perspective actions and Hub snapshots remain deferred.
+Browser verification at the existing narrow viewport confirmed the tile, introduction, progressive questions, compatible checkbox selections, completed-stage message and persistence across refresh/reopening. Full account sync, two-deal switching, all themes and desktop-width visual review have not been rechecked. Draft risk rules are covered by automated tests; perspective actions and Hub capture are now implemented and covered by the action-matrix checks.
 
 Regulatory tooltips were shortened after questionnaire review, retaining the distinctions and completion qualifications above. Q3 uses the shared question label and choice-grid answer labels, matching Data Protection and the other facts questions.
 

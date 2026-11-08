@@ -1,0 +1,81 @@
+# Regulatory action matrix
+
+Implemented 8 November 2026 after user review; applies to `regulatory-licences-and-transaction-approvals` without changing its questionnaire, risk rules or factual analysis. Canonical instructions, stable IDs, icons and phases live in `dist/action-registry.js`; answer rules and the capped live/report result live in `dist/regulatory.js`.
+
+## Perspectives and priorities
+
+Required means necessary under the recorded facts and selected transaction approach, not necessarily a statutory requirement. Recommended is proportionate protection; Consider is optional or negotiation-dependent. There are thirteen registered actions: RG11 is available only to Buyer/Balanced, RG13 only to Seller, giving each perspective twelve catalogue actions. Library selection is deliberate and has the existing Consider priority; questionnaire priorities are answer-based.
+
+## Selection rules
+
+Require all visible questions to be valid, ignore hidden answers and return no actions on either confirmed clean early exit. Unknown triggers investigation, never a presumed breach, automatic filing, indemnity or price deduction. The rule engine does not infer a share/asset structure, competitive overlap, buyer-specific clearance risk or actual statutory filing deadline from answers that do not establish those facts.
+
+Derived facts: `knownIssue` is Q2 gaps/compliance/both; `material` is Q5 significant/fundamental; `stepsOpen` is a substantive Q3 step with Q4 not completed; `statutoryOpen` is an open approval/notification; `workOpen` is knownIssue or stepsOpen; `carryOver` is Q6 partly/no with workOpen. A conflict is Q6 completed with knownIssue or Q3 not none and Q4 not completed. Q6 completed never erases an unresolved answer.
+
+| ID | Exact trigger | Buyer / Seller / Balanced priority |
+| --- | --- | --- |
+| RG01 | Every non-clean completed route | Recommended; Required all for any visible Unknown, material impact or Blocked. |
+| RG02 | Q4 completed or Q6 completed | Required / Recommended / Recommended; Required all for conflict or material impact. |
+| RG03 | knownIssue | Required all, until verified facts support updating Q2. |
+| RG04 | workOpen, or uncertainty with Q3 unknown or Q6 not completed | Recommended all; Required all for statutoryOpen. |
+| RG05 | Q3 voluntary and Q4 not completed | Recommended / Consider / Recommended; Required all for material impact or Blocked, requiring a strategy decision rather than compulsory filing. |
+| RG06 | Open prior approval, knownIssue with material impact, or Fundamental with stepsOpen | Required / Consider / Recommended; Required all for open prior approval or Fundamental. Notification alone does not establish a standstill obligation. |
+| RG07 | workOpen | Recommended all; Required all for statutoryOpen or carryOver. |
+| RG08 | stepsOpen, or knownIssue with Q6 partly/no/unknown | Required / Recommended / Recommended; Required all for Blocked, Fundamental or Q6 no. |
+| RG09 | Every non-clean completed route | Required / Required / Recommended; disclose uncertainty accurately. |
+| RG10 | knownIssue with material impact | Required / Consider / Recommended; scope to identified exposure, with no assumed recoverability of fines. |
+| RG11 | material impact; Buyer/Balanced only | Recommended; Required for Fundamental, requiring assessment without presuming a discount. |
+| RG12 | Blocked or Fundamental, even with reported completed steps | Required all. |
+| RG13 | Open approval or voluntary clearance, plus material impact, Blocked or Q6 partly/no; Seller only | Consider; conditional on buyer-related risk, which the questionnaire does not independently establish. No automatic upgrade to Recommended without an additional recorded finding. |
+
+Q4 uses the least advanced transaction step; Q3 simultaneous steps produce one instance per applicable action, not duplicate filing cards. Q6 yes remains a forecast, partly/no strengthens delivery and allocation, and completed selects verification. Q5 Unknown does not independently trigger RG06 or RG10–RG13. Statutory requirements cannot be waived by contract. APA liability allocation does not remove regulatory powers or duties; specific indemnities and price treatment must avoid double recovery. Rival transactions require appropriate safeguards on information sharing and integration when confirmed by scope review.
+
+## Overlap removal and nine-card limit
+
+The user expressly replaced lossless component expansion for this issue with overlap removal and priority trimming. Apply these steps before returning live, export or Hub-selectable recommendations:
+
+1. If RG06 and RG08 both trigger, retain RG06 with a concise perspective-specific instruction covering completion conditions, longstop and termination rights; remove the separate RG08 recommendation.
+2. For a conflicting cure report with RG03 and RG02, retain RG03 with an instruction covering verification of approvals and remediation, reconciliation and outstanding work; remove the separate RG02 recommendation.
+3. The retained action takes the higher priority. Overlap removal happens even when nine or fewer actions trigger, so duplicate advice does not crowd out a useful Consider action.
+4. Sort by Required, Recommended, Consider, then by RG03, RG04, RG06, RG12, RG02, RG01, RG07, RG08, RG09, RG10, RG11, RG05, RG13; keep the first nine. This removes Consider before Recommended before Required, using deterministic substantive precedence for ties.
+5. Unlike lossless component cards in other areas, a regulatory retained card saves once using its displayed instruction, priority and retained stable ID; it does not expand back into overlapping Hub tasks. Trimmed actions remain available in the full perspective-filtered Action Library.
+
+Worked examples: Seller with Both; approval+voluntary; Blocked; Minimal; No has ten raw actions, removes RG08 into RG06 and retains the Consider RG13 among nine cards. Buyer with Both; all three transaction steps; Blocked; Fundamental; Already completed has twelve raw Required actions, removes RG08 and RG02 as above and trims RG05 last. Balanced on that severe route keeps eight Required and one Recommended, trimming the other Recommended action before any Required one.
+
+## Integration
+
+The existing action markup, priority styling, side selector, registry icons and playbook deep link are reused. `actionsForSide` filters only entries with explicit side availability, preserving existing topics. Regulatory emits `regulatory-logic-rendered` for complete and incomplete renders so Hub selections, instructions and snapshots refresh after answers or perspective change. Exports use the identical capped selector; the Action Library shows all twelve available catalogue actions and uses normal duplicate prevention. Regulatory saves use canonical registry phases and preserve manually edited existing Hub actions. Legal notes are not introduced in this change.
+
+## Research basis
+
+Research checked 8 November 2026 during matrix preparation. These sources support the legal distinctions; the catalogue and priorities remain drafting judgments.
+
+- [FCA change in control](https://www.fca.org.uk/firms/change-control): acquisition approval differs from the target's existing permission to operate.
+- [NSI guidance](https://www.gov.uk/guidance/national-security-and-investment-act-guidance-on-acquisitions): mandatory approval, void acquisitions, wider asset call-in exposure and final deal structure.
+- [CMA interim measures](https://www.gov.uk/government/publications/interim-measures-and-derogations-guidance-and-templates/interim-measures-in-merger-investigations-summary-for-businesses): optional notification does not eliminate post-completion intervention or integration restrictions.
+- [Environmental permit changes](https://www.gov.uk/guidance/change-transfer-or-cancel-your-environmental-permit) and [CQC business transfers](https://www.cqc.org.uk/guidance-regulation/providers/registration/buy-sell-or-transfer-registered-business): incoming operator and coordinated permissions; these examples apply to England.
+- [Slaughter and May execution risk](https://www.slaughterandmay.com/horizon-scanning/2026/capital-flows/executing-m-a-in-a-volatile-market/): efforts, remedy limits, longstops and reverse break fees as negotiated risk allocation.
+
+## Canonical catalogue
+
+| ID / title | Buyer | Seller | Balanced | Icon / phase |
+| --- | --- | --- | --- | --- |
+| RG01 Establish the regulatory position | Verify operating permissions and screen the proposed ownership and transaction structure for sector approvals, NSI, merger control and overseas requirements. | Assemble permission records and establish which regulatory requirements arise from the business, transaction structure or proposed buyer. | Confirm operating permissions and transaction requirements for the relevant entities, activities and jurisdictions, using specialist advice where needed. | search / Due diligence |
+| RG02 Verify reported completion | Obtain evidence that approvals and remedial steps are effective, cover the final transaction and satisfy applicable conditions and waiting periods. | Assemble evidence of completed regulatory steps, reconcile inconsistent records and identify any continuing conditions or reporting duties. | Verify reported completion against effective approvals, remedial evidence and the final transaction structure, resolving inconsistent answers and recording continuing obligations. | circle-check / Due diligence |
+| RG03 Remedy permission and compliance issues | Require a proportionate remedial plan and evidence of lawful operating arrangements, including replacement or transferred permissions where the operator will change. | Arrange proportionate remediation and any necessary permission changes, restricting affected activities where lawful operation cannot be maintained. | Agree remedial steps and lawful operating arrangements, coordinating any permission transfer or replacement with the proposed business handover. | wrench / Due diligence |
+| RG04 Deliver filings and regulatory steps | Require a timetable with named owners for filings and regulatory steps before and after completion, with evidence of submission and satisfaction. | Prepare the regulatory timetable, provide required information promptly and secure buyer ownership of filings and obligations falling to the buyer. | Agree owners, dependencies and deadlines for filings and regulatory steps before and after completion, including evidence requirements and continuing monitoring. | calendar-check / Due diligence |
+| RG05 Decide the voluntary-clearance strategy | Assess whether voluntary clearance offers sufficient protection against intervention, operating restrictions or unwinding to justify its cost and delay. | Test whether voluntary clearance is justified and agree its scope and timetable before accepting additional execution risk or delay. | Record the decision whether to seek voluntary clearance, weighing intervention risk, possible remedies and delay against proceeding without clearance. | search / Signing |
+| RG06 Set regulatory completion conditions | Make mandatory approvals and material regulatory milestones objective completion conditions, distinguishing statutory requirements from protections the buyer may lawfully waive. | Preserve mandatory approval conditions and confine additional conditions to material, measurable regulatory milestones with limited buyer discretion. | Specify required approvals and agreed material remediation milestones as completion conditions, distinguishing legal requirements from waivable contractual protections. | circle-check / Closing condition |
+| RG07 Allocate efforts, remedies and conduct | Require filing and remediation covenants, progress reporting and consultation on material concessions, with defined limits on remedies affecting the acquired business. | Require firm buyer filing and cooperation commitments, protect the retained business from unwanted remedies and avoid guaranteeing regulatory approval. | Allocate filings, cooperation, costs and continuing compliance, with agreed efforts, consultation rights and limits on required divestments or operating restrictions. | file-pen-line / SPA drafting |
+| RG08 Address delay and failed clearance | Seek a realistic longstop, controlled extensions and termination rights linked to unmet regulatory conditions or defined unacceptable clearance terms. | Set a realistic longstop and restrict buyer withdrawal or extension rights, addressing delay caused by the buyer’s conduct or regulatory profile. | Agree a realistic longstop, limited extensions and proportionate termination rights for unmet conditions or defined unacceptable regulatory remedies. | arrow-left-right / SPA drafting |
+| RG09 Tailor warranties and disclosure | Seek tailored warranties on permissions, compliance and regulatory correspondence, supported by specific disclosure of gaps, conditions and outstanding requirements. | Make fair, specific disclosure of regulatory issues and qualify warranties appropriately, avoiding assurances about future regulatory decisions. | Agree proportionate regulatory warranties and specific disclosure of permissions, compliance issues, correspondence and transaction requirements, identifying uncertainty expressly. | shield-check / SPA drafting |
+| RG10 Allocate identified regulatory liabilities | Seek a specific indemnity for identified regulatory losses, with appropriate claims control and recovery support, limiting fines coverage to amounts lawfully recoverable. | Limit any regulatory indemnity to defined exposure, agreed caps and claim periods, with conduct rights and protection against overlapping price deductions. | Allocate identified regulatory losses through a targeted indemnity or APA liability provisions, with clear limits, claims control and no double recovery. | banknote / SPA drafting |
+| RG11 Reflect exposure in the economics | Quantify remediation costs, operating restrictions and delay losses, then seek a supported price adjustment or retention without duplicating other protection. | Not available | Reflect substantiated regulatory costs and restrictions in valuation or completion mechanics, allowing for recoveries and protection already agreed. | arrow-down-up / SPA drafting |
+| RG12 Reassess structure and viability | Reassess value, structure and the ability to proceed where regulatory barriers threaten lawful completion or essential operations, checking available withdrawal rights. | Propose a credible cure, revised timetable or alternative structure where regulatory barriers threaten the sale, testing whether the revised transaction remains deliverable. | Assess whether remediation, restructuring or revised terms can deliver a lawful, viable transaction before proceeding or exercising available termination rights. | arrow-left-right / Signing |
+| RG13 Protect against buyer clearance risk | Not available | Seek a reverse break fee where buyer-related clearance risk threatens execution, with defined payment triggers, suitable security and coordination with the buyer’s efforts obligations. | Not available | banknote / SPA drafting |
+
+## Validation
+
+The build and full repository checks pass. Focused tests cover every unique reachable answer set across all three perspectives, hidden-answer exclusion, clean/incomplete gates, unknown versus confirmed issues, required versus optional steps, conflicting cure reports, perspective availability, single-sentence instructions, overlap-before-trimming behavior and deterministic priority trimming to nine. Reports and the public accessor match displayed cards. Hub tests verify retained-card capture, canonical phases, duplicate prevention and preservation of manually edited actions.
+
+Browser verification in an isolated local test deal confirmed progressive answers, simultaneous requirements, a nine-card serious result, perspective switching, a retained Seller Consider action after overlap removal, select-all, individual deselection, disabled empty confirmation, cancellation, nine-task Hub capture, twelve Seller library entries and existing-action buttons disabled. The narrow layout and registry icons were checked visually. Full account sync, all themes and two-deal switching were not rechecked.

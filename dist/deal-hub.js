@@ -52,7 +52,7 @@
     const issue = currentIssue();
     if (!issue) return [];
     const card = document.querySelector("#logic-card");
-    if (["customer-change-of-control", "missing-ip-assignment", "option-holders", "threatened-litigation", "debt-facilities-repayment", "share-ownership-and-transfer-restrictions", "key-employee-retention-and-employment-terms", "termination-rights-and-material-breaches", "compliance-gaps-and-personal-data-breaches"].includes(issue.id) && card?.querySelector(".logic-section-heading")) {
+    if (["customer-change-of-control", "missing-ip-assignment", "option-holders", "threatened-litigation", "debt-facilities-repayment", "share-ownership-and-transfer-restrictions", "key-employee-retention-and-employment-terms", "termination-rights-and-material-breaches", "compliance-gaps-and-personal-data-breaches", "regulatory-licences-and-transaction-approvals"].includes(issue.id) && card?.querySelector(".logic-section-heading")) {
       return [...card.querySelectorAll(".logic-action")].map(row => ({
         issueId: issue.id, side: getTransactionSide(),
         actionId: stableActionIdFor(issue.id,row.querySelector("strong")?.textContent.trim(),row.querySelector("span:last-child")?.textContent.trim(),row.dataset.actionId),
@@ -176,7 +176,7 @@
       if (hasEquivalentAction(item)) continue;
       state.actions.push({id:uid(),sourceKey:key,stableActionId:item.actionId||"",issueId:item.issueId,side:item.side,priority:item.priority,
         title:item.title,instruction:item.instruction,originalTitle:item.title,originalInstruction:item.instruction,
-        status:statuses[0],dealPhase:["share-ownership-and-transfer-restrictions", "key-employee-retention-and-employment-terms", "termination-rights-and-material-breaches", "compliance-gaps-and-personal-data-breaches", "debt-facilities-repayment", "threatened-litigation", "option-holders", "missing-ip-assignment", "customer-change-of-control"].includes(item.issueId) ? libraryPhase(window.DealLogicActionRegistry.actionFor(item.issueId,"","",item.actionId)?.phase) : phaseFor(item.title,item.instruction),
+        status:statuses[0],dealPhase:["share-ownership-and-transfer-restrictions", "key-employee-retention-and-employment-terms", "termination-rights-and-material-breaches", "compliance-gaps-and-personal-data-breaches", "debt-facilities-repayment", "threatened-litigation", "option-holders", "missing-ip-assignment", "customer-change-of-control", "regulatory-licences-and-transaction-approvals"].includes(item.issueId) ? libraryPhase(window.DealLogicActionRegistry.actionFor(item.issueId,"","",item.actionId)?.phase) : phaseFor(item.title,item.instruction),
         urgency:"Medium",notes:"",createdAt:new Date().toISOString(),manual:false});
       added++;
     }
@@ -186,6 +186,7 @@
   const libraryPhase = phase => ({"Due diligence":"Due Diligence","SPA drafting":"SPA Drafting","Signing":"Post-Signing / Integration","Closing condition":"Closing Condition","Post-completion":"Post-Signing / Integration"}[phase] || "Due Diligence");
   window.isActionInDealHub = (issueId, actionId) => hasEquivalentAction({issueId,actionId,side:getTransactionSide(),title:"",instruction:""});
   window.addLibraryActionToDealHub = (issueId, action) => {
+    if (action.availableSides && !action.availableSides.includes(getTransactionSide())) return false;
     const item={issueId,actionId:action.id,side:getTransactionSide(),title:action.title,instruction:action.description};
     if (hasEquivalentAction(item)) {toast("This action is already in Deal Hub");return false;}
     const source=(typeof issues!=="undefined"?issues:[]).find(issue=>issue.id===issueId);
@@ -348,7 +349,7 @@
   const refreshIssuePicks = () => {
     // Keep deliberate selections, but refresh their side, priority and snapshot.
     const issue = currentIssue();
-    if (!["share-ownership-and-transfer-restrictions", "key-employee-retention-and-employment-terms", "termination-rights-and-material-breaches", "compliance-gaps-and-personal-data-breaches", "debt-facilities-repayment", "threatened-litigation", "option-holders", "missing-ip-assignment", "customer-change-of-control"].includes(issue?.id)) return;
+    if (!["share-ownership-and-transfer-restrictions", "key-employee-retention-and-employment-terms", "termination-rights-and-material-breaches", "compliance-gaps-and-personal-data-breaches", "debt-facilities-repayment", "threatened-litigation", "option-holders", "missing-ip-assignment", "customer-change-of-control", "regulatory-licences-and-transaction-approvals"].includes(issue?.id)) return;
     const latest = new Map(available().map(item => [actionKey(item.issueId,item.side,item.title,item.instruction,item.actionId), item]));
     for (const [key, item] of picks) {
       if (item.issueId !== issue.id) continue;
@@ -384,6 +385,10 @@
     if (issueById(currentIssue()?.id)) renderHub();
   });
   document.addEventListener("data-protection-logic-rendered", () => {
+    refreshIssuePicks();
+    if (issueById(currentIssue()?.id)) renderHub();
+  });
+  document.addEventListener("regulatory-logic-rendered", () => {
     refreshIssuePicks();
     if (issueById(currentIssue()?.id)) renderHub();
   });

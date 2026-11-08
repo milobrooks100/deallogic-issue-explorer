@@ -327,6 +327,80 @@
     else implications.push(["significant", "fundamental"].includes(impact) ? implicationCopy.residual : implicationCopy.verified);
     return {summary: sentences.join(" "), implications};
   }
+  const priorityRank = { Required: 3, Recommended: 2, Consider: 1 };
+  // Legal delivery and viability take precedence within the same priority label.
+  const actionOrder = ["RG03", "RG04", "RG06", "RG12", "RG02", "RG01", "RG07", "RG08", "RG09", "RG10", "RG11", "RG05", "RG13"];
+  function chooseActions(responses, side = "Balanced", limit = true) {
+    if (!complete(responses)) return [];
+    side = ["Buyer", "Seller", "Balanced"].includes(side) ? side : "Balanced";
+    const visible = visibleIds(responses);
+    const [permissions, issues, steps, status, impact, deadlines] = ids.map(id => visible.includes(id) ? responses[id] : undefined);
+    if (!visible.includes(ids[4])) return []; // Confirmed clean early exits.
+    const uncertain = visible.some(id => responses[id] === "unknown" || (Array.isArray(responses[id]) && responses[id].includes("unknown")));
+    const knownIssue = ["gaps", "compliance", "both"].includes(issues);
+    const material = ["significant", "fundamental"].includes(impact), fundamental = impact === "fundamental";
+    const blocked = status === "blocked";
+    const substantiveSteps = steps.some(step => ["approval", "notification", "voluntary"].includes(step));
+    const stepsOpen = substantiveSteps && status !== "completed";
+    const statutoryOpen = stepsOpen && steps.some(step => ["approval", "notification"].includes(step));
+    const approvalOpen = steps.includes("approval") && status !== "completed";
+    const voluntaryOpen = steps.includes("voluntary") && status !== "completed";
+    const conflict = deadlines === "completed" && (knownIssue || (steps[0] !== "none" && status !== "completed"));
+    // A reported cure cannot erase a still-recorded gap or an uncompleted approval.
+    const workOpen = knownIssue || stepsOpen;
+    const carryOver = ["partly", "no"].includes(deadlines) && workOpen;
+    const provisional = uncertain && (steps[0] === "unknown" || deadlines !== "completed");
+    const registry = window.DealLogicActionRegistry;
+    const copy = (buyer, seller, balanced) => ({Buyer:buyer, Seller:seller, Balanced:balanced}[side]);
+    const actions = [];
+    const add = (id, buyer, seller = buyer, balanced = buyer) => {
+      const base = registry.actionFor(issueId, "", "", id);
+      if (base.availableSides && !base.availableSides.includes(side)) return;
+      actions.push({...registry.forSide(base, side), priority:copy(buyer,seller,balanced)});
+    };
+    add("RG01", uncertain || material || blocked ? "Required" : "Recommended");
+    if (status === "completed" || deadlines === "completed") add("RG02", "Required", conflict || material ? "Required" : "Recommended", conflict || material ? "Required" : "Recommended");
+    if (knownIssue) add("RG03", "Required");
+    if (stepsOpen || workOpen || provisional) add("RG04", statutoryOpen ? "Required" : "Recommended");
+    if (voluntaryOpen) add("RG05", material || blocked ? "Required" : "Recommended", material || blocked ? "Required" : "Consider", material || blocked ? "Required" : "Recommended");
+    if (approvalOpen || (knownIssue && material) || (fundamental && stepsOpen)) add("RG06", "Required", approvalOpen || fundamental ? "Required" : "Consider", approvalOpen || fundamental ? "Required" : "Recommended");
+    if (workOpen) add("RG07", statutoryOpen || carryOver ? "Required" : "Recommended");
+    if (stepsOpen || (knownIssue && ["partly", "no", "unknown"].includes(deadlines))) {
+      const required = blocked || fundamental || deadlines === "no";
+      add("RG08", "Required", required ? "Required" : "Recommended", required ? "Required" : "Recommended");
+    }
+    add("RG09", "Required", "Required", "Recommended");
+    if (knownIssue && material) add("RG10", "Required", "Consider", "Recommended");
+    if (material) add("RG11", fundamental ? "Required" : "Recommended");
+    if (blocked || fundamental) add("RG12", "Required");
+    if (stepsOpen && (steps.includes("approval") || steps.includes("voluntary")) && (material || blocked || ["partly", "no"].includes(deadlines))) add("RG13", "Consider");
+    const sort = list => list.sort((a,b) => priorityRank[b.priority] - priorityRank[a.priority] || actionOrder.indexOf(a.id) - actionOrder.indexOf(b.id));
+    if (!limit) return sort(actions);
+
+    // Remove substantive overlap before priority trimming so useful Consider
+    // actions can survive; the retained card includes the overlapping task.
+    const absorb = (keepId, removeId, title, buyer, seller, balanced) => {
+      const keep = actions.find(action => action.id === keepId), remove = actions.find(action => action.id === removeId);
+      if (!keep || !remove) return;
+      keep.title = title; keep.description = copy(buyer,seller,balanced);
+      if (priorityRank[remove.priority] > priorityRank[keep.priority]) keep.priority = remove.priority;
+      actions.splice(actions.indexOf(remove), 1);
+    };
+    absorb("RG06", "RG08", "Completion conditions and failed clearance",
+      "Require objective regulatory completion conditions, a realistic longstop and defined withdrawal rights, distinguishing statutory requirements from protections the buyer may lawfully waive.",
+      "Preserve mandatory approval conditions, limit additional milestones and buyer withdrawal rights, and set a realistic longstop with controlled extensions.",
+      "Agree objective regulatory completion conditions, a realistic longstop and proportionate termination rights, distinguishing statutory requirements from waivable protections.");
+    if (conflict) absorb("RG03", "RG02", "Verify and remedy regulatory issues",
+      "Verify approvals and claimed remediation against the final transaction, reconcile conflicting records and require completion of outstanding permission or compliance work.",
+      "Substantiate approvals and claimed remediation against the final transaction, correct conflicting records and arrange outstanding permission or compliance work.",
+      "Verify approvals and claimed remediation against the final transaction, reconcile conflicting records and complete outstanding permission or compliance work.");
+    // Stable sorting makes the cap deterministic: Consider is removed first,
+    // then Recommended, and only then Required if more than nine remain.
+    return sort(actions).slice(0, 9);
+  }
+  window.DealLogicRegulatoryActions = (responses, side) => chooseActions(responses, side);
+  const actionsMarkup = actions => actions.length ? actions.map(action => `<div class="logic-action" data-action-id="${action.id}"><span class="logic-icon" aria-hidden="true"></span><div><span class="logic-priority" data-level="${action.priority.toLowerCase()}">${action.priority}</span><strong>${escape(action.title)}</strong><span>${escape(action.description)}</span></div></div>`).join("") : '<p>No issue-specific actions are indicated by the recorded answers.</p>';
+
   const previousRiskScore = riskScore;
   riskScore = function () { return isRegulatory(current()) ? assessRisk(answers) : previousRiskScore(); };
   const previousRenderLogic = renderLogic;
@@ -339,10 +413,13 @@
     if (!analysis) {
       card.classList.add("logic-standby");
       card.innerHTML = '<h3>Apply deal logic</h3><p>Answer all relevant questions to generate your deal analysis.</p>';
+      document.dispatchEvent(new CustomEvent("regulatory-logic-rendered"));
       return;
     }
     card.classList.remove("logic-standby");
-    card.innerHTML = `<h3>Apply deal logic</h3><section class="logic-section"><h4>Summary</h4><p class="logic-conclusion">${escape(analysis.summary)}</p></section><section class="logic-section"><h4>Key deal implications</h4><ul>${analysis.implications.map(text => `<li>${escape(text)}</li>`).join("")}</ul></section>`;
+    const side = getTransactionSide();
+    card.innerHTML = `<h3>Apply deal logic</h3><section class="logic-section"><h4>Summary</h4><p class="logic-conclusion">${escape(analysis.summary)}</p></section><section class="logic-section"><h4>Key deal implications</h4><ul>${analysis.implications.map(text => `<li>${escape(text)}</li>`).join("")}</ul></section><section class="logic-section"><div class="logic-section-heading"><h4>Recommended actions</h4><div class="logic-side-picker" aria-label="Transaction side selector"><button type="button" class="active" data-logic-side-toggle>${escape(side)}</button></div></div>${actionsMarkup(chooseActions(answers, side))}</section>`;
+    document.dispatchEvent(new CustomEvent("regulatory-logic-rendered"));
   };
   function saveAnswer(id, value) {
     answers[id] = value;
@@ -394,7 +471,9 @@
     });
     const analysis = buildAnalysis(answers);
     const analysisLines = analysis ? ["", "SUMMARY", analysis.summary, "", "KEY DEAL IMPLICATIONS", ...analysis.implications.map(text => `- ${text}`)] : [];
-    const report = ["DEALLOGIC ISSUE REPORT", "", issue.title, `${areas[issue.category]} · ${issue.jurisdiction.primary}`, issue.summary, `Risk score: ${assessRisk(answers)}/5 — ${riskNames[assessRisk(answers) - 1]}`, "", "DILIGENCE ANSWERS", ...lines, ...analysisLines, "", "NOTE", "Prototype content only. Obtain transaction-specific legal advice."].join("\n");
+    const selected = analysis ? chooseActions(answers, getTransactionSide()) : [];
+    const actionLines = analysis ? ["", `RECOMMENDED ACTIONS — ${getTransactionSide()}`, ...(selected.length ? selected.map(action => `- ${action.priority}: ${action.title}\n  ${action.description}`) : ["No issue-specific actions are indicated by the recorded answers."])] : [];
+    const report = ["DEALLOGIC ISSUE REPORT", "", issue.title, `${areas[issue.category]} · ${issue.jurisdiction.primary}`, issue.summary, `Risk score: ${assessRisk(answers)}/5 — ${riskNames[assessRisk(answers) - 1]}`, "", "DILIGENCE ANSWERS", ...lines, ...analysisLines, ...actionLines, "", "NOTE", "Prototype content only. Obtain transaction-specific legal advice."].join("\n");
     const url = URL.createObjectURL(new Blob([report], {type: "text/plain"}));
     const link = document.createElement("a"); link.href = url; link.download = `${issue.id}-report.txt`; link.click(); URL.revokeObjectURL(url);
   };

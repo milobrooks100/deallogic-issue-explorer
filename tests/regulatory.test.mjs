@@ -3,12 +3,14 @@ import {readFile} from 'node:fs/promises';
 import vm from 'node:vm';
 import test from 'node:test';
 const source=await readFile(new URL('../dist/regulatory.js',import.meta.url),'utf8');
+const registrySource=await readFile(new URL('../dist/action-registry.js',import.meta.url),'utf8');
 const issue=JSON.parse(await readFile(new URL('../dist/issues.json',import.meta.url),'utf8')).find(i=>i.category==='regulatory');
 function setup(){
   let report='';
   const card={innerHTML:'',classList:{add(){},remove(){}}};
-  const context=vm.createContext({answers:{},escapeLogicText:String,current:()=>issue,riskScore:()=>4,renderPanel(){},renderLogic(){card.innerHTML='delegated';},exportReport(){report='delegated';},riskNames:["No risk","Low risk","Medium risk","High risk","Very high risk"],areas:{regulatory:'Regulatory'},document:{querySelector:s=>s==='#logic-card'?card:null,createElement:()=>({click(){}})},Blob:class{constructor(parts){report=parts.join('');}},URL:{createObjectURL:()=>'',revokeObjectURL(){}}});
-  vm.runInContext(source.replace(/\}\)\(\);\s*$/,'globalThis.api={ids,fields,valid,visibleIds,normalize,complete,assessRisk,buildAnalysis,summaryCopy,implicationCopy};})();'),context);
+  const context=vm.createContext({window:{},CustomEvent:class{},getTransactionSide:()=>"Balanced",answers:{},escapeLogicText:String,current:()=>issue,riskScore:()=>4,renderPanel(){},renderLogic(){card.innerHTML='delegated';},exportReport(){report='delegated';},riskNames:["No risk","Low risk","Medium risk","High risk","Very high risk"],areas:{regulatory:'Regulatory'},document:{dispatchEvent(){},querySelector:s=>s==='#logic-card'?card:null,createElement:()=>({click(){}})},Blob:class{constructor(parts){report=parts.join('');}},URL:{createObjectURL:()=>'',revokeObjectURL(){}}});
+  vm.runInContext(registrySource,context);
+  vm.runInContext(source.replace(/\}\)\(\);\s*$/,'globalThis.api={ids,fields,valid,visibleIds,normalize,complete,assessRisk,buildAnalysis,summaryCopy,implicationCopy,chooseActions,priorityRank,actionOrder};})();'),context);
   return {...context.api,context,card,report:()=>report};
 }
 test('operating-permission absence never skips transaction screening',()=>{
@@ -48,7 +50,7 @@ test('Regulatory uses its own risk without borrowing litigation conclusions',()=
   context.answers=Object.fromEntries(ids.map(id=>[id,id===ids[2]?['approval']:'unknown']));
   context.answers[ids[3]]='blocked';context.answers[ids[4]]='fundamental';
   context.renderLogic(issue);assert.match(card.innerHTML,/Key deal implications/);
-  assert.doesNotMatch(card.innerHTML,/Recommended actions|Limitation periods/);
+  assert.match(card.innerHTML,/Recommended actions/);assert.doesNotMatch(card.innerHTML,/Limitation periods/);
   assert.equal(context.riskScore(),5);
   context.current=()=>({id:'other'});assert.equal(context.riskScore(),4);
   context.renderLogic({id:'other'});assert.equal(card.innerHTML,'delegated');
