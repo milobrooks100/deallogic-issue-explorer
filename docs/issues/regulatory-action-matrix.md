@@ -44,7 +44,7 @@ Worked examples: Seller with Both; approval+voluntary; Blocked; Minimal; No has 
 
 ## Integration
 
-The existing action markup, priority styling, side selector, registry icons and playbook deep link are reused. `actionsForSide` filters only entries with explicit side availability, preserving existing topics. Regulatory emits `regulatory-logic-rendered` for complete and incomplete renders so Hub selections, instructions and snapshots refresh after answers or perspective change. Exports use the identical capped selector; the Action Library shows all twelve available catalogue actions and uses normal duplicate prevention. Regulatory saves use canonical registry phases and preserve manually edited existing Hub actions. Legal notes are not introduced in this change.
+The existing action markup, priority styling, side selector, registry icons and playbook deep link are reused. `actionsForSide` filters only entries with explicit side availability, preserving existing topics. Regulatory emits `regulatory-logic-rendered` for complete and incomplete renders so Hub selections, instructions and snapshots refresh after answers or perspective change. Exports use the identical capped selector; the Action Library shows all twelve available catalogue actions and uses normal duplicate prevention. Regulatory saves use canonical registry phases and preserve manually edited existing Hub actions. The three user-approved legal notes follow actions and share the completed-assessment/report gate.
 
 ## Research basis
 

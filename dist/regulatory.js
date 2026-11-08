@@ -401,6 +401,27 @@
   window.DealLogicRegulatoryActions = (responses, side) => chooseActions(responses, side);
   const actionsMarkup = actions => actions.length ? actions.map(action => `<div class="logic-action" data-action-id="${action.id}"><span class="logic-icon" aria-hidden="true"></span><div><span class="logic-priority" data-level="${action.priority.toLowerCase()}">${action.priority}</span><strong>${escape(action.title)}</strong><span>${escape(action.description)}</span></div></div>`).join("") : '<p>No issue-specific actions are indicated by the recorded answers.</p>';
 
+  const legalNotes = [
+  {
+    "title": "Controller approval",
+    "text": "Where the statutory controller regime applies, acquiring or increasing control before regulatory approval can be a criminal offence, even if the target’s operating permissions remain unchanged.",
+    "source": "Financial Services and Markets Act 2000, section 191F",
+    "url": "https://www.legislation.gov.uk/ukpga/2000/8/section/191F/data.html"
+  },
+  {
+    "title": "NSI completion risk",
+    "text": "A notifiable acquisition completed without approval, or contrary to the terms of a final order, is void; treat applicable approval and completion conditions as statutory requirements.",
+    "source": "National Security and Investment Act 2021, section 13",
+    "url": "https://www.legislation.gov.uk/ukpga/2021/25/section/13/data.html"
+  },
+  {
+    "title": "Post-completion merger intervention",
+    "text": "The absence of a mandatory notification requirement does not prevent a Competition and Markets Authority (CMA) investigation; the CMA may restrict integration or require the businesses to remain separate after completion.",
+    "source": "CMA: interim measures in merger investigations",
+    "url": "https://www.gov.uk/government/publications/interim-measures-and-derogations-guidance-and-templates/interim-measures-in-merger-investigations-summary-for-businesses"
+  }
+];
+  const notesMarkup = () => legalNotes.map(note => `<div class="logic-note"><strong>${escape(note.title)}:</strong> ${escape(note.text)} <a href="${escape(note.url)}" target="_blank" rel="noopener noreferrer">${escape(note.source)}</a></div>`).join("");
   const previousRiskScore = riskScore;
   riskScore = function () { return isRegulatory(current()) ? assessRisk(answers) : previousRiskScore(); };
   const previousRenderLogic = renderLogic;
@@ -418,7 +439,7 @@
     }
     card.classList.remove("logic-standby");
     const side = getTransactionSide();
-    card.innerHTML = `<h3>Apply deal logic</h3><section class="logic-section"><h4>Summary</h4><p class="logic-conclusion">${escape(analysis.summary)}</p></section><section class="logic-section"><h4>Key deal implications</h4><ul>${analysis.implications.map(text => `<li>${escape(text)}</li>`).join("")}</ul></section><section class="logic-section"><div class="logic-section-heading"><h4>Recommended actions</h4><div class="logic-side-picker" aria-label="Transaction side selector"><button type="button" class="active" data-logic-side-toggle>${escape(side)}</button></div></div>${actionsMarkup(chooseActions(answers, side))}</section>`;
+    card.innerHTML = `<h3>Apply deal logic</h3><section class="logic-section"><h4>Summary</h4><p class="logic-conclusion">${escape(analysis.summary)}</p></section><section class="logic-section"><h4>Key deal implications</h4><ul>${analysis.implications.map(text => `<li>${escape(text)}</li>`).join("")}</ul></section><section class="logic-section"><div class="logic-section-heading"><h4>Recommended actions</h4><div class="logic-side-picker" aria-label="Transaction side selector"><button type="button" class="active" data-logic-side-toggle>${escape(side)}</button></div></div>${actionsMarkup(chooseActions(answers, side))}</section><section class="logic-section"><h4>Notes</h4>${notesMarkup()}</section>`;
     document.dispatchEvent(new CustomEvent("regulatory-logic-rendered"));
   };
   function saveAnswer(id, value) {
@@ -473,7 +494,8 @@
     const analysisLines = analysis ? ["", "SUMMARY", analysis.summary, "", "KEY DEAL IMPLICATIONS", ...analysis.implications.map(text => `- ${text}`)] : [];
     const selected = analysis ? chooseActions(answers, getTransactionSide()) : [];
     const actionLines = analysis ? ["", `RECOMMENDED ACTIONS — ${getTransactionSide()}`, ...(selected.length ? selected.map(action => `- ${action.priority}: ${action.title}\n  ${action.description}`) : ["No issue-specific actions are indicated by the recorded answers."])] : [];
-    const report = ["DEALLOGIC ISSUE REPORT", "", issue.title, `${areas[issue.category]} · ${issue.jurisdiction.primary}`, issue.summary, `Risk score: ${assessRisk(answers)}/5 — ${riskNames[assessRisk(answers) - 1]}`, "", "DILIGENCE ANSWERS", ...lines, ...analysisLines, ...actionLines, "", "NOTE", "Prototype content only. Obtain transaction-specific legal advice."].join("\n");
+    const noteLines = analysis ? ["", "LEGAL NOTES", ...legalNotes.map(note => `${note.title}: ${note.text}\nSource: ${note.source} — ${note.url}`)] : [];
+    const report = ["DEALLOGIC ISSUE REPORT", "", issue.title, `${areas[issue.category]} · ${issue.jurisdiction.primary}`, issue.summary, `Risk score: ${assessRisk(answers)}/5 — ${riskNames[assessRisk(answers) - 1]}`, "", "DILIGENCE ANSWERS", ...lines, ...analysisLines, ...actionLines, ...noteLines, "", "NOTE", "Prototype content only. Obtain transaction-specific legal advice."].join("\n");
     const url = URL.createObjectURL(new Blob([report], {type: "text/plain"}));
     const link = document.createElement("a"); link.href = url; link.download = `${issue.id}-report.txt`; link.click(); URL.revokeObjectURL(url);
   };

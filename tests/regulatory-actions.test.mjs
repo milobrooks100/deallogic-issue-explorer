@@ -9,7 +9,7 @@ function setup(){
  let report='';const events=[];const card={innerHTML:'',classList:{add(){},remove(){}}};
  const context=vm.createContext({window:{},CustomEvent:class{constructor(type){this.type=type;}},getTransactionSide:()=> 'Balanced',answers:{},escapeLogicText:String,current:()=>issue,riskScore:()=>4,renderPanel(){},renderLogic(){},exportReport(){},riskNames:['No risk','Low risk','Medium risk','High risk','Very high risk'],areas:{regulatory:'Regulatory'},document:{dispatchEvent(e){events.push(e.type);},querySelector:s=>s==='#logic-card'?card:null,createElement:()=>({click(){}})},Blob:class{constructor(parts){report=parts.join('');}},URL:{createObjectURL:()=>'',revokeObjectURL(){}}});
  vm.runInContext(registrySource,context);
- vm.runInContext(source.replace(/\}\)\(\);\s*$/,'globalThis.api={ids,fields,visibleIds,normalize,complete,chooseActions,priorityRank,actionOrder};})();'),context);
+ vm.runInContext(source.replace(/\}\)\(\);\s*$/,'globalThis.api={ids,fields,visibleIds,normalize,complete,chooseActions,priorityRank,actionOrder,legalNotes};})();'),context);
  return {...context.api,context,card,events,report:()=>report};
 }
 const state=(issues='none',steps=['approval'],status='progress',impact='manageable',deadlines='yes')=>({'reg-permissions':'yes','reg-permission-issues':issues,'reg-transaction-steps':steps,'reg-step-status':status,'reg-impact':impact,'reg-deadlines':deadlines});
@@ -138,4 +138,18 @@ test('regulatory Hub capture saves retained cards once, preserves edits and prev
  for(const a of stateHub.actions.slice(1)){const selected=actions.find(s=>s.id===a.stableActionId);assert.equal(a.instruction,selected.description);assert.equal(a.priority,selected.priority);assert.equal(a.side,'Seller');assert.equal(a.dealPhase,app.window.DealLogicActionRegistry.actionFor(issue.id,'','',a.stableActionId).phase);}
  assert.ok(!stateHub.actions.some(a=>a.stableActionId==='RG02'||a.stableActionId==='RG08'));
  fill();vm.runInContext('commitPicks();',context);assert.equal(stateHub.actions.length,9);
+});
+
+
+test('approved regulatory notes follow actions and share the completed UI/report gate',()=>{
+ const {context,card,report,legalNotes}=setup();
+ assert.deepEqual(Array.from(legalNotes,n=>n.title),['Controller approval','NSI completion risk','Post-completion merger intervention']);
+ for(const r of [state(),{'reg-permissions':'no','reg-transaction-steps':['none']}]){
+  context.answers=r;context.renderLogic(issue);context.exportReport();
+  assert.ok(card.innerHTML.indexOf('<h4>Notes</h4>')>card.innerHTML.indexOf('<h4>Recommended actions</h4>'));
+  assert.equal((card.innerHTML.match(/class="logic-note"/g)||[]).length,3);
+  for(const n of legalNotes){assert.ok(card.innerHTML.includes(n.text));assert.ok(card.innerHTML.includes(`href="${n.url}" target="_blank" rel="noopener noreferrer"`));assert.ok(report().includes(`${n.title}: ${n.text}`));assert.ok(report().includes(n.url));}
+ }
+ context.answers={};context.renderLogic(issue);context.exportReport();
+ assert.doesNotMatch(card.innerHTML,/logic-note|<h4>Notes/);assert.doesNotMatch(report(),/LEGAL NOTES|section 191F/);
 });

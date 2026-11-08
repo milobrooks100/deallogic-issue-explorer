@@ -2,7 +2,7 @@
 
 ## Identity and scope
 
-Area Regulatory (`regulatory`); issue `regulatory-licences-and-transaction-approvals`. UK-target share and business acquisitions, with sector, territorial and applicable overseas requirements established through transaction-specific review. This stage implements the agreed questionnaire, risk assessment, prose summary and key deal implications. Use Threatened Litigation's existing issue header, subtitle, risk track, facts card, tooltip/select styling, progressive reveal, reset and standby panel. Perspective-specific actions are implemented through the [regulatory action matrix](regulatory-action-matrix.md); legal notes remain deferred, and no litigation rules or advice are copied.
+Area Regulatory (`regulatory`); issue `regulatory-licences-and-transaction-approvals`. UK-target share and business acquisitions, with sector, territorial and applicable overseas requirements established through transaction-specific review. This stage implements the agreed questionnaire, risk assessment, prose summary and key deal implications. Use Threatened Litigation's existing issue header, subtitle, risk track, facts card, tooltip/select styling, progressive reveal, reset and standby panel. Perspective-specific actions are implemented through the [regulatory action matrix](regulatory-action-matrix.md); three user-approved legal notes follow actions, and no litigation rules or advice are copied.
 
 Introduction: Review whether the target holds and complies with the regulatory permissions it needs to operate, and whether the proposed transaction requires regulatory approval, notification or clearance. Identify outstanding issues and their effect on business continuity and completion.
 
@@ -49,7 +49,7 @@ Choose at most one statement per theme; never generate a longer list and truncat
 
 Clean early exits show one scoped implication, noting that business or deal changes may require reassessment. Active assessments show one to three unique implications from `implicationCopy`. These describe transaction consequences without introducing an action catalogue or legal notes.
 
-The risk badge and report continue to use the same `assessRisk` function. The initial score is 1/5. Recommended actions, report recommendations and selected-action Hub snapshots use the regulatory action matrix; legal notes remain deferred.
+The risk badge and report continue to use the same `assessRisk` function. The initial score is 1/5. Recommended actions, report recommendations and selected-action Hub snapshots use the regulatory action matrix; the same three legal notes appear in completed UI and issue reports.
 
 ## Draft risk decision matrix — pending user review
 
@@ -97,3 +97,7 @@ Browser verification at the existing narrow viewport confirmed the tile, introdu
 Regulatory tooltips were shortened after questionnaire review, retaining the distinctions and completion qualifications above. Q3 uses the shared question label and choice-grid answer labels, matching Data Protection and the other facts questions.
 
 The user-approved concise implication wording replaces the original copy in `implicationCopy`; selection precedence, risk rules and the three-bullet limit are unchanged. UI and report exports share this canonical wording.
+
+## Legal notes
+
+Three user-approved notes follow recommended actions in the shared Notes section: Controller approval (FSMA 2000 s.191F), NSI completion risk (NSI Act 2021 s.13) and Post-completion merger intervention (CMA interim-measures guidance). Wording and links are retained exactly as supplied; titles use the shared bold lead-in and sources open separately with `noopener noreferrer`. They are factual, perspective-independent notes, shown only after every relevant question is answered, including clean early exits. Completed issue reports reuse the same canonical text and sources.
