@@ -1,6 +1,6 @@
-# DealLogic Issue Explorer
+# Deal Lens Issue Explorer
 
-DealLogic is a prototype M&A issue-analysis workspace. It combines a structured Deal Map with rule-based deal logic, recommended actions, and a deal-specific Deal Hub.
+Deal Lens is a prototype M&A issue-analysis workspace. It combines a structured Deal Map with rule-based deal logic, recommended actions, and a deal-specific Deal Hub.
 
 ## Getting started
 
@@ -37,7 +37,7 @@ Browser persistence is accessed through `dist/app-storage.js`. `dist/account.js`
 3. In **Security → Authentication → Sign-in method**, enable **Email/Password**. The Email link option is not needed. Review the **Email address verification** template under **Authentication → Templates**.
 4. In **Build → Firestore Database**, create a **Standard edition** database in **production mode**. Choose the region deliberately because it cannot be changed later; `europe-west2` (London) is available for UK-focused data.
 5. In Firestore's **Rules** tab, paste the contents of `firestore.rules` and publish. These rules grant each verified user access only to their own saved state. Do not leave test-mode rules in place.
-6. The registered Deal Logic web app's public configuration is in `firebase.web.json`. Deploy this branch and `npm run build` writes the values into `dist/firebase-config.js`. The four `FIREBASE_*` environment variables can override those values for another Firebase project. If a different project is used, set all four overrides together.
+6. The registered Deal Lens web app's public configuration is in `firebase.web.json`. Deploy this branch and `npm run build` writes the values into `dist/firebase-config.js`. The four `FIREBASE_*` environment variables can override those values for another Firebase project. If a different project is used, set all four overrides together.
 7. Open Settings → **Save your deal progress**, create an account, open the verification email, return to the app and select **I've verified my email**. Then choose **Import browser progress** if you have existing work in this browser. You can also sign in, request a password reset and sign out there.
 
 Account progress is private to one Firebase user; deal sharing and invitations are not implemented. The Firestore free tier has no managed backups, so arrange exports or upgrade before relying on it as the only copy of live transaction records. The first version stores one Firestore document per browser storage key; a very large single deal record may require a future per-deal data model.

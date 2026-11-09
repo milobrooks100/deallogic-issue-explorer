@@ -8,7 +8,7 @@ Untouched and incomplete relevant answers retain standby. No threat or a fully p
 
 ## Canonical action copy
 
-`dist/action-registry.js` supplies the instruction, title, phase, icon and stable identity for the live recommendations, Actions by Issue, reports and Hub capture. `dist/issues.json` retains matching Balanced fallback instructions for compatibility consumers. The existing shared Buyer/Seller/Balanced buttons in Actions by Issue now resolve these variants; Apply deal logic retains its existing perspective selector.
+`dist/action-registry.js` supplies the instruction, title, phase, icon and stable identity for the live recommendations, Actions by Issue, reports and Hub capture. `dist/issues.json` retains matching Balanced fallback instructions for compatibility consumers. The existing shared Buyer/Seller/Balanced buttons in Actions by Issue now resolve these variants; Apply Deal Lens retains its existing perspective selector.
 
 Three factual reviews retain the same wording on every side:
 

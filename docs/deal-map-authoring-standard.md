@@ -14,9 +14,9 @@ Use the [issue template](deal-map-issue-template.md), verify the [scenario check
 - Reveal relevant follow-up questions progressively. Define early exits, visibility, required answers and any `Other` text requirements. When an upstream answer changes, clear or exclude irrelevant dependent answers from scoring, summaries, actions, exports and saved context.
 - Keep one canonical set of current labels and use stable answer identifiers or positions for logic. Define migration of existing saved answers when changing established values.
 
-## Presentation and Apply deal logic
+## Presentation and Apply Deal Lens
 
-Reuse the current shared typography, spacing, theme, risk colours, tooltips, action icons and responsive behaviour. Preserve the area label, issue title, short introduction and risk assessment above **Establish the facts** and **Apply deal logic**.
+Reuse the current shared typography, spacing, theme, risk colours, tooltips, action icons and responsive behaviour. Preserve the area label, issue title, short introduction and risk assessment above **Establish the facts** and **Apply Deal Lens**.
 
 Before the applicable completion rule is satisfied, show the existing standby panel:
 

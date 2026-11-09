@@ -153,7 +153,7 @@
 :root:not([data-app-theme="navy"]):not([data-app-theme="forest"]) .hub-table th { background: #f4f4f3; color: var(--muted); }
 :root:not([data-app-theme="navy"]):not([data-app-theme="forest"]) .hub-table tbody tr:hover { background: #fafafa; }
 
-/* Apply deal logic keeps the original neutral palette in every app colour. */
+/* Apply Deal Lens keeps the original neutral palette in every app colour. */
 .logic {
   --ink: #252a2a;
   --muted: #737979;

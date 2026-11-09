@@ -8,7 +8,7 @@
   const settingsHelp = document.createElement("button");
   settingsHelp.type = "button";
   settingsHelp.className = "tour-settings-button";
-  settingsHelp.innerHTML = '<i data-lucide="circle-help" aria-hidden="true"></i><span>Getting started with Deal Logic</span>';
+  settingsHelp.innerHTML = '<i data-lucide="circle-help" aria-hidden="true"></i><span>Getting started with Deal Lens</span>';
   const settingsSection = document.createElement("section");
   settingsSection.className = "settings-section tour-settings";
   settingsSection.append(settingsHelp);
@@ -36,7 +36,7 @@
   document.addEventListener("deal-project-rail-rendered", mountSidebarHelp);
 
   const steps = [
-    { title: "Welcome to Deal Logic", body: "Built for lawyers, advisers and dealmakers, Deal Logic brings the moving parts of an M&A deal into focus. Explore legal issues, uncover company insights and turn what you find into a clear plan of action.", kind: "welcome" },
+    { title: "Welcome to Deal Lens", body: "Built for lawyers, advisers and dealmakers, Deal Lens brings the moving parts of an M&A deal into focus. Explore legal issues, uncover company insights and turn what you find into a clear plan of action.", kind: "welcome" },
     { title: "Keep each deal together", body: "Create a deal here to keep its answers and actions separate. The quick workspace is available when you want to explore first.", view: "deal-map", target: ".project-rail-head" },
     { title: "Explore a legal issue", body: "In Deal Map, choose a common legal issue and answer a few questions. You’ll see a risk assessment and recommended actions tailored to the facts you enter.", view: "deal-map", target: ".map:not(.screen-hidden)" },
     { title: "Choose a transaction perspective", body: "Switch between Buyer, Seller and Balanced perspectives at any time to see how the recommended actions change.", view: "deal-map", target: ".transaction-side-options button:first-child", fallbackTarget: ".transaction-side" },
@@ -58,8 +58,8 @@
   let index = -1, initialView = "deal-map", returnFocus = settingsHelp, target = null, targetEnd = null, positioning = false;
 
   const dots = () => `<div class="tour-dots" aria-hidden="true">${steps.map((_, step) => `<span class="${step === index ? "active" : ""}"></span>`).join("")}</div>`;
-  const foot = () => `<div class="tour-footer">${dots()}<div class="tour-actions">${index === 0 ? '<button type="button" class="tour-back" data-tour-skip>Skip</button>' : '<button type="button" class="tour-back" data-tour-back>Back</button>'}<button type="button" class="tour-next" data-tour-next>${index === steps.length - 1 ? "Explore Deal Logic" : "Next"}</button></div></div>`;
-  const hero = () => '<div class="tour-hero" aria-hidden="true"><div class="tour-hero-icon"><img src="./deallogic-mark.svg" alt=""></div></div>';
+  const foot = () => `<div class="tour-footer">${dots()}<div class="tour-actions">${index === 0 ? '<button type="button" class="tour-back" data-tour-skip>Skip</button>' : '<button type="button" class="tour-back" data-tour-back>Back</button>'}<button type="button" class="tour-next" data-tour-next>${index === steps.length - 1 ? "Explore Deal Lens" : "Next"}</button></div></div>`;
+  const hero = () => '<div class="tour-hero" aria-hidden="true"><div class="tour-hero-icon"><img src="./deal-lens-mark.svg" alt=""></div></div>';
   const card = step => `<div class="tour-card ${step.kind ? `tour-card-${step.kind}` : "tour-card-tip"}" role="document">${step.kind ? "" : '<button type="button" class="tour-close" data-tour-close aria-label="Close tour">&times;</button>'}${step.kind ? hero() : ""}<h2 id="tour-title">${step.title}</h2>${step.body ? `<p>${step.body}</p>` : ""}${foot()}</div>`;
   const anchor = step => {
     const wanted = document.querySelector(step.target);

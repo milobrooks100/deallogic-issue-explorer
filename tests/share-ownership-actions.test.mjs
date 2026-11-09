@@ -145,7 +145,7 @@ test('conditional instructions remain factual and change perspective where the a
  assert.equal(actionsFor(clean,'invalid').map(a=>a.description).join('|'),actionsFor(clean,'Balanced').map(a=>a.description).join('|'));
 });
 
-test('Apply deal logic and reports use identical perspective-specific instructions and priorities',async()=>{
+test('Apply Deal Lens and reports use identical perspective-specific instructions and priorities',async()=>{
  const issues=JSON.parse(await readFile(new URL('../dist/issues.json',import.meta.url),'utf8'));
  const issue=issues.find(i=>i.id==='share-ownership-and-transfer-restrictions');
  const card={innerHTML:'',classList:{add(){},toggle(){}}};let report;

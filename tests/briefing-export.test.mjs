@@ -16,7 +16,7 @@ function entries(bytes) {
 import test from 'node:test';
 import assert from 'node:assert/strict';
 const fontData=await readFile(new URL('../dist/vendor/fonts/Inter.ttf',import.meta.url));
-const logoData=await readFile(new URL('../dist/deallogic-logo.png',import.meta.url));
+const logoData=await readFile(new URL('../dist/deal-lens-logo.png',import.meta.url));
 const context = vm.createContext({ URL, fetch:async url=>({ok:true,arrayBuffer:async()=>{const data=String(url).endsWith('.png')?logoData:fontData;return data.buffer.slice(data.byteOffset,data.byteOffset+data.byteLength);}}), Blob, TextEncoder, TextDecoder, Uint8Array, ArrayBuffer, setTimeout, clearTimeout, console });
 vm.runInContext(await readFile(new URL('../dist/vendor/docx.js',import.meta.url),'utf8'),context);
 context.document={currentScript:{src:'https://example.test/briefing-export.js'}};
@@ -30,8 +30,8 @@ test('browser bundle packs populated and empty deals into native Word files', as
     assert.ok(files['[Content_Types].xml'].includes('wordprocessingml.document.main+xml'));
     assert.ok(files['word/styles.xml'].includes('Inter'));
     const header=files['word/header1.xml'], footer=files['word/footer1.xml'];
-    assert.ok(header.includes('<w:drawing>') && header.includes('Deal Logic layered mark'));
-    assert.ok(!header.includes('DealLogic  ·'));
+    assert.ok(header.includes('<w:drawing>') && header.includes('Deal Lens layered mark'));
+    assert.ok(!header.includes('Deal Lens  ·'));
     assert.ok(Object.keys(files).some(name=>name.startsWith('word/media/') && name.endsWith('.png')));
     assert.ok(footer.includes(`Deal Hub Briefing · ${data.project?.name || 'Deal workspace'} · `));
     assert.match(footer, /PAGE/);

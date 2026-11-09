@@ -29,7 +29,7 @@
 .library-view .action-item:nth-child(3n + 2) .action-symbol { background: #f2ebf7; color: #79638c; }
 .library-view .action-item:nth-child(3n) .action-symbol { background: #f8eee7; color: #956b56; }
 
-/* Shared action colours for Core M&A, Actions by Issue, and Apply Deal Logic. Deal Hub stays uncoloured. */
+/* Shared action colours for Core M&A, Actions by Issue, and Apply Deal Lens. Deal Hub stays uncoloured. */
 .library-view .action-item[data-core-icon="search"] .action-symbol, .playbook-card[data-core-icon="search"] .action-symbol, .logic-action[data-core-icon="search"] .logic-icon, .explore-categories .category-symbol[data-core-icon="search"] { background: #e7eef2; color: #547083; }
 .library-view .action-item[data-core-icon="wrench"] .action-symbol, .playbook-card[data-core-icon="wrench"] .action-symbol, .logic-action[data-core-icon="wrench"] .logic-icon, .explore-categories .category-symbol[data-core-icon="wrench"] { background: #f1eaf7; color: #76628d; }
 .library-view .action-item[data-core-icon="handshake"] .action-symbol, .playbook-card[data-core-icon="handshake"] .action-symbol, .logic-action[data-core-icon="handshake"] .logic-icon, .explore-categories .category-symbol[data-core-icon="handshake"] { background: #f8eee6; color: #986d57; }

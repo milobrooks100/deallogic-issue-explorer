@@ -19,8 +19,8 @@ root = Path(__file__).resolve().parents[1]
 kind = sys.argv[1] if len(sys.argv) > 1 else 'privacy'
 if kind not in ('privacy', 'terms'):
     raise SystemExit('Choose privacy or terms.')
-label = 'Deal Logic privacy notice' if kind == 'privacy' else 'Deal Logic Terms of Use'
-filename = 'Deal-Logic-Privacy-Notice.pdf' if kind == 'privacy' else 'Deal-Logic-Terms-of-Use.pdf'
+label = 'Deal Lens privacy notice' if kind == 'privacy' else 'Deal Lens Terms of Use'
+filename = 'Deal-Lens-Privacy-Notice.pdf' if kind == 'privacy' else 'Deal-Lens-Terms-of-Use.pdf'
 source = (root / ('dist/' + kind + '.html')).read_text(encoding='utf-8')
 main = re.search(r'<main\b[^>]*>([\s\S]*?)</main>', source).group(1)
 digest = hashlib.sha256(main.encode()).hexdigest()

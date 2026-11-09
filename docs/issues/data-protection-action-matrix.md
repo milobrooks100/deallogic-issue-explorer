@@ -1,6 +1,6 @@
 # Data Protection action matrix
 
-Status: implemented, 1 November 2026; connected to Apply deal logic, Actions by Issue, Deal Hub and report recommendations. Issue: `compliance-gaps-and-personal-data-breaches`. Applies to the existing questionnaire, with no question or risk-score changes.
+Status: implemented, 1 November 2026; connected to Apply Deal Lens, Actions by Issue, Deal Hub and report recommendations. Issue: `compliance-gaps-and-personal-data-breaches`. Applies to the existing questionnaire, with no question or risk-score changes.
 
 ## Approach
 
@@ -139,7 +139,7 @@ Checked 1 November 2026 for the existing England-and-Wales/UK-target scope. Lega
 
 ## Runtime integration
 
-DP01–DP13 are registered with canonical Balanced, Buyer and Seller copy in `dist/action-registry.js`. `chooseActions` in `dist/data-protection.js` applies the rules and conditional wording, then consolidates only if needed to meet the nine-card cap. Apply deal logic and reports use this same function; Actions by Issue shows all 13 canonical entries with the shared perspective selector. Catalogue additions are deliberate manual selections, labelled Consider by the existing Hub workflow, rather than questionnaire-based recommendations.
+DP01–DP13 are registered with canonical Balanced, Buyer and Seller copy in `dist/action-registry.js`. `chooseActions` in `dist/data-protection.js` applies the rules and conditional wording, then consolidates only if needed to meet the nine-card cap. Apply Deal Lens and reports use this same function; Actions by Issue shows all 13 canonical entries with the shared perspective selector. Catalogue additions are deliberate manual selections, labelled Consider by the existing Hub workflow, rather than questionnaire-based recommendations.
 
 The Hub recognizes the Data Protection render event and action rows, preserves component IDs and their individual priorities when saving combined cards, clears obsolete selections after answer changes, and refreshes pending selections after a side change. It uses canonical registry phases and existing snapshot/persistence/duplicate-prevention behavior, preserving manually edited saved actions. The standard scenario checklist applies; legal notes remain a separate authoring stage.
 

@@ -10,7 +10,7 @@ Existing risk rules remain authoritative in `dist/index.html`: initial/confirmed
 
 ## Canonical copy and perspectives
 
-`dist/action-registry.js` is the source of instructions, titles, phases, stable IDs and icons across Apply deal logic, Actions by Issue, reports and Deal Hub. Removed the duplicated local catalogue and three separate Seller overrides. The existing shared Actions by Issue toggle controls now resolve the Option Holders variants.
+`dist/action-registry.js` is the source of instructions, titles, phases, stable IDs and icons across Apply Deal Lens, Actions by Issue, reports and Deal Hub. Removed the duplicated local catalogue and three separate Seller overrides. The existing shared Actions by Issue toggle controls now resolve the Option Holders variants.
 
 | ID | Buyer objective | Seller objective | Balanced objective |
 | --- | --- | --- | --- |

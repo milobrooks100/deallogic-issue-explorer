@@ -442,7 +442,7 @@
     logicCard.classList.add("coc-deal-logic");
     if (!debtAnswersComplete()) {
       logicCard.classList.add("logic-standby");
-      logicCard.innerHTML = `<h3>Apply deal logic</h3><p>Answer all relevant questions to generate your deal analysis.</p>`;
+      logicCard.innerHTML = `<h3>Apply Deal Lens</h3><p>Answer all relevant questions to generate your deal analysis.</p>`;
       document.dispatchEvent(new CustomEvent("debt-facilities-logic-rendered"));
       return;
     }
@@ -453,7 +453,7 @@
     const actionMarkup = actions.length ? actions.map(({ id, priority, title, description, constituentIds }) => `<div class="logic-action" data-action-id="${escapeLogicText(id)}" data-constituent-ids="${constituentIds.join(",")}"><span class="logic-icon" aria-hidden="true"></span><div><span class="logic-priority" data-level="${escapeLogicText(priority.toLowerCase())}">${escapeLogicText(priority)}</span><strong>${escapeLogicText(title)}</strong><span>${escapeLogicText(description)}</span></div></div>`).join("") : `<p>There are no active transaction actions on the information recorded.</p>`;
     const implications = debtImplications().map(item => `<li>${escapeLogicText(item)}</li>`).join("");
     const notes = (issue.notes || "").split(/\n\s*\n/).filter(Boolean).map(entry => `<div class="logic-note">${escapeLogicText(entry).replace(/^(Transaction triggers:|Register updates:)/, "<strong>$1</strong>")}${entry.startsWith("Register updates:") ? ' <a href="https://www.gov.uk/government/publications/register-a-statement-of-satisfaction-mr04" target="_blank" rel="noopener noreferrer">Companies House: statement of satisfaction (MR04)</a>' : ""}</div>`).join("");
-    logicCard.innerHTML = `<h3>Apply deal logic</h3><section class="logic-section"><h4>Summary</h4><p class="logic-conclusion">${escapeLogicText(debtSummary())}</p></section><section class="logic-section"><h4>Key deal implications</h4><ul>${implications}</ul></section><section class="logic-section"><div class="logic-section-heading"><h4>Recommended actions</h4>${sidePicker}</div>${actionMarkup}</section>${notes ? `<section class="logic-section"><h4>Notes</h4>${notes}</section>` : ""}`;
+    logicCard.innerHTML = `<h3>Apply Deal Lens</h3><section class="logic-section"><h4>Summary</h4><p class="logic-conclusion">${escapeLogicText(debtSummary())}</p></section><section class="logic-section"><h4>Key deal implications</h4><ul>${implications}</ul></section><section class="logic-section"><div class="logic-section-heading"><h4>Recommended actions</h4>${sidePicker}</div>${actionMarkup}</section>${notes ? `<section class="logic-section"><h4>Notes</h4>${notes}</section>` : ""}`;
     document.dispatchEvent(new CustomEvent("debt-facilities-logic-rendered"));
   };
   const previousExportReport = exportReport;
@@ -462,7 +462,7 @@
     if (issue?.id !== issueId) return previousExportReport();
     const complete = debtAnswersComplete(), side = getTransactionSide();
     const actions = complete ? debtActions(side) : [];
-    const report = ["DEALLOGIC ISSUE REPORT", "", issue.title, `${areas[issue.category]} · ${issue.jurisdiction.primary}`,
+    const report = ["DEAL LENS ISSUE REPORT", "", issue.title, `${areas[issue.category]} · ${issue.jurisdiction.primary}`,
       `Risk score: ${debtRiskScore()}/5 — ${riskNames[debtRiskScore() - 1]}`, "", "DILIGENCE ANSWERS",
       ...visibleIds().map(id => `- ${issue.key_questions.find(q => q.id === id).question}\n  Response: ${answer(id)}`),
       ...(complete ? ["", "SUMMARY", debtSummary(), "", "KEY DEAL IMPLICATIONS", ...debtImplications().map(text => `- ${text}`),

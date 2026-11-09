@@ -77,7 +77,7 @@ Validation covers incomplete and absent routes, hidden answers, suspected/unknow
 
 ## Action matrix
 
-The [researched action matrix](data-protection-action-matrix.md) sets out 13 consolidated action types, concise Buyer/Seller/Balanced instructions, exact answer triggers and conditional priorities, worked scenarios and the legal/practice sources checked on 1 November 2026. The matrix is implemented in Apply deal logic, the full Actions by Issue catalogue, Deal Hub capture and reports, with a maximum of nine recommendation cards per completed response.
+The [researched action matrix](data-protection-action-matrix.md) sets out 13 consolidated action types, concise Buyer/Seller/Balanced instructions, exact answer triggers and conditional priorities, worked scenarios and the legal/practice sources checked on 1 November 2026. The matrix is implemented in Apply Deal Lens, the full Actions by Issue catalogue, Deal Hub capture and reports, with a maximum of nine recommendation cards per completed response.
 
 ## Approved legal notes
 

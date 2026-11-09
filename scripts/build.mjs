@@ -4,7 +4,7 @@ import { createHash } from "node:crypto";
 
 const siteRoot = process.cwd();
 const distRoot = path.join(siteRoot, "dist");
-for (const [kind, filename] of [["privacy", "Deal-Logic-Privacy-Notice.pdf"], ["terms", "Deal-Logic-Terms-of-Use.pdf"]]) {
+for (const [kind, filename] of [["privacy", "Deal-Lens-Privacy-Notice.pdf"], ["terms", "Deal-Lens-Terms-of-Use.pdf"]]) {
   const html = await readFile(path.join(distRoot, `${kind}.html`), "utf8");
   const content = html.match(/<main\b[^>]*>([\s\S]*?)<\/main>/)?.[1];
   const pdf = await readFile(path.join(distRoot, filename));
@@ -15,7 +15,7 @@ for (const [kind, filename] of [["privacy", "Deal-Logic-Privacy-Notice.pdf"], ["
 }
 const issues = JSON.parse(await readFile(path.join(distRoot, "issues.json"), "utf8"));
 if (!Array.isArray(issues) || !issues.length || issues.some(issue => !issue.id || !issue.title)) {
-  throw new Error("Expected a non-empty collection of valid DealLogic issues.");
+  throw new Error("Expected a non-empty collection of valid Deal Lens issues.");
 }
 
 const projectFirebaseConfig = JSON.parse(await readFile(path.join(siteRoot, "firebase.web.json"), "utf8"));
@@ -28,4 +28,4 @@ const firebaseConfig = {
 const configured = Object.values(firebaseConfig).every(Boolean);
 await writeFile(path.join(distRoot, "firebase-config.js"),
   `window.DEALLOGIC_FIREBASE_CONFIG = ${JSON.stringify(configured ? firebaseConfig : null)};\n`);
-console.log(`Prepared ${issues.length} DealLogic issue records.`);
+console.log(`Prepared ${issues.length} Deal Lens issue records.`);

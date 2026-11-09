@@ -5,7 +5,7 @@
   let font;
   let logo;
   function loadLogo() {
-    if (!logo) logo = fetch(new URL('deallogic-logo.png', assetBase)).then(response => {
+    if (!logo) logo = fetch(new URL('deal-lens-logo.png', assetBase)).then(response => {
       if (!response.ok) throw new Error('Unable to load the briefing logo.');
       return response.arrayBuffer();
     }).then(data => new Uint8Array(data)).catch(error => { logo = null; throw error; });
@@ -84,7 +84,7 @@
       }
     }
     const style = (id, name, size, extra = {}) => ({ id, name, basedOn: 'Normal', next: 'Normal', run: { font: 'Inter', size, color: '000000' }, paragraph: { spacing: { after: 140 }, ...extra } });
-    const doc = new Document({ fonts: [{ name: 'Inter', data: fontData }], creator: 'DealLogic', title: `${dealName} — Deal Hub Briefing`,
+    const doc = new Document({ fonts: [{ name: 'Inter', data: fontData }], creator: 'Deal Lens', title: `${dealName} — Deal Hub Briefing`,
       styles: { default: { title: style('Title','Title',44,{ spacing: { before:360,after:160 },keepNext:true }),
         ...Object.fromEntries([1,2,3].map(level=>[`heading${level}`,style(`Heading${level}`,`Heading ${level}`,[0,32,25,22][level],{outlineLevel:level-1,keepNext:true,spacing:{before:260,after:140}})])), document: { run: { font: 'Inter', size: 21, color: '26372D' }, paragraph: { spacing: { after: 160, line: 288 }, widowControl: true } } }, paragraphStyles: [
         style('Subtitle','Subtitle',28,{ keepNext: true }),
@@ -95,7 +95,7 @@
         { ...style('Note','Note',19), run:{ font:'Inter',size:19,italics:true,color:'526159' } }
       ] },
       sections: [{ properties: { page: { size: { width:11906, height:16838 }, margin: { top:1134,bottom:1134,left:1134,right:1134,header:480,footer:480 } } },
-        headers: { default: new Header({ children:[new Paragraph({ spacing: { after: 0 }, children: [new ImageRun({ type: 'png', data: logoData, transformation: { width: 106, height: 28 }, altText: { title: 'Deal Logic', description: 'Deal Logic layered mark', name: 'Deal Logic logo' } })] })] }) },
+        headers: { default: new Header({ children:[new Paragraph({ spacing: { after: 0 }, children: [new ImageRun({ type: 'png', data: logoData, transformation: { width: 106, height: 28 }, altText: { title: 'Deal Lens', description: 'Deal Lens layered mark', name: 'Deal Lens logo' } })] })] }) },
         footers: { default: new Footer({ children:[new Paragraph({ alignment:'right', children:[text(`Deal Hub Briefing · ${dealName} · `,{size:17,color:'526159'}),new TextRun({children:[PageNumber.CURRENT],size:17})] })] }) }, children }]
     });
     return Packer.toBlob(doc);
