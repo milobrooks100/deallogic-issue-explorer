@@ -1,3 +1,4 @@
+import { DealSyncConflict, projectStoreKey, syncDealState } from "./account-deal-sync.js";
 import { prepareBrowserProgressImport } from "./browser-progress-import.js";
 import { accountManagementMarkup, setupAccountManagement } from "./account-management.js";
 
@@ -15,6 +16,7 @@ if (!storage.guestSession() && config?.apiKey && config?.authDomain && config?.p
   const auth = authSdk.getAuth(initializeApp(config));
   const db = firestore.getFirestore();
   let verifiedUser = null;
+  let syncConflict = false;
   let syncRunning = null;
   let syncTimer = 0;
   let syncRetryMs = 3000;
@@ -108,7 +110,7 @@ if (!storage.guestSession() && config?.apiKey && config?.authDomain && config?.p
     }
     const status = slot.querySelector("[data-account-save-status]");
     if (status) status.textContent = verifiedUser
-      ? storage.pendingKeys(verifiedUser.uid).length ? "Saving to account…" : "Saved to account"
+      ? syncConflict ? "Account sync needs attention" : storage.pendingKeys(verifiedUser.uid).length ? "Saving to account…" : "Saved to account"
       : state === "unverified" ? "Finish account setup" : "Saved in this browser";
   }
   function updateAvatarEditor() {
@@ -210,16 +212,36 @@ if (!storage.guestSession() && config?.apiKey && config?.authDomain && config?.p
     const uid = verifiedUser.uid;
     syncRunning = withCloudLock(uid, async () => {
       for (let pass = 0; !accountOperation && pass < 10 && storage.pendingKeys(uid).length; pass++) {
-        for (const key of storage.pendingKeys(uid)) {
+        const keys = storage.pendingKeys(uid);
+        const projectIndex = keys.indexOf(projectStoreKey);
+        if (projectIndex > 0) keys.unshift(...keys.splice(projectIndex, 1));
+        for (const key of keys) {
+          if (accountOperation) break;
           const value = storage.accountItem(uid, key);
-          if (value === null) await firestore.deleteDoc(stateDoc(uid, key));
-          else await firestore.setDoc(stateDoc(uid, key), { key, value, updatedAt: firestore.serverTimestamp() });
+          const handled = await syncDealState({
+            firestore, db, collection: stateCollection(uid), doc: key => stateDoc(uid, key),
+            key, baseline: storage.baseline(uid, key), value,
+            issueIds: typeof issues === "undefined" ? [] : issues.map(issue => issue.id)
+          });
+          if (!handled) {
+            if (value === null) await firestore.deleteDoc(stateDoc(uid, key));
+            else await firestore.setDoc(stateDoc(uid, key), { key, value, updatedAt: firestore.serverTimestamp() });
+          }
           if (storage.accountItem(uid, key) === value) storage.clearPending(uid, key);
+          else storage.advanceBaseline(uid, key, value);
         }
       }
     });
     let saved = false;
     try { await syncRunning; saved = true; }
+    catch (error) {
+      if (error instanceof DealSyncConflict) {
+        syncConflict = true;
+        const notice = card?.querySelector("[data-account-sync-conflict]");
+        if (notice) notice.hidden = false;
+      }
+      throw error;
+    }
     finally {
       syncRunning = null;
       if (saved && storage.pendingKeys(uid).length) scheduleSync();
@@ -232,7 +254,7 @@ if (!storage.guestSession() && config?.apiKey && config?.authDomain && config?.p
     if (storage.pendingKeys(verifiedUser.uid).length) throw new Error("Sync still pending");
   }
   function scheduleSync(delay = 900) {
-    if (accountOperation) return;
+    if (accountOperation || syncConflict) return;
     clearTimeout(syncTimer);
     syncTimer = setTimeout(async () => {
       try {
@@ -241,7 +263,8 @@ if (!storage.guestSession() && config?.apiKey && config?.authDomain && config?.p
         if (verifiedUser && !storage.pendingKeys(verifiedUser.uid).length && card?.querySelector("[data-account-message]")?.textContent === "Avatar updated. Saving to your account…") {
           message("Avatar saved to your account.");
         }
-      } catch {
+      } catch (error) {
+        if (error instanceof DealSyncConflict) return;
         message("Progress is saved in this browser, but cloud sync is unavailable. We will retry automatically.", true);
         if (verifiedUser && storage.pendingKeys(verifiedUser.uid).length) {
           scheduleSync(syncRetryMs);
@@ -309,7 +332,7 @@ if (!storage.guestSession() && config?.apiKey && config?.authDomain && config?.p
       return;
     }
     await user.getIdToken(true);
-    const snapshot = await firestore.getDocs(stateCollection(user.uid));
+    const snapshot = await firestore.getDocsFromServer(stateCollection(user.uid));
     const entries = snapshot.docs.map(doc => [doc.data().key, doc.data().value])
       .filter(([key, value]) => typeof key === "string" && typeof value === "string" && key.startsWith("deallogic:"));
     storage.applyCloud(user.uid, entries);
@@ -332,6 +355,21 @@ if (!storage.guestSession() && config?.apiKey && config?.authDomain && config?.p
     if (verifiedUser) {
       card.innerHTML = `<span class="eyebrow">Account</span><h3>Your account</h3><p>Signed in as <strong data-account-email></strong>. Your deal progress and preferences save automatically to your account.</p><div class="account-avatar-settings settings-subsection"><div class="account-avatar-intro"><span class="account-avatar-preview" data-account-avatar-preview></span><div><h4>Your avatar</h4><p>Choose one of 30 avatars for your sidebar account button.</p></div></div><div class="account-avatar-groups">${avatarChoicesMarkup()}</div></div><div class="account-password-settings settings-subsection"><h4>Change password</h4><p>Enter your current password and a new one. You will review the change before confirming it.</p><form data-password-form><label>Current password<input type="password" name="currentPassword" maxlength="256" autocomplete="current-password" required></label><label>New password<input type="password" name="newPassword" maxlength="256" autocomplete="new-password" minlength="6" required></label><div class="account-password-actions"><button type="submit" data-password-review>Review password change</button><div class="account-password-confirmation" data-password-confirmation role="group" aria-label="Confirm password change" hidden><strong>Change your password?</strong><p>This will replace the password you use to sign in.</p><div><button type="button" data-password-confirm>Confirm password change</button><button type="button" data-password-cancel>Cancel</button></div></div></div></form><p class="account-password-status" data-password-status role="status" aria-live="polite"></p></div><div data-account-import class="settings-subsection"></div><div class="account-security-settings settings-subsection"><div><h4>Session</h4><p>Sign out on this device when you are finished.</p></div><div class="account-actions"><button type="button" data-account-signout>Sign out</button></div></div>${accountManagementMarkup}<p class="account-message" data-account-message role="status" aria-live="polite"></p>`;
       card.querySelector("[data-account-email]").textContent = verifiedUser.email;
+      const notice = document.createElement("div");
+      notice.dataset.accountSyncConflict = "";
+      notice.hidden = !syncConflict;
+      notice.innerHTML = '<p role="alert">Saved deal progress changed on another device. To protect those changes, this browser stopped syncing. Copy anything you want to keep before loading the latest account progress.</p><button type="button">Load latest account progress</button>';
+      card.prepend(notice);
+      notice.querySelector("button").onclick = async () => {
+        if (!confirm("Load the latest account progress and discard changes waiting to sync from this browser?")) return;
+        const uid = verifiedUser.uid;
+        try {
+          await firestore.getDocsFromServer(stateCollection(uid));
+          if (verifiedUser?.uid !== uid) return;
+          storage.clearAccountCache(uid);
+          location.reload();
+        } catch { message("Could not reach your account. Your local changes are still here.", true); }
+      };
       card.querySelectorAll("[data-avatar-index]").forEach(button => button.onclick = () => {
         storage.setItem(avatarKey, JSON.stringify({ kind: "preset", index: Number(button.dataset.avatarIndex) }));
         updateAvatarEditor();
@@ -363,7 +401,7 @@ if (!storage.guestSession() && config?.apiKey && config?.authDomain && config?.p
         } catch {
           signingOut = false;
           if (verifiedUser && storage.pendingKeys(verifiedUser.uid).length) scheduleSync(syncRetryMs);
-          message("Your latest changes are still saving. We will retry automatically before you sign out.", true);
+          if (!syncConflict) message("Your latest changes are still saving. We will retry automatically before you sign out.", true);
         }
       };
       if (storage.guestEntries().length) {

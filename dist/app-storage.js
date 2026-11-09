@@ -10,6 +10,9 @@
   const guestSessionKey = "deallogic:guest-session";
   const accountPrefix = uid => `deallogic:account:${uid}:`;
   const pendingKey = uid => `deallogic:sync-pending:${uid}`;
+  const baselinePrefix = uid => `deallogic:sync-base:${uid}:`;
+  const baselineKey = (uid, key) => baselinePrefix(uid) + key;
+  const guarded = key => key === "deallogic:deal-projects:v1" || key.startsWith("deallogic:deal-project:");
   let activeUid = window.sessionStorage?.getItem(guestSessionKey) === "true" ? null : provider.getItem(accountKey) || null;
   if (activeUid && typeof document !== "undefined") document.documentElement.classList.add("account-restoring");
   const listeners = new Set();
@@ -21,6 +24,11 @@
       const keys = JSON.parse(provider.getItem(pendingKey(uid)) || "[]");
       return new Set(Array.isArray(keys) ? keys : []);
     } catch { return new Set(); }
+  };
+  const captureBaseline = key => {
+    if (activeUid && guarded(key) && !pending(activeUid).has(key)) {
+      provider.setItem(baselineKey(activeUid, key), JSON.stringify(provider.getItem(scoped(key))));
+    }
   };
   const markPending = key => {
     if (!activeUid || !key.startsWith("deallogic:")) return;
@@ -37,8 +45,18 @@
 
   window.DealLogicStorage = Object.freeze({
     getItem(key) { return provider.getItem(scoped(key)); },
-    setItem(key, value) { if (activeUid && frozenAccounts.has(activeUid)) return; provider.setItem(scoped(key), value); markPending(key); },
-    removeItem(key) { if (activeUid && frozenAccounts.has(activeUid)) return; provider.removeItem(scoped(key)); markPending(key); },
+    setItem(key, value) { if (activeUid && frozenAccounts.has(activeUid)) return; captureBaseline(key); provider.setItem(scoped(key), value); markPending(key); },
+    removeItem(key) { if (activeUid && frozenAccounts.has(activeUid)) return; captureBaseline(key); provider.removeItem(scoped(key)); markPending(key); },
+    removeDealAnswers(id) {
+      if (activeUid && frozenAccounts.has(activeUid)) return;
+      const prefix = `deallogic:deal-project:${id}:issue:`;
+      for (const key of keys().filter(key => key.startsWith(scoped(prefix)))) {
+        const localKey = prefix + key.slice(scoped(prefix).length);
+        captureBaseline(localKey);
+        provider.removeItem(key);
+        markPending(localKey);
+      }
+    },
     freezeAccount(uid) { frozenAccounts.add(uid); },
     activeUid() { return activeUid; },
     guestSession() { return window.sessionStorage?.getItem(guestSessionKey) === "true"; },
@@ -55,14 +73,22 @@
     },
     guestEntries() {
       return keys()
-        .filter(key => key.startsWith("deallogic:") && !key.startsWith("deallogic:account:") && !key.startsWith("deallogic:sync-pending:") && key !== accountKey)
+        .filter(key => key.startsWith("deallogic:") && !key.startsWith("deallogic:account:") && !key.startsWith("deallogic:sync-pending:") && !key.startsWith("deallogic:sync-base:") && key !== accountKey)
         .map(key => [key, provider.getItem(key)]);
     },
     accountEntries,
     pendingKeys(uid) { return [...pending(uid)]; },
+    baseline(uid, key) {
+      const raw = provider.getItem(baselineKey(uid, key));
+      return raw === null ? undefined : JSON.parse(raw);
+    },
+    advanceBaseline(uid, key, value) {
+      if (guarded(key)) provider.setItem(baselineKey(uid, key), JSON.stringify(value));
+    },
     clearPending(uid, key) {
       const keys = pending(uid);
       keys.delete(key);
+      provider.removeItem(baselineKey(uid, key));
       provider.setItem(pendingKey(uid), JSON.stringify([...keys]));
     },
     accountItem(uid, key) { return provider.getItem(accountPrefix(uid) + key); },
@@ -79,6 +105,7 @@
     clearAccountCache(uid) {
       for (const [key] of accountEntries(uid)) provider.removeItem(accountPrefix(uid) + key);
       provider.removeItem(pendingKey(uid));
+      for (const key of keys().filter(key => key.startsWith(baselinePrefix(uid)))) provider.removeItem(key);
     },
     onChange(listener) { listeners.add(listener); return () => listeners.delete(listener); }
   });

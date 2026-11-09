@@ -68,3 +68,27 @@ test("account cleanup removes settings, deals, answers and pending writes withou
   saved.setAccount("bob");
   assert.equal(saved.getItem("deallogic:deal-projects:v1"), "bob deal");
 });
+
+test("deal deletion removes all issue keys only for the exact deal and keeps the original sync baseline after reload", () => {
+  const window = { localStorage: makeStorage() };
+  vm.runInNewContext(source, { window });
+  let saved = window.DealLogicStorage;
+  const ip = "deallogic:deal-project:a:issue:ip";
+  const finance = "deallogic:deal-project:a:issue:finance";
+  const other = "deallogic:deal-project:a-other:issue:ip";
+  saved.setItem(ip, "guest answer");
+  saved.setAccount("alice");
+  saved.applyCloud("alice", [[ip, "original"], [finance, "finance"], [other, "other"]]);
+  saved.setItem(ip, "pending edit");
+  saved.removeDealAnswers("a");
+  vm.runInNewContext(source, { window });
+  saved = window.DealLogicStorage;
+  assert.equal(saved.getItem(ip), null);
+  assert.equal(saved.getItem(finance), null);
+  assert.equal(saved.getItem(other), "other");
+  assert.equal(saved.baseline("alice", ip), "original");
+  assert.deepEqual(Array.from(saved.pendingKeys("alice")), [ip, finance]);
+  saved.setAccount(null);
+  assert.equal(saved.getItem(ip), "guest answer");
+  assert.ok(!saved.guestEntries().some(([key]) => key.startsWith("deallogic:sync-base:")));
+});

@@ -28,7 +28,7 @@ python3 -m http.server 4173 --directory dist
 
 Without an account, deal data stays in this browser. Verified email/password accounts can save progress to Cloud Firestore and retrieve it on another device. Browser data can be imported from the Account panel in Settings. Browser and account data use separate local keys; signing out removes the account's local cache.
 
-Browser persistence is accessed through `dist/app-storage.js`. `dist/account.js` mirrors account changes to Firestore. A failed cloud write remains marked for retry in the browser, and the page shows a saving status until it succeeds.
+Browser persistence is accessed through `dist/app-storage.js`. `dist/account.js` mirrors account changes to Firestore. A failed cloud write remains marked for retry in the browser. Deal and answer writes use Firestore transactions to reject stale versions. If another device edited the same saved record, local work remains in the browser and Settings offers to load the latest version after confirmation. Deleting a named deal removes its browser answers and, for accounts, clears its cloud answers, including answers saved from another device. Refresh any app tabs opened before the transactional sync release before editing or deleting account data.
 
 ## Set up Firebase accounts
 

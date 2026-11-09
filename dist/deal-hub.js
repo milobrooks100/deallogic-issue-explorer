@@ -319,7 +319,7 @@
       store.projects=store.projects.filter(project=>project.id!==id);
       store.activeProjectId="quick-workspace";
       saveDealProjects(store);
-      DealLogicStorage.removeItem(`deallogic:deal-project:${id}:issue:customer-change-of-control`);
+      DealLogicStorage.removeDealAnswers(id);
       document.dispatchEvent(new CustomEvent("deal-project-change",{detail:{id:"quick-workspace"}}));
       toast("Deal deleted");
     }
