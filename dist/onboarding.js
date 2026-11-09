@@ -9,10 +9,35 @@
   settingsHelp.type = "button";
   settingsHelp.className = "tour-settings-button";
   settingsHelp.innerHTML = '<i data-lucide="circle-help" aria-hidden="true"></i><span>Getting started with Deal Lens</span>';
+  const videoHelp = document.createElement("button");
+  videoHelp.type = "button";
+  videoHelp.className = "tour-settings-button";
+  videoHelp.setAttribute("aria-haspopup", "dialog");
+  videoHelp.innerHTML = '<i data-lucide="circle-play" aria-hidden="true"></i><span>Video tutorial</span>';
   const settingsSection = document.createElement("section");
   settingsSection.className = "settings-section tour-settings";
-  settingsSection.append(settingsHelp);
+  settingsSection.append(settingsHelp, videoHelp);
   settingsPanel.append(settingsSection);
+
+  const videoDialog = document.createElement("dialog");
+  videoDialog.className = "tutorial-dialog";
+  videoDialog.setAttribute("aria-labelledby", "tutorial-title");
+  videoDialog.innerHTML = `
+    <div class="tutorial-header">
+      <h2 id="tutorial-title">Video tutorial</h2>
+      <form method="dialog"><button type="submit" class="tour-settings-button" autofocus>Close</button></form>
+    </div>
+    <video controls playsinline preload="none" aria-labelledby="tutorial-title">
+      <source src="./deal-lens-tutorial.mp4" type="video/mp4">
+      <track kind="captions" src="./deal-lens-tutorial.en.vtt" srclang="en" label="English">
+    </video>`;
+  document.body.append(videoDialog);
+  const tutorialVideo = videoDialog.querySelector("video");
+  videoHelp.addEventListener("click", () => videoDialog.showModal());
+  videoDialog.addEventListener("close", () => {
+    tutorialVideo.pause();
+    videoHelp.focus();
+  });
   window.lucide?.createIcons({ attrs: { "stroke-width": 1.75 } });
 
   function mountSidebarHelp() {

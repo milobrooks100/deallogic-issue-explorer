@@ -11,10 +11,15 @@
 .tour-help:focus-visible, .tour-dismiss:focus-visible, .tour-settings-button:focus-visible { outline:3px solid var(--theme-ring, #8aa9a0); outline-offset:2px; }
 .tour-launcher.is-dismissing .tour-launcher-row { pointer-events:none; animation:tour-slide-below-divider 360ms cubic-bezier(.4, 0, 1, 1) forwards; }
 @keyframes tour-slide-below-divider { to { transform:translateY(70px); opacity:0; } }
-.tour-settings { display:flex; align-items:center; }
+.tour-settings { display:flex; flex-wrap:wrap; align-items:center; gap:10px; }
 .tour-settings-button { display:inline-flex; align-items:center; gap:10px; min-height:44px; padding:10px 16px; border:1px solid var(--line); border-radius:12px; background:var(--surface, #fff); color:var(--ink); font-size:13px; font-weight:600; cursor:pointer; }
 .tour-settings-button svg { width:18px; height:18px; flex:none; }
 .tour-settings-button:hover { background:var(--soft, #edf2ed); }
+.tutorial-dialog { box-sizing:border-box; width:min(900px, calc(100% - 32px)); max-height:calc(100% - 32px); padding:16px; border:1px solid var(--line); border-radius:16px; background:var(--surface, #fff); color:var(--ink); }
+.tutorial-dialog::backdrop { background:rgba(0, 0, 0, .55); }
+.tutorial-header { display:flex; align-items:center; justify-content:space-between; gap:12px; margin-bottom:12px; }
+.tutorial-header h2 { margin:0; font-size:18px; }
+.tutorial-dialog video { display:block; width:100%; max-height:72dvh; aspect-ratio:3028 / 1782; background:#000; border-radius:10px; }
 .tour-overlay { position:fixed; inset:0; z-index:9000; font-family:Inter,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif; }
 .tour-overlay[hidden] { display:none!important; }
 .tour-full-shade { position:fixed; inset:0; background:rgba(17,24,22,.58); }
