@@ -467,7 +467,6 @@
     visible.filter(id => !fields[id].multiple).forEach(id => {
       document.getElementById(id).onchange = event => {
         saveAnswer(id, event.target.value);
-        document.getElementById(id)?.focus();
       };
     });
     document.querySelectorAll("[data-reg-step]").forEach(input => input.onchange = () => {

@@ -371,7 +371,6 @@
         normalize(answers);
         DealLogicStorage.setItem(storedKey(), JSON.stringify(answers));
         renderPanel();
-        document.getElementById(id)?.focus();
       };
     });
   };

@@ -280,7 +280,6 @@
         Object.keys(fields).filter(key => !activeIds.includes(key)).forEach(key => delete answers[key]);
         DealLogicStorage.setItem(storedKey(), JSON.stringify(answers));
         renderPanel();
-        document.getElementById(id)?.focus();
       };
     });
   };
