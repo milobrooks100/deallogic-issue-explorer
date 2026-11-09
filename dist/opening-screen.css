@@ -1,5 +1,5 @@
 #deal-lens-opening[open] {
-  --opening-duration: 2s;
+  --opening-duration: 3.2s;
   --opening-ease: cubic-bezier(.2, .75, .25, 1);
   --opening-mark: clamp(60px, 17vw, 88px);
   position: fixed;
