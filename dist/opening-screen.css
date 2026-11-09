@@ -1,0 +1,67 @@
+#deal-lens-opening[open] {
+  --opening-duration: 2s;
+  --opening-ease: cubic-bezier(.2, .75, .25, 1);
+  --opening-mark: clamp(60px, 17vw, 88px);
+  position: fixed;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  max-width: none;
+  max-height: none;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  overflow: hidden;
+  display: grid;
+  place-items: center;
+  background: var(--default-workspace-paper);
+  color: #071a35;
+  animation: deal-lens-opening-fade var(--opening-duration) ease both;
+}
+
+#deal-lens-opening::backdrop { background: transparent; }
+
+.opening-lockup {
+  display: flex;
+  align-items: center;
+  gap: clamp(8px, 2vw, 14px);
+  transform: translateX(calc(50% - var(--opening-mark) / 2));
+  animation: deal-lens-opening-shift var(--opening-duration) var(--opening-ease) both;
+}
+
+.opening-lockup img {
+  display: block;
+  width: var(--opening-mark);
+  height: var(--opening-mark);
+}
+
+.opening-wordmark {
+  font-size: clamp(32px, 8.7vw, 62px);
+  font-weight: 400;
+  line-height: 1;
+  letter-spacing: -.055em;
+  white-space: nowrap;
+  animation: deal-lens-opening-wordmark var(--opening-duration) var(--opening-ease) both;
+}
+
+.opening-wordmark strong { font-weight: 750; }
+
+@keyframes deal-lens-opening-shift {
+  0%, 28% { transform: translateX(calc(50% - var(--opening-mark) / 2)); }
+  48%, 100% { transform: translateX(0); }
+}
+
+@keyframes deal-lens-opening-wordmark {
+  0%, 31% { opacity: 0; transform: translateX(-12px); }
+  49%, 100% { opacity: 1; transform: translateX(0); }
+}
+
+@keyframes deal-lens-opening-fade {
+  0%, 86% { opacity: 1; }
+  100% { opacity: 0; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  #deal-lens-opening[open] { animation-duration: 180ms; }
+  .opening-lockup, .opening-wordmark { animation: none; transform: none; }
+}

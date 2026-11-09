@@ -2,7 +2,8 @@
 :root {
   --ink: #252a2a;
   --muted: #737979;
-  --paper: #f2f2f0;
+  --default-workspace-paper: #f2f2f0;
+  --paper: var(--default-workspace-paper);
   --line: #e4e5e3;
   --moss: #252f2f;
   --lime: #e8ebea;

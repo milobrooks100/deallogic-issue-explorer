@@ -44,7 +44,7 @@
     <link rel="stylesheet" href="./deal-hub.css" />
     <link rel="stylesheet" href="./workspace-redesign.css" />
     <link rel="stylesheet" href="./sidebar-layout-fix.css?v=2" />
-    <link rel="stylesheet" href="./nusa-palette.css" />
+    <link rel="stylesheet" href="./nusa-palette.css?v=2" />
     <link rel="stylesheet" href="./workflow-colours.css" />
     <link rel="stylesheet" href="./view-alignment.css?v=3" />
     <link rel="stylesheet" href="./company-radar.css" />
@@ -57,8 +57,34 @@
     <link rel="stylesheet" href="./hover-feedback.css" />
     <link rel="stylesheet" href="./onboarding.css" />
     <link rel="stylesheet" href="./action-playbooks.css?v=2" />
+    <link rel="stylesheet" href="./opening-screen.css" />
   </head>
   <body>
+    <dialog id="deal-lens-opening" aria-label="Deal Lens">
+      <div class="opening-lockup" aria-hidden="true">
+        <img src="./deal-lens-mark.svg" width="88" height="88" alt="" />
+        <span class="opening-wordmark"><strong>Deal</strong> Lens</span>
+      </div>
+    </dialog>
+    <script>
+      (() => {
+        const opening = document.getElementById("deal-lens-opening");
+        const key = "deal-lens:opening-seen";
+        try {
+          if (DealLogicStorage.getItem(key) || matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+          opening.showModal();
+          DealLogicStorage.setItem(key, "1");
+        } catch {
+          opening.close();
+          return;
+        }
+        const fallback = setTimeout(() => opening.close(), 2200);
+        opening.addEventListener("animationend", event => {
+          if (event.target === opening) opening.close();
+        });
+        opening.addEventListener("close", () => clearTimeout(fallback), { once: true });
+      })();
+    </script>
     <div class="account-restore" role="status"><strong>Restoring your account…</strong><p id="account-restore-message">Loading your saved deal progress.</p><button type="button" onclick="location.reload()">Retry</button><button type="button" onclick="DealLogicStorage.useGuestForSession();location.reload()">Use browser progress</button></div>
     <main><section class="intro"><h2>Deal Map</h2><p>Choose a legal issue and answer the questions to assess the risks and identify the next steps.</p></section><section class="workspace"><aside class="map"><h3><span class="map-title-wrap"><button type="button" class="map-title" aria-describedby="deal-map-guidance">Deal areas</button><span class="map-guidance" id="deal-map-guidance" role="tooltip">Open an area, then select the issue to explore.</span></span></h3><div class="map-branches" id="mind-map"></div></aside><section class="panel" id="panel"><div class="empty-state">Select a deal area to begin.</div></section></section></main>
     <footer>Deal Lens provides general information, not legal advice. Do not rely on its content to make transaction decisions without independent legal advice. <a class="privacy-footer-link" href="./terms.html">See terms of use.</a>&nbsp;<a class="privacy-footer-link" href="./privacy.html">View privacy notice here.</a></footer>
