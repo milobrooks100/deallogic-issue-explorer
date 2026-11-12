@@ -87,7 +87,10 @@
     </script>
     <div class="account-restore" role="status"><strong>Restoring your account…</strong><p id="account-restore-message">Loading your saved deal progress.</p><button type="button" onclick="location.reload()">Retry</button><button type="button" onclick="DealLogicStorage.useGuestForSession();location.reload()">Use browser progress</button></div>
     <main><section class="intro"><h2>Deal Map</h2><p>Choose a legal issue and answer the questions to assess the risks and identify the next steps.</p></section><section class="workspace"><aside class="map"><h3><span class="map-title-wrap"><button type="button" class="map-title" aria-describedby="deal-map-guidance">Deal areas</button><span class="map-guidance" id="deal-map-guidance" role="tooltip">Open an area, then select the issue to explore.</span></span></h3><div class="map-branches" id="mind-map"></div></aside><section class="panel" id="panel"><div class="empty-state">Select a deal area to begin.</div></section></section></main>
-    <footer>Deal Lens provides general information, not legal advice. Do not rely on its content to make transaction decisions without independent legal advice. <a class="privacy-footer-link" href="./terms.html">See terms of use.</a>&nbsp;<a class="privacy-footer-link" href="./privacy.html">View privacy notice here.</a></footer>
+    <footer>
+      <div>Deal Lens provides general information, not legal advice. Do not rely on its content to make transaction decisions without independent legal advice. <a class="privacy-footer-link" href="./terms.html">See terms of use.</a>&nbsp;<a class="privacy-footer-link" href="./privacy.html">View privacy notice here.</a></div>
+      <p style="margin: 8px 0 0;">© 2026 Milo Brooks. All rights reserved.</p>
+    </footer>
     <script>
       const areas={"commercial-contracts":"Material Contracts","intellectual-property":"Intellectual Property","corporate-and-shares":"Shares","litigation-and-disputes":"Disputes","finance-and-banking":"Finance","employees":"Employment","data-protection":"Data Protection","regulatory":"Regulatory"},order=Object.keys(areas).sort((a,b)=>areas[a].localeCompare(areas[b]));
       const dealProjectStoreKey="deallogic:deal-projects:v1";
